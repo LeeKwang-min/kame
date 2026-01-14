@@ -6,6 +6,19 @@ import { useEffect, useRef } from "react";
 const SIZE = 10;
 const SPEED = 4;
 
+const ENEMY_SIZE = 12;
+const SPAWN_INTERVAL_MS = 700;
+const MIN_SPEED = 2;
+const MAX_SPEED = 6;
+
+type Enemy = {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  speed: number;
+};
+
 function DodgePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -17,6 +30,9 @@ function DodgePage() {
     ArrowLeft: false,
     ArrowRight: false,
   });
+
+  const enemiesRef = useRef<Enemy[]>([]);
+  const enemyIdRef = useRef(1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,9 +54,6 @@ function DodgePage() {
       pointRef.current = { x: rect.width / 2, y: rect.height / 2 };
     };
 
-    resize();
-    window.addEventListener("resize", resize);
-
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key in keysRef.current) {
         keysRef.current[e.key as keyof typeof keysRef.current] = true;
@@ -54,9 +67,6 @@ function DodgePage() {
         e.preventDefault();
       }
     };
-
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
 
     const updatePlayer = () => {
       const rect = canvas.getBoundingClientRect();
@@ -73,12 +83,59 @@ function DodgePage() {
       pointRef.current = { x, y };
     };
 
+    const spawnEnemy = () => {
+      const canvas = canvasRef.current!;
+      const rect = canvas.getBoundingClientRect();
+
+      const x = Math.random() * (rect.width - ENEMY_SIZE);
+      const speed = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
+
+      enemiesRef.current.push({
+        id: enemyIdRef.current++,
+        x,
+        y: -ENEMY_SIZE,
+        size: ENEMY_SIZE,
+        speed,
+      });
+    };
+
+    const updateEnemies = () => {
+      const canvas = canvasRef.current!;
+      const rect = canvas.getBoundingClientRect();
+
+      for (const e of enemiesRef.current) {
+        e.y += e.speed;
+      }
+
+      enemiesRef.current = enemiesRef.current.filter(
+        (e) => e.y < rect.height + e.size
+      );
+    };
+
+    const drawEnemies = () => {
+      for (const e of enemiesRef.current) {
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      }
+    };
+
+    resize();
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+
+    const spawnTimer = window.setInterval(spawnEnemy, SPAWN_INTERVAL_MS);
+
     let raf = 0;
     const draw = () => {
       const rect = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
 
       updatePlayer();
+      updateEnemies();
 
       const { x, y } = pointRef.current;
 
@@ -87,12 +144,15 @@ function DodgePage() {
       ctx.fillStyle = "black";
       ctx.fill();
 
+      drawEnemies();
+
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(raf);
+      window.clearInterval(spawnTimer);
       window.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
