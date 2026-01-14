@@ -1,0 +1,9 @@
+function MainLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="w-dvw min-h-dvh flex justify-center px-6 py-4">
+      {children}
+    </main>
+  );
+}
+
+export default MainLayout;
