@@ -1,4 +1,4 @@
-import { Point } from "@/@types/canvas";
+import { Point } from "@/@types/dodge";
 import { TMenuList } from "@/@types/menus";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
