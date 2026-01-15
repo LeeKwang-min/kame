@@ -78,7 +78,6 @@ function DodgePage() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "r" || e.key === "R") {
         resetGame();
-        e.preventDefault();
         return;
       }
 
