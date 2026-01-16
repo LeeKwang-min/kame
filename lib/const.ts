@@ -7,4 +7,12 @@ export const MENU_LIST = [
     href: "/dodge",
     category: "Game",
   },
+  {
+    name: {
+      kor: "키어로",
+      eng: "Kero",
+    },
+    href: "/kero",
+    category: "Game",
+  },
 ];

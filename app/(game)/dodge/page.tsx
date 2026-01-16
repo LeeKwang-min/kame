@@ -35,6 +35,7 @@ function DodgePage() {
   const scoreRef = useRef<number>(0);
   const spawnAccRef = useRef<number>(0); // 스폰 누적 타이머
   const isGameOverRef = useRef<boolean>(false);
+  const isStartedRef = useRef<boolean>(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -59,6 +60,12 @@ function DodgePage() {
       };
     };
 
+    const startGame = () => {
+      if (isStartedRef.current) return;
+      isStartedRef.current = true;
+      lastTimeRef.current = 0;
+    };
+
     const resetGame = () => {
       isGameOverRef.current = false;
       elapsedRef.current = 0;
@@ -76,7 +83,12 @@ function DodgePage() {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "r" || e.key === "R") {
+      if (e.code === "KeyS") {
+        startGame();
+        return;
+      }
+
+      if (e.code === "KeyR") {
         resetGame();
         return;
       }
@@ -128,6 +140,8 @@ function DodgePage() {
     };
 
     const spawnEnemy = () => {
+      if (!isStartedRef.current || isGameOverRef.current) return;
+
       const rect = canvas.getBoundingClientRect();
 
       const dir = pickDir(); // 8방향 고정(대각선 정규화 포함)
@@ -203,6 +217,19 @@ function DodgePage() {
     const drawHud = () => {
       const rect = canvas.getBoundingClientRect();
 
+      if (!isStartedRef.current) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        ctx.fillRect(0, 0, rect.width, rect.height);
+        ctx.fillStyle = "white";
+        ctx.font = "24px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Press 'S' for start", rect.width / 2, rect.height / 2);
+        ctx.restore();
+        return; // 혹은 여기서 끝내기
+      }
+
       const time = elapsedRef.current;
       const score = Math.floor(scoreRef.current);
       const d = getDifficulty(time);
@@ -257,8 +284,6 @@ function DodgePage() {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
-    const spawnTimer = window.setInterval(spawnEnemy, ENEMY_SPAWN_INTERVAL_MS);
-
     let raf = 0;
     const draw = (t: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = t;
@@ -271,7 +296,7 @@ function DodgePage() {
       const rect = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
 
-      if (!isGameOverRef.current) {
+      if (isStartedRef.current && !isGameOverRef.current) {
         elapsedRef.current += dt;
         updateScore(dt);
 
@@ -294,7 +319,6 @@ function DodgePage() {
 
     return () => {
       cancelAnimationFrame(raf);
-      window.clearInterval(spawnTimer);
       window.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
