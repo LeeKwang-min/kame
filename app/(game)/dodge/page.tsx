@@ -230,6 +230,7 @@ function DodgePage() {
         return; // 혹은 여기서 끝내기
       }
 
+      ctx.save();
       const time = elapsedRef.current;
       const score = Math.floor(scoreRef.current);
       const d = getDifficulty(time);
@@ -240,11 +241,8 @@ function DodgePage() {
       ctx.fillText(`Time: ${time.toFixed(1)}s`, 12, 22);
       ctx.fillText(`Score: ${score}`, 12, 44);
       ctx.fillText(`Difficulty: ${Math.round(d * 100)}%`, 12, 66);
-      ctx.restore();
 
       if (!isGameOverRef.current) return;
-
-      ctx.save();
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
       ctx.fillRect(0, 0, rect.width, rect.height);
