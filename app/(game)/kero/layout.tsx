@@ -2,11 +2,11 @@ import KameHeader from "@/components/common/KameHeader";
 import { Metadata } from "next";
 
 // export const metadata: Metadata = {
-//   title: "Dodge",
+//   title: "Kero",
 //   description:
-//     "Dodge는 웹 게임 모음 사이트입니다.",
+//     "Kero는 웹 게임 모음 사이트입니다.",
 //   keywords: [
-//     "Dodge",
+//     "Kero",
 //     "웹 게임 모음",
 //     "웹 게임",
 //     "게임",
@@ -41,13 +41,13 @@ import { Metadata } from "next";
 //   },
 // };
 
-function DodgeLayout({ children }: { children: React.ReactNode }) {
+function KeroLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="w-full h-full px-6 py-4 flex flex-col gap-10 items-center">
-      <KameHeader title="Dodge" />
+      <KameHeader title="Kero" />
       <section className="max-w-[1024px] w-full h-full">{children}</section>
     </main>
   );
 }
 
-export default DodgeLayout;
+export default KeroLayout;
