@@ -9,10 +9,10 @@ export const MENU_LIST = [
   },
   {
     name: {
-      kor: "키어로",
-      eng: "Kero",
+      kor: "키어로33",
+      eng: "Kero33",
     },
-    href: "/kero",
+    href: "/kero33",
     category: "Game",
   },
 ];

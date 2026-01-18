@@ -1,5 +1,5 @@
 import RotatingText from "@/components/RotatingText";
-import { MENU_LIST } from "@/lib/const";
+import { MENU_LIST } from "@/lib/config";
 
 const rotatingTexts = [...MENU_LIST.map((menu) => menu.name.eng), "In Kame!"];
 

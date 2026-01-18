@@ -1,4 +1,4 @@
-export const MAP_SIZE = 9;
+export const MAP_SIZE = 3;
 
 export const PLAYER_DIR = {
   ArrowUp: { x: 0, y: -1 },

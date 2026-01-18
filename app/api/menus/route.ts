@@ -1,4 +1,4 @@
-import { MENU_LIST } from "@/lib/const";
+import { MENU_LIST } from "@/lib/config";
 import { makeCategoryMenuList } from "@/lib/utils";
 import { NextRequest } from "next/server";
 
