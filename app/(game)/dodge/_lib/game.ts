@@ -193,22 +193,21 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     score += SCORE_PER_SEC * dt;
   };
 
-  const drawHud = () => {
+  const gameStartHud = () => {
     const rect = canvas.getBoundingClientRect();
 
-    if (!isStarted) {
-      ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,1)";
-      ctx.fillRect(0, 0, rect.width, rect.height);
-      ctx.fillStyle = "white";
-      ctx.font = "24px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("Press 'S' for start", rect.width / 2, rect.height / 2);
-      ctx.restore();
-      return;
-    }
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,1)";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = "white";
+    ctx.font = "24px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Press 'S' for start", rect.width / 2, rect.height / 2);
+    ctx.restore();
+  }
 
+  const gameHud = () => {
     ctx.save();
     const time = elapsed;
     const totalScore = Math.floor(score);
@@ -220,16 +219,17 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     ctx.fillText(`Time: ${time.toFixed(1)}s`, 12, 22);
     ctx.fillText(`Score: ${totalScore}`, 12, 44);
     ctx.fillText(`Difficulty: ${Math.round(d * 100)}%`, 12, 66);
+    ctx.restore();
+  }
 
-    if (!isGameOver) return;
+  const gameOverHud = () => {
+    const rect = canvas.getBoundingClientRect();
+    const totalScore = Math.floor(score);
 
+    ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    const cardW = Math.min(520, rect.width * 0.85);
-    const cardH = Math.min(260, rect.height * 0.45);
-    const cardX = (rect.width - cardW) / 2;
-    const cardY = (rect.height - cardH) / 2;
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
     ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
@@ -240,19 +240,30 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     ctx.textBaseline = "middle";
 
     const cx = rect.width / 2;
-    const baseY = cardY + cardH / 2;
 
     ctx.font = "52px sans-serif";
-    ctx.fillText("GAME OVER", cx, baseY - 40);
+    ctx.fillText("GAME OVER", cx, rect.height / 2 - 40);
 
     ctx.font = "22px sans-serif";
-    ctx.fillText(`Score: ${totalScore}`, cx, baseY + 18);
+    ctx.fillText(`Score: ${totalScore}`, cx, rect.height / 2 + 18);
 
     ctx.font = "18px sans-serif";
     ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-    ctx.fillText("Press R for Restart", cx, baseY + 58);
+    ctx.fillText("Press R for Restart", cx, rect.height / 2 + 58);
 
     ctx.restore();
+  }
+
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud();
+      return;
+    }
+
+    gameHud();
+    if (!isGameOver) return;
+
+    gameOverHud();
   };
 
   resize();
