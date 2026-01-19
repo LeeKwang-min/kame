@@ -31,7 +31,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
   let isStarted = false;
 
-  const { resetInitial, gameOverHud, onInitialKeyDown } = gameOver(canvas, ctx);
+  const { resetInitial, onInitialKeyDown } = gameOver(canvas, ctx);
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -73,14 +73,14 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (isGameOver) {
-      if (e.code === "KeyR") {
-        resetGame();
-        return;
-      }
-      onInitialKeyDown(e);
-      return;
-    }
+    // if (isGameOver) {
+    //   if (e.code === "KeyR") {
+    //     resetGame();
+    //     return;
+    //   }
+    //   onInitialKeyDown(e);
+    //   return;
+    // }
 
     if (e.code === "KeyS") {
       startGame();
@@ -219,6 +219,43 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     ctx.restore();
   }
 
+  const gameOverHud = () => {
+    const rect = canvas.getBoundingClientRect();
+    const totalScore = Math.floor(score);
+
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+
+
+
+
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.lineWidth = 2;
+
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const cx = rect.width / 2;
+
+
+    ctx.font = "52px sans-serif";
+    ctx.fillText("GAME OVER", cx, rect.height / 2 - 40);
+
+    ctx.font = "22px sans-serif";
+    ctx.fillText(`Score: ${totalScore}`, cx, rect.height / 2 + 18);
+
+    ctx.font = "18px sans-serif";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+    ctx.fillText("Press R for Restart", cx, rect.height / 2 + 58);
+
+    ctx.restore();
+  }
+
   const gameHud = () => {
     ctx.save();
     const time = elapsed;
@@ -239,7 +276,8 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     }
 
     if (isGameOver) {
-      gameOverHud(score);
+      gameOverHud();
+      // gameOverHud(score);
       return;
     }
 
