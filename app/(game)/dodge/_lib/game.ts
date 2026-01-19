@@ -1,8 +1,8 @@
+import { gameOver } from "@/lib/game";
 import { ENEMY_RADIUS, PLAYER_RADIUS, PLAYER_SPEED, SCORE_PER_SEC } from "./config";
 import { Enemy, Player } from "./types";
 import {
   circleCircleCollide,
-  getDifficulty,
   getEnemySpeedRange,
   getSpawnInterval,
   pickDir,
@@ -31,6 +31,8 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
   let isStarted = false;
 
+  const { resetInitial, gameOverHud, onInitialKeyDown } = gameOver(canvas, ctx);
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
@@ -54,6 +56,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   };
 
   const resetGame = () => {
+    resetInitial();
     isGameOver = false;
     elapsed = 0;
     score = 0;
@@ -70,6 +73,15 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
+    if (isGameOver) {
+      if (e.code === "KeyR") {
+        resetGame();
+        return;
+      }
+      onInitialKeyDown(e);
+      return;
+    }
+
     if (e.code === "KeyS") {
       startGame();
       return;
@@ -211,46 +223,12 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     ctx.save();
     const time = elapsed;
     const totalScore = Math.floor(score);
-    const d = getDifficulty(time);
 
     ctx.font = "16px sans-serif";
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
-    ctx.fillText(`Time: ${time.toFixed(1)}s`, 12, 22);
+    ctx.fillText(`Time: ${time.toFixed(0)}s`, 12, 22);
     ctx.fillText(`Score: ${totalScore}`, 12, 44);
-    ctx.fillText(`Difficulty: ${Math.round(d * 100)}%`, 12, 66);
-    ctx.restore();
-  }
-
-  const gameOverHud = () => {
-    const rect = canvas.getBoundingClientRect();
-    const totalScore = Math.floor(score);
-
-    ctx.save();
-    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-    ctx.fillRect(0, 0, rect.width, rect.height);
-
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-    ctx.lineWidth = 2;
-
-    ctx.fillStyle = "black";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const cx = rect.width / 2;
-
-    ctx.font = "52px sans-serif";
-    ctx.fillText("GAME OVER", cx, rect.height / 2 - 40);
-
-    ctx.font = "22px sans-serif";
-    ctx.fillText(`Score: ${totalScore}`, cx, rect.height / 2 + 18);
-
-    ctx.font = "18px sans-serif";
-    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-    ctx.fillText("Press R for Restart", cx, rect.height / 2 + 58);
-
     ctx.restore();
   }
 
@@ -260,10 +238,12 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
       return;
     }
 
-    gameHud();
-    if (!isGameOver) return;
+    if (isGameOver) {
+      gameOverHud(score);
+      return;
+    }
 
-    gameOverHud();
+    gameHud();
   };
 
   resize();
@@ -293,6 +273,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
 
       if (checkCollision()) {
         isGameOver = true;
+        resetInitial();
       }
     }
 

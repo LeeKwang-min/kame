@@ -43,7 +43,7 @@ import { Metadata } from "next";
 
 function DodgeLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="w-full h-full px-6 py-4 flex flex-col gap-10 items-center">
+    <main className="w-full h-screen px-6 py-4 flex flex-col gap-10 items-center">
       <KameHeader title="Dodge" />
       <section className="max-w-[1024px] w-full h-full">{children}</section>
     </main>
