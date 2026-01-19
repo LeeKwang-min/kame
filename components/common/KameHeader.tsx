@@ -14,7 +14,7 @@ function KameHeader({ title, className }: IProps) {
   return (
     <header
       className={cn(
-        "w-full max-w-[1024px] flex items-center justify-between",
+        "w-full flex items-center justify-between",
         className
       )}
     >

@@ -45,7 +45,7 @@ function Kero33Layout({ children }: { children: React.ReactNode }) {
   return (
     <main className="w-full h-full px-6 py-4 flex flex-col gap-10 items-center">
       <KameHeader title="Kero33" />
-      <section className="max-w-[1024px] w-full h-full">{children}</section>
+      <section className="w-full h-full">{children}</section>
     </main>
   );
 }
