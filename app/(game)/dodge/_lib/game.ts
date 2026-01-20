@@ -1,4 +1,4 @@
-import { drawHud, gameOver } from "@/lib/game";
+import { drawHud } from "@/lib/game";
 import { ENEMY_RADIUS, PLAYER_RADIUS, PLAYER_SPEED, SCORE_PER_SEC } from "./config";
 import { Enemy, Player } from "./types";
 import {

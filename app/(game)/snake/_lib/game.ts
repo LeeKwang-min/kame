@@ -16,6 +16,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
   
   let lastTime = 0;
+  let acc = 0;        // tick용 누적(잔여) 시간
   let sec = 0;
 
   const spawnFood = () => {
@@ -36,6 +37,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     if (isStarted) return;
     isStarted = true;
     lastTime = 0;
+    acc = 0;
     sec = 0;
   }
 
@@ -46,6 +48,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     isGameOver = false;
     score = 0;
     lastTime = 0;
+    acc = 0;
     sec = 0;
 
     const startX = Math.floor((rect.width  / 2) / CELL) * CELL;
@@ -116,13 +119,13 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
 
     const ate = (newHead.x === food.x && newHead.y === food.y);
 
-    snake.unshift(newHead);
+    snake = [newHead, ...snake];
 
     if (ate) {
       score += 1;
       food = spawnFood();
     } else {
-      snake.pop();
+      snake = snake.slice(0, -1);
     }
   }
 
@@ -132,12 +135,13 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     lastTime = t;
 
     dt = Math.min(dt, 0.05);
+    acc += dt;
     sec += dt;
 
     if (isStarted && !isGameOver) {
-      while(sec >= STEP) {
+      while(acc >= STEP) {
         tick();
-        sec -= STEP;
+        acc -= STEP;
         if (isGameOver) break;
       }
     }
@@ -145,8 +149,15 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   
 
   const drawSnake = () => {
+    const head = snake[0];
+    if (!head) return;
+
+    ctx.fillStyle = "limegreen";
+    ctx.fillRect(head.x, head.y, CELL, CELL);
+
     ctx.fillStyle = "black";
-    for (const seg of snake) {
+    for (let i = 1; i < snake.length; i++) {
+      const seg = snake[i];
       ctx.fillRect(seg.x, seg.y, CELL, CELL);
     }
   }
