@@ -33,6 +33,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: "소행성",
+      eng: "Asteroid",
+    },
+    href: "/asteroid",
+    category: "Game",
+  },
+  {
+    name: {
       kor: "키어로33",
       eng: "Kero33",
     },
