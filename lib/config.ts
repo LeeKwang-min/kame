@@ -25,6 +25,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: "벽돌 깨기",
+      eng: "Breakout",
+    },
+    href: "/breakout",
+    category: "Game",
+  },
+  {
+    name: {
       kor: "키어로33",
       eng: "Kero33",
     },
