@@ -29,3 +29,24 @@ export const circleRectHit = (cx: number, cy: number, cr: number, rx: number, ry
   const dy = cy - py;
   return dx * dx + dy * dy <= cr * cr;
 };
+
+export const circleCircleHit = (ax: number, ay: number, ar: number, bx: number, by: number, br: number) => {
+  const dx = ax - bx;
+  const dy = ay - by;
+  const rr = ar + br;
+  return dx * dx + dy * dy <= rr * rr;
+};
+
+export const rectRectHit = (ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number) => {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+};
+
+export const pointRectHit = (px: number, py: number, rx: number, ry: number, rw: number, rh: number) => {
+  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+};
+
+export const pointCircleHit = (px: number, py: number, cx: number, cy: number, cr: number) => {
+  const dx = px - cx;
+  const dy = py - cy;
+  return dx * dx + dy * dy <= cr * cr;
+};
