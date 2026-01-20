@@ -239,6 +239,10 @@ export const gameStartHud = (canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("Press 'S' for start", rect.width / 2, rect.height / 2);
+
+  ctx.font = "16px sans-serif";
+  ctx.fillText("Press 'R' for restart", rect.width / 2, rect.height / 2 + 40);
+  ctx.fillText("Using Space and Arrow keys", rect.width / 2, rect.height / 2 + 60);
   ctx.restore();
 }
 

@@ -1,0 +1,11 @@
+export const BIRD_JUMP = 200;
+export const BIRD_GRAVITY = 400;
+export const BIRD_RADIUS = 10;
+export const PIPE_SPAWN_INTERVAL = 2;
+export const PIPE_SPEED = 200;
+export const PIPE_SPEED_PER_SECOND = 5;
+export const PIPE_SPEED_MAX = 800;
+export const PIPE_WIDTH = 80;
+export const PIPE_MARGIN = 20;
+export const MIN_PIPE_GAP = 90;
+export const MAX_PIPE_GAP = 150;
