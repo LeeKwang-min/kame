@@ -17,10 +17,19 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: "플래피 버드",
+      eng: "Flappy Bird",
+    },
+    href: "/flappybird",
+    category: "Game",
+  },
+  {
+    name: {
       kor: "키어로33",
       eng: "Kero33",
     },
     href: "/kero33",
     category: "Game",
+    disabled: true,
   },
 ];
