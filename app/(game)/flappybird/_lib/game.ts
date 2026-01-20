@@ -76,14 +76,14 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  const drawBird = () => {
+  const renderBird = () => {
     ctx.beginPath();
     ctx.arc(bird.x, bird.y, BIRD_RADIUS, 0, Math.PI * 2);
     ctx.fillStyle = "limegreen";
     ctx.fill();
   }
 
-  const drawPipes = () => {
+  const renderPipes = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.fillStyle = "seagreen";
     for (const p of pipes) {
@@ -163,16 +163,16 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
   const render = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
-    drawPipes();
-    drawBird();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    renderPipes();
+    renderBird();
   }
-
-
+  
+  
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
+    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
 
     raf = requestAnimationFrame(draw);
   };

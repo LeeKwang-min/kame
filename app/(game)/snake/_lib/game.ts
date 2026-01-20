@@ -148,7 +148,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   }
   
 
-  const drawSnake = () => {
+  const renderSnake = () => {
     const head = snake[0];
     if (!head) return;
 
@@ -162,7 +162,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     }
   }
   
-  const drawFood = () => {
+  const renderFood = () => {
     ctx.fillStyle = "red";
     ctx.fillRect(food.x, food.y, CELL, CELL);
   }
@@ -170,16 +170,16 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   const render = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
-    drawSnake();
-    drawFood();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    renderSnake();
+    renderFood();
   }
-
-
+  
+  
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
+    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
 
     raf = requestAnimationFrame(draw);
   };

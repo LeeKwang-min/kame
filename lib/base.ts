@@ -57,7 +57,7 @@ export const setupBase = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  const drawPoint = () => {
+  const renderPoint = () => {
     ctx.beginPath();
     ctx.arc(0, 0, 10, 0, Math.PI * 2);
     ctx.fillStyle = "limegreen";
@@ -81,15 +81,15 @@ export const setupBase = (canvas: HTMLCanvasElement) => {
   const render = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
-    drawPoint();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    renderPoint();
   }
-
-
+  
+  
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
+    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
 
     raf = requestAnimationFrame(draw);
   };
