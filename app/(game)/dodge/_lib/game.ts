@@ -1,4 +1,4 @@
-import { gameOver } from "@/lib/game";
+import { drawHud, gameOver } from "@/lib/game";
 import { ENEMY_RADIUS, PLAYER_RADIUS, PLAYER_SPEED, SCORE_PER_SEC } from "./config";
 import { Enemy, Player } from "./types";
 import {
@@ -25,29 +25,12 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   let enemyId = 1;
 
   let lastTime = 0;
-  let elapsed = 0;
+  let sec = 0;
   let score = 0;
   let spawnAcc = 0;
   let isGameOver = false;
   let isStarted = false;
 
-  const { resetInitial, onInitialKeyDown } = gameOver(canvas, ctx);
-
-  const resize = () => {
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
-
-    player = {
-      x: rect.width / 2,
-      y: rect.height / 2,
-    };
-  };
 
   const startGame = () => {
     if (isStarted) return;
@@ -56,9 +39,9 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   };
 
   const resetGame = () => {
-    resetInitial();
+    isStarted = false;
     isGameOver = false;
-    elapsed = 0;
+    sec = 0;
     score = 0;
     spawnAcc = 0;
     enemies = [];
@@ -72,16 +55,20 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     lastTime = 0;
   };
 
-  const onKeyDown = (e: KeyboardEvent) => {
-    // if (isGameOver) {
-    //   if (e.code === "KeyR") {
-    //     resetGame();
-    //     return;
-    //   }
-    //   onInitialKeyDown(e);
-    //   return;
-    // }
+  const resize = () => {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
 
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    resetGame();
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === "KeyS") {
       startGame();
       return;
@@ -141,7 +128,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
 
     const dir = pickDir();
-    const { min, max } = getEnemySpeedRange(elapsed);
+    const { min, max } = getEnemySpeedRange(sec);
     const speed = min + Math.random() * (max - min);
 
     const { x, y } = spawnOutsideByDir(rect, ENEMY_RADIUS, dir);
@@ -160,7 +147,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   const trySpawnEnemies = (dt: number) => {
     spawnAcc += dt;
 
-    const interval = getSpawnInterval(elapsed);
+    const interval = getSpawnInterval(sec);
 
     while (spawnAcc >= interval) {
       spawnAcc -= interval;
@@ -205,85 +192,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     score += SCORE_PER_SEC * dt;
   };
 
-  const gameStartHud = () => {
-    const rect = canvas.getBoundingClientRect();
-
-    ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,1)";
-    ctx.fillRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = "white";
-    ctx.font = "24px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Press 'S' for start", rect.width / 2, rect.height / 2);
-    ctx.restore();
-  }
-
-  const gameOverHud = () => {
-    const rect = canvas.getBoundingClientRect();
-    const totalScore = Math.floor(score);
-
-    ctx.save();
-    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-    ctx.fillRect(0, 0, rect.width, rect.height);
-
-
-
-
-
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-    ctx.lineWidth = 2;
-
-    ctx.fillStyle = "black";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const cx = rect.width / 2;
-
-
-    ctx.font = "52px sans-serif";
-    ctx.fillText("GAME OVER", cx, rect.height / 2 - 40);
-
-    ctx.font = "22px sans-serif";
-    ctx.fillText(`Score: ${totalScore}`, cx, rect.height / 2 + 18);
-
-    ctx.font = "18px sans-serif";
-    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-    ctx.fillText("Press R for Restart", cx, rect.height / 2 + 58);
-
-    ctx.restore();
-  }
-
-  const gameHud = () => {
-    ctx.save();
-    const time = elapsed;
-    const totalScore = Math.floor(score);
-
-    ctx.font = "16px sans-serif";
-    ctx.fillStyle = "black";
-    ctx.textAlign = "left";
-    ctx.fillText(`Time: ${time.toFixed(0)}s`, 12, 22);
-    ctx.fillText(`Score: ${totalScore}`, 12, 44);
-    ctx.restore();
-  }
-
-  const drawHud = () => {
-    if (!isStarted) {
-      gameStartHud();
-      return;
-    }
-
-    if (isGameOver) {
-      gameOverHud();
-      // gameOverHud(score);
-      return;
-    }
-
-    gameHud();
-  };
-
   resize();
 
   window.addEventListener("resize", resize);
@@ -302,7 +210,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     ctx.clearRect(0, 0, rect.width, rect.height);
 
     if (isStarted && !isGameOver) {
-      elapsed += dt;
+      sec += dt;
       updateScore(dt);
 
       updatePlayer(dt);
@@ -311,13 +219,12 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
 
       if (checkCollision()) {
         isGameOver = true;
-        resetInitial();
       }
     }
 
     drawPlayer();
     drawEnemies();
-    drawHud();
+    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
 
     raf = requestAnimationFrame(draw);
   };

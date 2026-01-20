@@ -9,6 +9,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: "뱀 게임",
+      eng: "Snake Game",
+    },
+    href: "/snake",
+    category: "Game",
+  },
+  {
+    name: {
       kor: "키어로33",
       eng: "Kero33",
     },
