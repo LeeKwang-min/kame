@@ -31,7 +31,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
   let isStarted = false;
 
-
   const startGame = () => {
     if (isStarted) return;
     isStarted = true;
@@ -92,6 +91,8 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     }
   };
 
+  // ==================== Update Functions ====================
+
   const updatePlayer = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
 
@@ -102,6 +103,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     if (keys.ArrowUp) dy -= 1;
     if (keys.ArrowDown) dy += 1;
 
+    // 대각선 이동 시 속도 정규화
     if (dx !== 0 && dy !== 0) {
       const inv = 1 / Math.sqrt(2);
       dx *= inv;
@@ -111,15 +113,9 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     player.x += dx * PLAYER_SPEED * dt;
     player.y += dy * PLAYER_SPEED * dt;
 
+    // 경계 체크
     player.x = Math.max(PLAYER_RADIUS, Math.min(rect.width - PLAYER_RADIUS, player.x));
     player.y = Math.max(PLAYER_RADIUS, Math.min(rect.height - PLAYER_RADIUS, player.y));
-  };
-
-  const drawPlayer = () => {
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = "black";
-    ctx.fill();
   };
 
   const spawnEnemy = () => {
@@ -144,42 +140,32 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     });
   };
 
-  const trySpawnEnemies = (dt: number) => {
+  const updateEnemies = (dt: number) => {
+    const rect = canvas.getBoundingClientRect();
+
+    // 적 스폰
     spawnAcc += dt;
-
     const interval = getSpawnInterval(sec);
-
     while (spawnAcc >= interval) {
       spawnAcc -= interval;
       spawnEnemy();
     }
-  };
 
-  const updateEnemies = (dt: number) => {
-    const rect = canvas.getBoundingClientRect();
+    // 적 이동
     for (const e of enemies) {
       e.x += e.vx * e.speed * dt;
       e.y += e.vy * e.speed * dt;
     }
 
+    // 화면 밖 적 제거
     const isOutside = (e: Enemy) => {
       const m = e.r + 2;
       return e.x < -m || e.x > rect.width + m || e.y < -m || e.y > rect.height + m;
     };
-
     enemies = enemies.filter((e) => !isOutside(e));
   };
 
-  const drawEnemies = () => {
-    for (const e of enemies) {
-      ctx.beginPath();
-      ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-      ctx.fillStyle = "red";
-      ctx.fill();
-    }
-  };
-
-  const checkCollision = () => {
+  const handleEnemyCollision = (): boolean => {
     for (const e of enemies) {
       if (circleCircleCollide(player.x, player.y, PLAYER_RADIUS, e.x, e.y, e.r)) {
         return true;
@@ -192,43 +178,67 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     score += SCORE_PER_SEC * dt;
   };
 
-  resize();
-
-  window.addEventListener("resize", resize);
-  window.addEventListener("keydown", onKeyDown);
-  window.addEventListener("keyup", onKeyUp);
-
-  let raf = 0;
-  const draw = (t: number) => {
+  const update = (t: number) => {
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
 
     dt = Math.min(dt, 0.05);
-
-    const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    sec += dt;
 
     if (isStarted && !isGameOver) {
-      sec += dt;
       updateScore(dt);
-
       updatePlayer(dt);
-      trySpawnEnemies(dt);
       updateEnemies(dt);
 
-      if (checkCollision()) {
+      if (handleEnemyCollision()) {
         isGameOver = true;
       }
     }
+  };
 
-    drawPlayer();
-    drawEnemies();
+  // ==================== Render Functions ====================
+
+  const renderPlayer = () => {
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = "black";
+    ctx.fill();
+  };
+
+  const renderEnemies = () => {
+    for (const e of enemies) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+      ctx.fillStyle = "red";
+      ctx.fill();
+    }
+  };
+
+  const render = () => {
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    renderPlayer();
+    renderEnemies();
+  };
+
+  // ==================== Game Loop ====================
+
+  let raf = 0;
+  const draw = (t: number) => {
+    update(t);
+    render();
     drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
 
     raf = requestAnimationFrame(draw);
   };
   raf = requestAnimationFrame(draw);
+
+  resize();
+  window.addEventListener("resize", resize);
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);

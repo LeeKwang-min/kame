@@ -16,12 +16,12 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
   
   let lastTime = 0;
-  let acc = 0;        // tick용 누적(잔여) 시간
+  let acc = 0;  // tick용 누적(잔여) 시간
   let sec = 0;
 
-  const spawnFood = () => {
+  const spawnFood = (): Point => {
     const rect = canvas.getBoundingClientRect();
-    const cols = Math.floor(rect.width  / CELL);
+    const cols = Math.floor(rect.width / CELL);
     const rows = Math.floor(rect.height / CELL);
 
     while (true) {
@@ -51,10 +51,14 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     acc = 0;
     sec = 0;
 
-    const startX = Math.floor((rect.width  / 2) / CELL) * CELL;
+    const startX = Math.floor((rect.width / 2) / CELL) * CELL;
     const startY = Math.floor((rect.height / 2) / CELL) * CELL;
 
-    snake = [{ x: startX, y: startY }, { x: startX - CELL, y: startY }, { x: startX - CELL * 2, y: startY }];
+    snake = [
+      { x: startX, y: startY },
+      { x: startX - CELL, y: startY },
+      { x: startX - CELL * 2, y: startY }
+    ];
     dir = { x: 1, y: 0 };
     nextDir = dir;
 
@@ -95,33 +99,48 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  const tick = () => {
-    const rect = canvas.getBoundingClientRect();
+  // ==================== Update Functions ====================
 
+  const handleWallCollision = (newHead: Point): boolean => {
+    const rect = canvas.getBoundingClientRect();
+    return (
+      newHead.x < 0 ||
+      newHead.y < 0 ||
+      newHead.x >= Math.floor(rect.width / CELL) * CELL ||
+      newHead.y >= Math.floor(rect.height / CELL) * CELL
+    );
+  }
+
+  const handleSelfCollision = (newHead: Point): boolean => {
+    return snake.some((seg, i) => i > 0 && seg.x === newHead.x && seg.y === newHead.y);
+  }
+
+  const handleFoodCollision = (newHead: Point): boolean => {
+    return newHead.x === food.x && newHead.y === food.y;
+  }
+
+  const updateSnake = () => {
     dir = nextDir;
     const head = snake[0];
     const newHead = { x: head.x + dir.x * CELL, y: head.y + dir.y * CELL };
 
-    if (newHead.x < 0 || newHead.y < 0 || 
-      newHead.x >= Math.floor(rect.width / CELL)*CELL ||
-      newHead.y >= Math.floor(rect.height / CELL)*CELL) {
+    // 벽 충돌 체크
+    if (handleWallCollision(newHead)) {
       isGameOver = true;
       return;
     }
 
-    const hitSelf = snake.some((seg, i) =>
-      i > 0 && seg.x === newHead.x && seg.y === newHead.y
-    );
-    if (hitSelf) {
+    // 자기 자신 충돌 체크
+    if (handleSelfCollision(newHead)) {
       isGameOver = true;
       return;
     }
 
-    const ate = (newHead.x === food.x && newHead.y === food.y);
-
+    // 뱀 이동
     snake = [newHead, ...snake];
 
-    if (ate) {
+    // 음식 충돌 체크
+    if (handleFoodCollision(newHead)) {
       score += 1;
       food = spawnFood();
     } else {
@@ -139,14 +158,15 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     sec += dt;
 
     if (isStarted && !isGameOver) {
-      while(acc >= STEP) {
-        tick();
+      while (acc >= STEP) {
+        updateSnake();
         acc -= STEP;
         if (isGameOver) break;
       }
     }
   }
-  
+
+  // ==================== Render Functions ====================
 
   const renderSnake = () => {
     const head = snake[0];
@@ -161,20 +181,22 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
       ctx.fillRect(seg.x, seg.y, CELL, CELL);
     }
   }
-  
+
   const renderFood = () => {
     ctx.fillStyle = "red";
     ctx.fillRect(food.x, food.y, CELL, CELL);
   }
-  
+
   const render = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
+
     renderSnake();
     renderFood();
   }
-  
-  
+
+  // ==================== Game Loop ====================
+
   let raf = 0;
   const draw = (t: number) => {
     update(t);
