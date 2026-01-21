@@ -41,6 +41,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: "테트리스",
+      eng: "Tetris",
+    },
+    href: "/tetris",
+    category: "Game",
+  },
+  {
+    name: {
       kor: "키어로33",
       eng: "Kero33",
     },
