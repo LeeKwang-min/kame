@@ -2,7 +2,8 @@ import { TTetrominoType } from './types';
 
 export const COLS = 10;
 export const ROWS = 20;
-export const CELL = 50;
+export const CELL = 30;
+export const CELL_GAP = 0.5;
 
 export const BASE_STEP = 1.0; // 초기 낙하 간격 (초)
 export const MIN_STEP = 0.05; // 최소 낙하 간격
@@ -336,11 +337,15 @@ export const TETROMINOES: Record<TTetrominoType, number[][][]> = {
 } as const;
 
 export const COLORS: Record<TTetrominoType, string> = {
-  I: '#00f0f0', // 시안
-  O: '#f0f000', // 노랑
-  T: '#a000f0', // 보라
-  S: '#00f000', // 초록
-  Z: '#f00000', // 빨강
-  J: '#0000f0', // 파랑
-  L: '#f0a000', // 주황
+  I: '#5B8A9A', // 청록
+  O: '#C9A227', // 머스타드
+  T: '#7B5D8E', // 자주
+  S: '#5A8F5A', // 세이지 그린
+  Z: '#A85454', // 버건디
+  J: '#4A6A8A', // 스틸 블루
+  L: '#B87333', // 코퍼 오렌지
 };
+
+export const SIDE_PANEL_WIDTH = 120;
+export const PREVIEW_CELL = 20;
+export const PREVIEW_SIZE = 4;

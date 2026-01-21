@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { setupTetris } from '../_lib/game';
+import { CELL, COLS, ROWS, SIDE_PANEL_WIDTH } from '../_lib/config';
 
 function Tetris() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -16,7 +17,11 @@ function Tetris() {
     <div className="w-full h-full">
       <canvas
         ref={canvasRef}
-        className="w-full max-w-[500px] h-full border touch-none mx-auto"
+        className="border touch-none mx-auto"
+        style={{
+          width: COLS * CELL + SIDE_PANEL_WIDTH,
+          height: ROWS * CELL,
+        }}
       />
     </div>
   );

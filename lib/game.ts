@@ -339,3 +339,21 @@ export const drawHud = (
 
   gameHud(ctx, score, sec);
 };
+
+export const drawHudWithoutPlay = (
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  score: number,
+  isStarted: boolean,
+  isGameOver: boolean,
+) => {
+  if (!isStarted) {
+    gameStartHud(canvas, ctx);
+    return;
+  }
+
+  if (isGameOver) {
+    gameOverHud(canvas, ctx, score);
+    return;
+  }
+};
