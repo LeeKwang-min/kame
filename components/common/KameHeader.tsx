@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
-import { MenuIcon } from "lucide-react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { MenuIcon } from 'lucide-react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface IProps {
   title?: string;
@@ -13,11 +13,7 @@ interface IProps {
 function KameHeader({ title, className }: IProps) {
   return (
     <header
-      className={cn(
-        "w-full flex items-center justify-between",
-        className
-      )}
-    >
+      className={cn('w-full flex items-center justify-between', className)}>
       <Link href="/">
         <div className="relative w-[80px] h-[36px] group flex items-center justify-center">
           <h2 className="text-2xl font-bold group-hover:opacity-0 transition-opacity duration-300">

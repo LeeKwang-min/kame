@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   MutationCache,
@@ -6,7 +6,7 @@ import {
   QueryCache,
   QueryClient,
   QueryClientProvider,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
 interface IProps {
   children: React.ReactNode;
@@ -18,23 +18,23 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: false,
       staleTime: 60000 * 30, // 30분
-      networkMode: "offlineFirst",
+      networkMode: 'offlineFirst',
     },
     mutations: {
-      networkMode: "offlineFirst",
+      networkMode: 'offlineFirst',
     },
   },
   queryCache: new QueryCache({
     onError: (
       error: Error,
-      query: Query<unknown, unknown, unknown, readonly unknown[]>
+      query: Query<unknown, unknown, unknown, readonly unknown[]>,
     ) => {
-      console.log("common query error", error, query);
+      console.log('common query error', error, query);
     },
   }),
   mutationCache: new MutationCache({
     onError: (error: Error, mutation) => {
-      console.log("common mutation error", error);
+      console.log('common mutation error', error);
     },
   }),
 });

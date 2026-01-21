@@ -1,4 +1,4 @@
-import KameHeader from "@/components/common/KameHeader";
+import KameHeader from '@/components/common/KameHeader';
 
 function MainHeader() {
   return <KameHeader />;

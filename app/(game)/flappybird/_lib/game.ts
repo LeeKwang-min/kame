@@ -1,13 +1,25 @@
-import { drawHud } from "@/lib/game";
-import { Pipe, Point } from "./types";
-import { BIRD_GRAVITY, BIRD_JUMP, BIRD_RADIUS, MIN_PIPE_GAP, MAX_PIPE_GAP, PIPE_MARGIN, PIPE_SPAWN_INTERVAL, PIPE_SPEED, PIPE_WIDTH, PIPE_SPEED_PER_SECOND, PIPE_SPEED_MAX } from "./config";
-import { circleRectHit, rand } from "@/lib/utils";
+import { drawHud } from '@/lib/game';
+import { Pipe, Point } from './types';
+import {
+  BIRD_GRAVITY,
+  BIRD_JUMP,
+  BIRD_RADIUS,
+  MIN_PIPE_GAP,
+  MAX_PIPE_GAP,
+  PIPE_MARGIN,
+  PIPE_SPAWN_INTERVAL,
+  PIPE_SPEED,
+  PIPE_WIDTH,
+  PIPE_SPEED_PER_SECOND,
+  PIPE_SPEED_MAX,
+} from './config';
+import { circleRectHit, rand } from '@/lib/utils';
 
 export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  let bird: Point = { x: 300, y: 300 }
+  let bird: Point = { x: 300, y: 300 };
   let vy = 0;
 
   let pipes: Pipe[] = [];
@@ -16,7 +28,7 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
-  
+
   let lastTime = 0;
   let sec = 0;
 
@@ -26,7 +38,7 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     isStarted = true;
     lastTime = 0;
     sec = 0;
-  }
+  };
 
   const resetGame = () => {
     const rect = canvas.getBoundingClientRect();
@@ -38,10 +50,10 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     lastTime = 0;
     sec = 0;
 
-    bird = { x: 300, y: rect.height / 2 }
+    bird = { x: 300, y: rect.height / 2 };
     pipes = [];
     spawnTimer = 0;
-  }
+  };
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -57,17 +69,17 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "KeyS") {
+    if (e.code === 'KeyS') {
       startGame();
       return;
     }
 
-    if (e.code === "KeyR") {
+    if (e.code === 'KeyR') {
       resetGame();
       return;
     }
 
-    if (e.code === "Space") {
+    if (e.code === 'Space') {
       vy = -BIRD_JUMP;
       return;
     }
@@ -78,19 +90,19 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
   const makePipe = (screenW: number, screenH: number): Pipe => {
     const width = PIPE_WIDTH;
     const margin = PIPE_MARGIN;
-    
+
     const gapHeight = rand(MIN_PIPE_GAP, MAX_PIPE_GAP);
     const gapYMin = margin;
     const gapYMax = screenH - margin - gapHeight;
     const gapY = gapYMin + Math.random() * (gapYMax - gapYMin);
 
     return { x: screenW + width, width, gapY, gapHeight, passed: false };
-  }
+  };
 
   const updateBird = (dt: number) => {
     vy += BIRD_GRAVITY * dt;
     bird.y += vy * dt;
-  }
+  };
 
   const updatePipes = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
@@ -103,34 +115,53 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     }
 
     // 파이프 이동
-    const currentSpeed = Math.min(PIPE_SPEED_MAX, PIPE_SPEED + sec * PIPE_SPEED_PER_SECOND);
+    const currentSpeed = Math.min(
+      PIPE_SPEED_MAX,
+      PIPE_SPEED + sec * PIPE_SPEED_PER_SECOND,
+    );
     for (const p of pipes) {
       p.x -= currentSpeed * dt;
     }
 
     // 화면 밖 파이프 제거
-    pipes = pipes.filter(p => p.x + p.width > 0);
-  }
+    pipes = pipes.filter((p) => p.x + p.width > 0);
+  };
 
   const handleBoundaryCollision = (): boolean => {
     const rect = canvas.getBoundingClientRect();
     return bird.y + BIRD_RADIUS > rect.height || bird.y - BIRD_RADIUS < 0;
-  }
+  };
 
   const handlePipeCollision = (): boolean => {
     const rect = canvas.getBoundingClientRect();
 
     for (const p of pipes) {
-      const hitTop = circleRectHit(bird.x, bird.y, BIRD_RADIUS, p.x, 0, p.width, p.gapY);
+      const hitTop = circleRectHit(
+        bird.x,
+        bird.y,
+        BIRD_RADIUS,
+        p.x,
+        0,
+        p.width,
+        p.gapY,
+      );
       const bottomY = p.gapY + p.gapHeight;
-      const hitBottom = circleRectHit(bird.x, bird.y, BIRD_RADIUS, p.x, bottomY, p.width, rect.height - bottomY);
+      const hitBottom = circleRectHit(
+        bird.x,
+        bird.y,
+        BIRD_RADIUS,
+        p.x,
+        bottomY,
+        p.width,
+        rect.height - bottomY,
+      );
 
       if (hitTop || hitBottom) {
         return true;
       }
     }
     return false;
-  }
+  };
 
   const updateScore = () => {
     for (const p of pipes) {
@@ -140,7 +171,7 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
         score++;
       }
     }
-  }
+  };
 
   const update = (t: number) => {
     if (!lastTime) lastTime = t;
@@ -161,26 +192,26 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
 
       updateScore();
     }
-  }
+  };
 
   // ==================== Render Functions ====================
 
   const renderBird = () => {
     ctx.beginPath();
     ctx.arc(bird.x, bird.y, BIRD_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = "limegreen";
+    ctx.fillStyle = 'limegreen';
     ctx.fill();
-  }
+  };
 
   const renderPipes = () => {
     const rect = canvas.getBoundingClientRect();
-    ctx.fillStyle = "seagreen";
+    ctx.fillStyle = 'seagreen';
     for (const p of pipes) {
       ctx.fillRect(p.x, 0, p.width, p.gapY);
       const bottomY = p.gapY + p.gapHeight;
       ctx.fillRect(p.x, bottomY, p.width, rect.height - bottomY);
     }
-  }
+  };
 
   const render = () => {
     const rect = canvas.getBoundingClientRect();
@@ -188,7 +219,7 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
 
     renderPipes();
     renderBird();
-  }
+  };
 
   // ==================== Game Loop ====================
 
@@ -203,12 +234,12 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener("resize", resize);
-  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener('resize', resize);
+  window.addEventListener('keydown', onKeyDown);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("keydown", onKeyDown);
-  }
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('keydown', onKeyDown);
+  };
 };

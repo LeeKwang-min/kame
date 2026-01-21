@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useRef } from "react";
-import { setupBreakOut } from "../_lib/game";
+'use client';
+import { useEffect, useRef } from 'react';
+import { setupBreakOut } from '../_lib/game';
 
 function BreakOut() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

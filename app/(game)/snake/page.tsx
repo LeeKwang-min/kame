@@ -1,4 +1,4 @@
-import Snake from "./_components/Snake";
+import Snake from './_components/Snake';
 
 function SnakePage() {
   return (

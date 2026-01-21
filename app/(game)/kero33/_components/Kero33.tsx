@@ -1,10 +1,10 @@
-"use client";
-import { useEffect, useRef } from "react";
-import { setupKero33 } from "../_lib/game";
+'use client';
+import { useEffect, useRef } from 'react';
+import { setupKero33 } from '../_lib/game';
 
 function Kero33() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;

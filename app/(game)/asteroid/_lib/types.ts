@@ -5,7 +5,7 @@ export type TShip = {
   vy: number; // y 속도 (관성)
   angle: number; // 바라보는 방향 (라디안)
   radius: number;
-}
+};
 
 export type TBullet = {
   x: number;
@@ -13,7 +13,7 @@ export type TBullet = {
   vx: number;
   vy: number;
   life: number; // 생명 시간 (초)
-}
+};
 
 export type TAsteroid = {
   x: number;
@@ -22,4 +22,4 @@ export type TAsteroid = {
   vy: number;
   radius: number;
   vertices: number[]; // 불규칙한 모양용
-}
+};

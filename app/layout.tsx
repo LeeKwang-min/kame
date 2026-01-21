@@ -1,38 +1,38 @@
-import type { Metadata } from "next";
-import { Noto_Sans, Space_Mono } from "next/font/google";
-import "./globals.css";
-import ScreenReaderInfo from "@/components/common/ScreenReaderInfo";
-import TanstackQueryProvider from "@/provider/TanstackQueryProvider";
-import { Toaster } from "sonner";
+import type { Metadata } from 'next';
+import { Noto_Sans, Space_Mono } from 'next/font/google';
+import './globals.css';
+import ScreenReaderInfo from '@/components/common/ScreenReaderInfo';
+import TanstackQueryProvider from '@/provider/TanstackQueryProvider';
+import { Toaster } from 'sonner';
 
 const mono = Space_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "700"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '700'],
 });
 
 const notoSans = Noto_Sans({
-  variable: "--font-noto-sans",
-  subsets: ["latin"],
-  display: "swap",
+  variable: '--font-noto-sans',
+  subsets: ['latin'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kame.vercel.app"),
+  metadataBase: new URL('https://kame.vercel.app'),
   title: {
-    default: "Kame",
-    template: "%s | Kame",
+    default: 'Kame',
+    template: '%s | Kame',
   },
-  description: "여러가지 웹 게임 모음 사이트",
+  description: '여러가지 웹 게임 모음 사이트',
   keywords: [
-    "Kame",
-    "웹 게임 모음",
-    "웹 게임",
-    "게임",
-    "게임 모음",
-    "게임 사이트",
-    "게임 사이트 모음",
+    'Kame',
+    '웹 게임 모음',
+    '웹 게임',
+    '게임',
+    '게임 모음',
+    '게임 사이트',
+    '게임 사이트 모음',
   ],
   // openGraph: {
   //   type: "website",
@@ -75,8 +75,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${notoSans.className} ${notoSans.variable} ${mono.className} ${mono.variable} antialiased`}
-      >
+        className={`${notoSans.className} ${notoSans.variable} ${mono.className} ${mono.variable} antialiased`}>
         <ScreenReaderInfo />
         <TanstackQueryProvider>{children}</TanstackQueryProvider>
         <Toaster position="bottom-right" />

@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useRef } from "react";
-import { setupFlappyBird } from "../_lib/game";
+'use client';
+import { useEffect, useRef } from 'react';
+import { setupFlappyBird } from '../_lib/game';
 
 function FlappyBird() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

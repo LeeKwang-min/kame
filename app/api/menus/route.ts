@@ -1,12 +1,12 @@
-import { MENU_LIST } from "@/lib/config";
-import { makeCategoryMenuList } from "@/lib/utils";
-import { NextRequest } from "next/server";
+import { MENU_LIST } from '@/lib/config';
+import { makeCategoryMenuList } from '@/lib/utils';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const keyword = searchParams.get("keyword") ?? "";
+  const keyword = searchParams.get('keyword') ?? '';
   const category =
-    searchParams.get("category") === "ALL" ? "" : searchParams.get("category");
+    searchParams.get('category') === 'ALL' ? '' : searchParams.get('category');
 
   try {
     let filteredMenuList = MENU_LIST;
@@ -15,13 +15,13 @@ export async function GET(request: NextRequest) {
       filteredMenuList = filteredMenuList.filter(
         (menu) =>
           menu.name.kor.includes(keyword) ||
-          menu.name.eng.toLowerCase().includes(keyword.toLowerCase())
+          menu.name.eng.toLowerCase().includes(keyword.toLowerCase()),
       );
     }
 
     if (category) {
       filteredMenuList = filteredMenuList.filter(
-        (menu) => menu.category === category
+        (menu) => menu.category === category,
       );
     }
 
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 200,
-      }
+      },
     );
   } catch (error) {
     return Response.json(
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

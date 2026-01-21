@@ -1,7 +1,7 @@
-import { drawHud } from "@/lib/game";
+import { drawHud } from '@/lib/game';
 
 export const setupBase = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   // ==================== State ====================
@@ -18,8 +18,8 @@ export const setupBase = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
 
   let lastTime = 0;
-  let acc = 0;  // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)
-  let sec = 0;  // 총 경과 시간
+  let acc = 0; // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)
+  let sec = 0; // 총 경과 시간
 
   // ==================== Game State ====================
 
@@ -60,12 +60,12 @@ export const setupBase = (canvas: HTMLCanvasElement) => {
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "KeyS") {
+    if (e.code === 'KeyS') {
       startGame();
       return;
     }
 
-    if (e.code === "KeyR") {
+    if (e.code === 'KeyR') {
       resetGame();
       return;
     }
@@ -118,7 +118,7 @@ export const setupBase = (canvas: HTMLCanvasElement) => {
   const renderPoint = () => {
     ctx.beginPath();
     ctx.arc(0, 0, 10, 0, Math.PI * 2);
-    ctx.fillStyle = "limegreen";
+    ctx.fillStyle = 'limegreen';
     ctx.fill();
   };
 
@@ -143,14 +143,14 @@ export const setupBase = (canvas: HTMLCanvasElement) => {
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener("resize", resize);
-  window.addEventListener("keydown", onKeyDown);
-  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener('resize', resize);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("keydown", onKeyDown);
-    window.removeEventListener("keyup", onKeyUp);
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('keyup', onKeyUp);
   };
 };

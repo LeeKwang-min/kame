@@ -1,26 +1,47 @@
-import { drawHud } from "@/lib/game";
-import { BALL_RADIUS, BALL_SPEED, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_SPEED, PADDLE_MARGIN, BRICK_COLS, BRICK_GAP, BRICK_ROWS, BRICK_TOP_OFFSET, BRICK_HEIGHT, BRICK_COLORS, PADDLE_COLOR, BALL_COLOR, MIN_VY_RATIO } from "./config";
-import { TBall, TBrick, TPaddle } from "./types";
-import { circleRectHit } from "@/lib/utils";
+import { drawHud } from '@/lib/game';
+import {
+  BALL_RADIUS,
+  BALL_SPEED,
+  PADDLE_WIDTH,
+  PADDLE_HEIGHT,
+  PADDLE_SPEED,
+  PADDLE_MARGIN,
+  BRICK_COLS,
+  BRICK_GAP,
+  BRICK_ROWS,
+  BRICK_TOP_OFFSET,
+  BRICK_HEIGHT,
+  BRICK_COLORS,
+  PADDLE_COLOR,
+  BALL_COLOR,
+  MIN_VY_RATIO,
+} from './config';
+import { TBall, TBrick, TPaddle } from './types';
+import { circleRectHit } from '@/lib/utils';
 
 export const setupBreakOut = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   const keys = {
     ArrowLeft: false,
     ArrowRight: false,
-  }
+  };
 
-  let paddle: TPaddle = { x: 0, y: 0, width: PADDLE_WIDTH, height: PADDLE_HEIGHT }
-  let ball: TBall = { x: 0, y: 0, vx: 0, vy: 0, radius: BALL_RADIUS }
+  let paddle: TPaddle = {
+    x: 0,
+    y: 0,
+    width: PADDLE_WIDTH,
+    height: PADDLE_HEIGHT,
+  };
+  let ball: TBall = { x: 0, y: 0, vx: 0, vy: 0, radius: BALL_RADIUS };
   let bricks: TBrick[] = [];
 
   let score = 0;
   let isStarted = false;
   let isShoot = false;
   let isGameOver = false;
-  
+
   let lastTime = 0;
   let sec = 0;
 
@@ -29,7 +50,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     isStarted = true;
     lastTime = 0;
     sec = 0;
-  }
+  };
 
   const createBricks = (canvasWidth: number): TBrick[] => {
     const result: TBrick[] = [];
@@ -38,7 +59,6 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     const BRICK_WIDTH = Math.floor((canvasWidth - 120) / BRICK_COLS);
     const totalWidth = BRICK_COLS * BRICK_WIDTH + (BRICK_COLS - 1) * BRICK_GAP;
     const startX = (canvasWidth - totalWidth) / 2;
-
 
     for (let row = 0; row < BRICK_ROWS; row++) {
       for (let col = 0; col < BRICK_COLS; col++) {
@@ -49,12 +69,12 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
           height: BRICK_HEIGHT,
           alive: true,
           color: BRICK_COLORS[row % BRICK_COLORS.length],
-        })
+        });
       }
     }
 
     return result;
-  }
+  };
 
   const resetGame = () => {
     const rect = canvas.getBoundingClientRect();
@@ -71,7 +91,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       y: rect.height - PADDLE_MARGIN - PADDLE_HEIGHT,
       width: PADDLE_WIDTH,
       height: PADDLE_HEIGHT,
-    }
+    };
 
     const angle = -Math.PI / 2;
     ball = {
@@ -80,10 +100,10 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       vx: BALL_SPEED * Math.cos(angle),
       vy: BALL_SPEED * Math.sin(angle),
       radius: BALL_RADIUS,
-    }
+    };
 
     bricks = createBricks(rect.width);
-  }
+  };
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -99,17 +119,17 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "KeyS") {
+    if (e.code === 'KeyS') {
       startGame();
       return;
     }
 
-    if (e.code === "KeyR") {
+    if (e.code === 'KeyR') {
       resetGame();
       return;
     }
 
-    if (e.code === "Space") {
+    if (e.code === 'Space') {
       isShoot = true;
       return;
     }
@@ -125,7 +145,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       keys[e.key as keyof typeof keys] = false;
       e.preventDefault();
     }
-  }
+  };
 
   const normalizeBallSpeed = () => {
     const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2);
@@ -142,10 +162,18 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       const remainingSpeed = Math.sqrt(BALL_SPEED ** 2 - ball.vy ** 2);
       ball.vx = ball.vx >= 0 ? remainingSpeed : -remainingSpeed;
     }
-  }
+  };
 
   const handlePaddleCollision = () => {
-    const hit = circleRectHit(ball.x, ball.y, ball.radius, paddle.x, paddle.y, paddle.width, paddle.height);
+    const hit = circleRectHit(
+      ball.x,
+      ball.y,
+      ball.radius,
+      paddle.x,
+      paddle.y,
+      paddle.width,
+      paddle.height,
+    );
     if (!hit || ball.vy <= 0) return;
 
     // 패들 속도 계산 (현재 프레임에서 패들이 움직이는 방향)
@@ -169,13 +197,21 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     ball.y = paddle.y - ball.radius;
 
     normalizeBallSpeed();
-  }
+  };
 
   const handleBrickCollision = () => {
     for (const brick of bricks) {
       if (!brick.alive) continue;
 
-      const hit = circleRectHit(ball.x, ball.y, ball.radius, brick.x, brick.y, brick.width, brick.height);
+      const hit = circleRectHit(
+        ball.x,
+        ball.y,
+        ball.radius,
+        brick.x,
+        brick.y,
+        brick.width,
+        brick.height,
+      );
 
       if (hit) {
         brick.alive = false;
@@ -203,7 +239,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
         break;
       }
     }
-  }
+  };
 
   const updatePaddle = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
@@ -212,7 +248,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     if (keys.ArrowRight) paddle.x += PADDLE_SPEED * dt;
 
     paddle.x = Math.max(0, Math.min(rect.width - PADDLE_WIDTH, paddle.x));
-  }
+  };
 
   const updateBall = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
@@ -220,7 +256,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     if (isShoot) {
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
-  
+
       if (ball.x - ball.radius < 0) {
         ball.x = ball.radius;
         ball.vx *= -1;
@@ -229,12 +265,12 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
         ball.x = rect.width - ball.radius;
         ball.vx *= -1;
       }
-  
+
       if (ball.y - ball.radius < 0) {
         ball.y = ball.radius;
         ball.vy *= -1;
       }
-  
+
       if (ball.y + ball.radius > rect.height) {
         isGameOver = true;
         return;
@@ -243,11 +279,12 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       if (keys.ArrowLeft) ball.x -= PADDLE_SPEED * dt;
       if (keys.ArrowRight) ball.x += PADDLE_SPEED * dt;
 
-      ball.x = Math.max(PADDLE_WIDTH / 2, Math.min(rect.width - PADDLE_WIDTH / 2, ball.x));
+      ball.x = Math.max(
+        PADDLE_WIDTH / 2,
+        Math.min(rect.width - PADDLE_WIDTH / 2, ball.x),
+      );
     }
-
-    
-  }
+  };
 
   const update = (t: number) => {
     if (!lastTime) lastTime = t;
@@ -263,7 +300,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       handlePaddleCollision();
       handleBrickCollision();
     }
-  }
+  };
 
   const renderPaddle = () => {
     ctx.fillStyle = PADDLE_COLOR;
@@ -278,13 +315,13 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
   };
 
   const renderBricks = () => {
-    for(const brick of bricks) {
-      if(!brick.alive) continue;
+    for (const brick of bricks) {
+      if (!brick.alive) continue;
       ctx.fillStyle = brick.color;
       ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
     }
-  }
-  
+  };
+
   const render = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
@@ -292,9 +329,8 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     renderBricks();
     renderPaddle();
     renderBall();
-  }
-  
-  
+  };
+
   let raf = 0;
   const draw = (t: number) => {
     update(t);
@@ -306,14 +342,14 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener("resize", resize);
-  window.addEventListener("keydown", onKeyDown);
-  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener('resize', resize);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("keydown", onKeyDown);
-    window.removeEventListener("keyup", onKeyUp);
-  }
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('keyup', onKeyUp);
+  };
 };

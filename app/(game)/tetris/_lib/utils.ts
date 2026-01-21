@@ -1,8 +1,8 @@
-import { COLS, ROWS, TETROMINO_TYPES, TETROMINOES } from "./config";
-import { TBoard, TTetromino, TTetrominoType } from "./types";
+import { COLS, ROWS, TETROMINO_TYPES, TETROMINOES } from './config';
+import { TBoard, TTetromino, TTetrominoType } from './types';
 
 export const createEmptyBoard = (): TBoard => {
-  return Array.from({length: ROWS }, () => Array(COLS).fill(null));
+  return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
 };
 
 export const getRandomType = (): TTetrominoType => {

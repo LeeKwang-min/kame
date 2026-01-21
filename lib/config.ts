@@ -1,59 +1,59 @@
 export const MENU_LIST = [
   {
     name: {
-      kor: "닷지",
-      eng: "Dodge",
+      kor: '닷지',
+      eng: 'Dodge',
     },
-    href: "/dodge",
-    category: "Game",
+    href: '/dodge',
+    category: 'Game',
   },
   {
     name: {
-      kor: "뱀 게임",
-      eng: "Snake Game",
+      kor: '뱀 게임',
+      eng: 'Snake Game',
     },
-    href: "/snake",
-    category: "Game",
+    href: '/snake',
+    category: 'Game',
   },
   {
     name: {
-      kor: "플래피 버드",
-      eng: "Flappy Bird",
+      kor: '플래피 버드',
+      eng: 'Flappy Bird',
     },
-    href: "/flappybird",
-    category: "Game",
+    href: '/flappybird',
+    category: 'Game',
   },
   {
     name: {
-      kor: "벽돌 깨기",
-      eng: "Breakout",
+      kor: '벽돌 깨기',
+      eng: 'Breakout',
     },
-    href: "/breakout",
-    category: "Game",
+    href: '/breakout',
+    category: 'Game',
   },
   {
     name: {
-      kor: "소행성",
-      eng: "Asteroid",
+      kor: '소행성',
+      eng: 'Asteroid',
     },
-    href: "/asteroid",
-    category: "Game",
+    href: '/asteroid',
+    category: 'Game',
   },
   {
     name: {
-      kor: "테트리스",
-      eng: "Tetris",
+      kor: '테트리스',
+      eng: 'Tetris',
     },
-    href: "/tetris",
-    category: "Game",
+    href: '/tetris',
+    category: 'Game',
   },
   {
     name: {
-      kor: "키어로33",
-      eng: "Kero33",
+      kor: '키어로33',
+      eng: 'Kero33',
     },
-    href: "/kero33",
-    category: "Game",
+    href: '/kero33',
+    category: 'Game',
     disabled: true,
   },
 ];

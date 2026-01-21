@@ -1,16 +1,21 @@
-import { drawHud } from "@/lib/game";
-import { ENEMY_RADIUS, PLAYER_RADIUS, PLAYER_SPEED, SCORE_PER_SEC } from "./config";
-import { Enemy, Player } from "./types";
+import { drawHud } from '@/lib/game';
+import {
+  ENEMY_RADIUS,
+  PLAYER_RADIUS,
+  PLAYER_SPEED,
+  SCORE_PER_SEC,
+} from './config';
+import { Enemy, Player } from './types';
 import {
   circleCircleCollide,
   getEnemySpeedRange,
   getSpawnInterval,
   pickDir,
   spawnOutsideByDir,
-} from "./utils";
+} from './utils';
 
 export const setupDodge = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   const keys = {
@@ -68,12 +73,12 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "KeyS") {
+    if (e.code === 'KeyS') {
       startGame();
       return;
     }
 
-    if (e.code === "KeyR") {
+    if (e.code === 'KeyR') {
       resetGame();
       return;
     }
@@ -114,8 +119,14 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     player.y += dy * PLAYER_SPEED * dt;
 
     // 경계 체크
-    player.x = Math.max(PLAYER_RADIUS, Math.min(rect.width - PLAYER_RADIUS, player.x));
-    player.y = Math.max(PLAYER_RADIUS, Math.min(rect.height - PLAYER_RADIUS, player.y));
+    player.x = Math.max(
+      PLAYER_RADIUS,
+      Math.min(rect.width - PLAYER_RADIUS, player.x),
+    );
+    player.y = Math.max(
+      PLAYER_RADIUS,
+      Math.min(rect.height - PLAYER_RADIUS, player.y),
+    );
   };
 
   const spawnEnemy = () => {
@@ -160,14 +171,18 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     // 화면 밖 적 제거
     const isOutside = (e: Enemy) => {
       const m = e.r + 2;
-      return e.x < -m || e.x > rect.width + m || e.y < -m || e.y > rect.height + m;
+      return (
+        e.x < -m || e.x > rect.width + m || e.y < -m || e.y > rect.height + m
+      );
     };
     enemies = enemies.filter((e) => !isOutside(e));
   };
 
   const handleEnemyCollision = (): boolean => {
     for (const e of enemies) {
-      if (circleCircleCollide(player.x, player.y, PLAYER_RADIUS, e.x, e.y, e.r)) {
+      if (
+        circleCircleCollide(player.x, player.y, PLAYER_RADIUS, e.x, e.y, e.r)
+      ) {
         return true;
       }
     }
@@ -202,7 +217,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   const renderPlayer = () => {
     ctx.beginPath();
     ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = "black";
+    ctx.fillStyle = 'black';
     ctx.fill();
   };
 
@@ -210,7 +225,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     for (const e of enemies) {
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-      ctx.fillStyle = "red";
+      ctx.fillStyle = 'red';
       ctx.fill();
     }
   };
@@ -236,14 +251,14 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener("resize", resize);
-  window.addEventListener("keydown", onKeyDown);
-  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener('resize', resize);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("keydown", onKeyDown);
-    window.removeEventListener("keyup", onKeyUp);
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('keyup', onKeyUp);
   };
-}
+};

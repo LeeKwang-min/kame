@@ -1,5 +1,5 @@
-import KameHeader from "@/components/common/KameHeader";
-import { Metadata } from "next";
+import KameHeader from '@/components/common/KameHeader';
+import { Metadata } from 'next';
 
 // export const metadata: Metadata = {
 //   title: "Kero",

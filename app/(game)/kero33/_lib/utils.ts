@@ -8,7 +8,7 @@ export const PLAYER_DIR = {
 } as const;
 
 export const PLAYER_DIR_KEYS = Object.keys(
-  PLAYER_DIR
+  PLAYER_DIR,
 ) as (keyof typeof PLAYER_DIR)[];
 
 export const getPlayerDir = (key: keyof typeof PLAYER_DIR) => {

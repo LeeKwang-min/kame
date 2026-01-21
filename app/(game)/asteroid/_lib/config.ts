@@ -1,7 +1,7 @@
 export const SHIP_RADIUS = 15;
 export const SHIP_ROTATION_SPEED = 4; // rad/sec
 export const SHIP_THRUST = 300; // 가속도
-export const SHIP_FRICTION = 0.99 // 마찰 (관성 감소)
+export const SHIP_FRICTION = 0.99; // 마찰 (관성 감소)
 export const SHIP_MAX_SPEED = 400;
 
 export const BULLET_SPEED = 500;

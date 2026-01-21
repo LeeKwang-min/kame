@@ -1,13 +1,13 @@
-"use client";
-import { useState } from "react";
-import MainMenuList from "./MainMenuList";
-import MainSearchBar from "./MainSearchBar";
-import MainCategorySelect from "./MainCategorySelect";
-import MainRotatingText from "./MainRotatingText";
+'use client';
+import { useState } from 'react';
+import MainMenuList from './MainMenuList';
+import MainSearchBar from './MainSearchBar';
+import MainCategorySelect from './MainCategorySelect';
+import MainRotatingText from './MainRotatingText';
 
 function MainSection() {
-  const [search, setSearch] = useState<string>("");
-  const [category, setCategory] = useState<string>("ALL");
+  const [search, setSearch] = useState<string>('');
+  const [category, setCategory] = useState<string>('ALL');
 
   return (
     <div className="flex flex-col gap-10 grow items-center">

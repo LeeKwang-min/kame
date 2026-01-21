@@ -4,7 +4,7 @@ interface IFetchProps {
 }
 
 const customFetch = async ({ url, options = {} }: IFetchProps) => {
-  const isClient = typeof window !== "undefined";
+  const isClient = typeof window !== 'undefined';
 
   const { headers, ...restOptions } = options;
   const defaultHeader: RequestInit = {
@@ -45,7 +45,7 @@ export async function request<T>({ url, options }: IFetchProps) {
     url,
     options: {
       ...options,
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers: { 'Content-Type': 'application/json', ...options.headers },
     },
   });
   const body: T = await response.json();

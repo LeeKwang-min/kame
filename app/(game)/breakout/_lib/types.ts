@@ -11,7 +11,7 @@ export type TPaddle = {
   y: number;
   width: number;
   height: number;
-}
+};
 
 export type TBrick = {
   x: number;
@@ -20,4 +20,4 @@ export type TBrick = {
   height: number;
   alive: boolean;
   color: string;
-}
+};

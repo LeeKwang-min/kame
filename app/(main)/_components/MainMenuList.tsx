@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { TMenu } from "@/@types/menus";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useGetMenus } from "@/service/menus";
+import { TMenu } from '@/@types/menus';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGetMenus } from '@/service/menus';
 import {
   Binary,
   BookText,
@@ -11,8 +11,8 @@ import {
   Lock,
   UserRoundSearch,
   Webhook,
-} from "lucide-react";
-import Link from "next/link";
+} from 'lucide-react';
+import Link from 'next/link';
 
 export const CATEGORY_ICON = {
   Fun: <Gamepad2 size={18} />,
@@ -20,7 +20,7 @@ export const CATEGORY_ICON = {
   Development: <Binary size={18} />,
   Media: <Film size={18} />,
   About: <UserRoundSearch size={18} />,
-  "Web APIs": <Webhook size={18} />,
+  'Web APIs': <Webhook size={18} />,
 };
 
 interface IProps {
@@ -72,7 +72,7 @@ function MainMenuItem({ menu }: { menu: TMenu }) {
     );
 
   return (
-    <Link href={menu.href} target={menu.target ?? "_self"}>
+    <Link href={menu.href} target={menu.target ?? '_self'}>
       <div className="px-6 py-4 border border-gray-300 rounded-md cursor-pointer hover:scale-105 transition-all duration-300">
         {/* <span className="text-sm text-gray-500 pb-2">{menu.category}</span> */}
         <h3 className="text-lg font-bold mb-2">{menu.name.kor}</h3>

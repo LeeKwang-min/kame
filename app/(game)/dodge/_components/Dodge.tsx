@@ -1,7 +1,7 @@
-"use client";
-import { useEffect, useRef } from "react";
-import { setupDodge } from "../_lib/game";
-import RankBoard from "@/components/common/RankBoard";
+'use client';
+import { useEffect, useRef } from 'react';
+import { setupDodge } from '../_lib/game';
+import RankBoard from '@/components/common/RankBoard';
 
 function Dodge() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -10,10 +10,10 @@ function Dodge() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-   return setupDodge(canvas)
+    return setupDodge(canvas);
   }, []);
 
-   return (
+  return (
     <div className="w-full h-full">
       <canvas ref={canvasRef} className="w-full h-[600px] border touch-none" />
     </div>

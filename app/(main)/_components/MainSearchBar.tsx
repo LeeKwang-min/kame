@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Input } from "@/components/ui/input";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Input } from '@/components/ui/input';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
 interface IProps {
   search: string;

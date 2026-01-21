@@ -1,4 +1,4 @@
-import Dodge from "./_components/Dodge";
+import Dodge from './_components/Dodge';
 
 function DodgePage() {
   return (

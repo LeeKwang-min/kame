@@ -1,4 +1,12 @@
-import { BASE_ENEMY_SPAWN_INTERVAL, DIRS, INITIALS_KEY_COLS, INITIALS_KEY_GRID, MAX_ENEMY_SPEED, MIN_ENEMY_SPAWN_INTERVAL, MIN_ENEMY_SPEED } from "./config";
+import {
+  BASE_ENEMY_SPAWN_INTERVAL,
+  DIRS,
+  INITIALS_KEY_COLS,
+  INITIALS_KEY_GRID,
+  MAX_ENEMY_SPEED,
+  MIN_ENEMY_SPAWN_INTERVAL,
+  MIN_ENEMY_SPEED,
+} from './config';
 
 export const pickDir = () => {
   const dir = DIRS[Math.floor(Math.random() * DIRS.length)];
@@ -12,7 +20,7 @@ export const pickDir = () => {
 export const spawnOutsideByDir = (
   rect: DOMRect,
   r: number,
-  dir: { vx: number; vy: number }
+  dir: { vx: number; vy: number },
 ) => {
   const margin = r + 2;
 
@@ -39,7 +47,7 @@ export const circleCircleCollide = (
   r1: number,
   x2: number,
   y2: number,
-  r2: number
+  r2: number,
 ) => {
   const dx = x1 - x2;
   const dy = y1 - y2;
@@ -59,7 +67,7 @@ export const getSpawnInterval = (t: number) => {
   const d = getDifficulty(t);
   return Math.max(
     MIN_ENEMY_SPAWN_INTERVAL,
-    lerp(BASE_ENEMY_SPAWN_INTERVAL, 0.1, d) // 0.22를 0.18에 가깝게 줄이면 스폰이 더 촘촘하게 됨
+    lerp(BASE_ENEMY_SPAWN_INTERVAL, 0.1, d), // 0.22를 0.18에 가깝게 줄이면 스폰이 더 촘촘하게 됨
   );
 };
 

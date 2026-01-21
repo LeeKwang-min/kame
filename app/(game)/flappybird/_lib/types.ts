@@ -6,4 +6,4 @@ export type Pipe = {
   gapY: number;
   gapHeight: number;
   passed: boolean;
-}
+};

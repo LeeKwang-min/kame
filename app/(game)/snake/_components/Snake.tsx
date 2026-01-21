@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useRef } from "react";
-import { setupSnake } from "../_lib/game";
+'use client';
+import { useEffect, useRef } from 'react';
+import { setupSnake } from '../_lib/game';
 
 function Snake() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

@@ -1,9 +1,9 @@
-import { drawHud } from "@/lib/game";
-import { CELL, DIR, STEP } from "./config";
-import { Point } from "./types";
+import { drawHud } from '@/lib/game';
+import { CELL, DIR, STEP } from './config';
+import { Point } from './types';
 
 export const setupSnake = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   let snake: Point[] = [{ x: 0, y: 0 }];
@@ -14,9 +14,9 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
-  
+
   let lastTime = 0;
-  let acc = 0;  // tick용 누적(잔여) 시간
+  let acc = 0; // tick용 누적(잔여) 시간
   let sec = 0;
 
   const spawnFood = (): Point => {
@@ -28,10 +28,10 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
       const x = Math.floor(Math.random() * cols) * CELL;
       const y = Math.floor(Math.random() * rows) * CELL;
 
-      const onSnake = snake.some(seg => seg.x === x && seg.y === y);
+      const onSnake = snake.some((seg) => seg.x === x && seg.y === y);
       if (!onSnake) return { x, y };
     }
-  }
+  };
 
   const startGame = () => {
     if (isStarted) return;
@@ -39,7 +39,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     lastTime = 0;
     acc = 0;
     sec = 0;
-  }
+  };
 
   const resetGame = () => {
     const rect = canvas.getBoundingClientRect();
@@ -51,19 +51,19 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     acc = 0;
     sec = 0;
 
-    const startX = Math.floor((rect.width / 2) / CELL) * CELL;
-    const startY = Math.floor((rect.height / 2) / CELL) * CELL;
+    const startX = Math.floor(rect.width / 2 / CELL) * CELL;
+    const startY = Math.floor(rect.height / 2 / CELL) * CELL;
 
     snake = [
       { x: startX, y: startY },
       { x: startX - CELL, y: startY },
-      { x: startX - CELL * 2, y: startY }
+      { x: startX - CELL * 2, y: startY },
     ];
     dir = { x: 1, y: 0 };
     nextDir = dir;
 
     food = spawnFood();
-  }
+  };
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -79,12 +79,12 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "KeyS") {
+    if (e.code === 'KeyS') {
       startGame();
       return;
     }
 
-    if (e.code === "KeyR") {
+    if (e.code === 'KeyR') {
       resetGame();
       return;
     }
@@ -109,15 +109,17 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
       newHead.x >= Math.floor(rect.width / CELL) * CELL ||
       newHead.y >= Math.floor(rect.height / CELL) * CELL
     );
-  }
+  };
 
   const handleSelfCollision = (newHead: Point): boolean => {
-    return snake.some((seg, i) => i > 0 && seg.x === newHead.x && seg.y === newHead.y);
-  }
+    return snake.some(
+      (seg, i) => i > 0 && seg.x === newHead.x && seg.y === newHead.y,
+    );
+  };
 
   const handleFoodCollision = (newHead: Point): boolean => {
     return newHead.x === food.x && newHead.y === food.y;
-  }
+  };
 
   const updateSnake = () => {
     dir = nextDir;
@@ -146,7 +148,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     } else {
       snake = snake.slice(0, -1);
     }
-  }
+  };
 
   const update = (t: number) => {
     if (!lastTime) lastTime = t;
@@ -164,7 +166,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
         if (isGameOver) break;
       }
     }
-  }
+  };
 
   // ==================== Render Functions ====================
 
@@ -172,20 +174,20 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     const head = snake[0];
     if (!head) return;
 
-    ctx.fillStyle = "limegreen";
+    ctx.fillStyle = 'limegreen';
     ctx.fillRect(head.x, head.y, CELL, CELL);
 
-    ctx.fillStyle = "black";
+    ctx.fillStyle = 'black';
     for (let i = 1; i < snake.length; i++) {
       const seg = snake[i];
       ctx.fillRect(seg.x, seg.y, CELL, CELL);
     }
-  }
+  };
 
   const renderFood = () => {
-    ctx.fillStyle = "red";
+    ctx.fillStyle = 'red';
     ctx.fillRect(food.x, food.y, CELL, CELL);
-  }
+  };
 
   const render = () => {
     const rect = canvas.getBoundingClientRect();
@@ -193,7 +195,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
 
     renderSnake();
     renderFood();
-  }
+  };
 
   // ==================== Game Loop ====================
 
@@ -208,12 +210,12 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener("resize", resize);
-  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener('resize', resize);
+  window.addEventListener('keydown', onKeyDown);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("keydown", onKeyDown);
-  }
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('keydown', onKeyDown);
+  };
 };

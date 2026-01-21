@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useRef } from "react";
-import { setupAsteroid } from "../_lib/game";
+'use client';
+import { useEffect, useRef } from 'react';
+import { setupAsteroid } from '../_lib/game';
 
 function Asteroid() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

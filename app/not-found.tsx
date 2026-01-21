@@ -1,5 +1,5 @@
-import FuzzyText from "@/components/FuzzyText";
-import Link from "next/link";
+import FuzzyText from '@/components/FuzzyText';
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -9,8 +9,7 @@ export default function NotFound() {
         hoverIntensity={0.5}
         enableHover={false}
         color="#000"
-        fontSize="clamp(2rem, 10vw, 10rem)"
-      >
+        fontSize="clamp(2rem, 10vw, 10rem)">
         404
       </FuzzyText>
       <FuzzyText
@@ -18,14 +17,12 @@ export default function NotFound() {
         hoverIntensity={0.5}
         enableHover={false}
         color="#000"
-        fontSize="clamp(2rem, 4vw, 8rem)"
-      >
+        fontSize="clamp(2rem, 4vw, 8rem)">
         Page Not Found
       </FuzzyText>
       <Link
         href="/"
-        className="text-xl underline text-gray-500 hover:text-gray-700"
-      >
+        className="text-xl underline text-gray-500 hover:text-gray-700">
         Home
       </Link>
     </section>

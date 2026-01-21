@@ -1,15 +1,13 @@
-import { MapState, Point } from "./types";
-import { MAP_SIZE, PLAYER_DIR, PLAYER_DIR_KEYS } from "./utils";
+import { MapState, Point } from './types';
+import { MAP_SIZE, PLAYER_DIR, PLAYER_DIR_KEYS } from './utils';
 
 export const setupKero33 = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   let playerPos: Point = { x: 0, y: 0 };
-  const map: MapState[][] = (
-    Array.from({ length: MAP_SIZE }, () =>
-      Array.from({ length: MAP_SIZE }, () => "safe")
-    )
+  const map: MapState[][] = Array.from({ length: MAP_SIZE }, () =>
+    Array.from({ length: MAP_SIZE }, () => 'safe'),
   );
 
   const resize = () => {
@@ -31,12 +29,8 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
   const onKeyUp = (e: KeyboardEvent) => {
     if (PLAYER_DIR_KEYS.includes(e.key as keyof typeof PLAYER_DIR)) {
       playerPos = {
-        x:
-          playerPos.x +
-          PLAYER_DIR[e.key as keyof typeof PLAYER_DIR].x,
-        y:
-          playerPos.y +
-          PLAYER_DIR[e.key as keyof typeof PLAYER_DIR].y,
+        x: playerPos.x + PLAYER_DIR[e.key as keyof typeof PLAYER_DIR].x,
+        y: playerPos.y + PLAYER_DIR[e.key as keyof typeof PLAYER_DIR].y,
       };
       e.preventDefault();
     }
@@ -49,8 +43,8 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
     for (let x = 0; x < MAP_SIZE; x++) {
       for (let y = 0; y < MAP_SIZE; y++) {
         ctx.save();
-        ctx.fillStyle = "white";
-        ctx.strokeStyle = "black";
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
         ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
         ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
@@ -64,12 +58,12 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
     const cellSize = rect.width / MAP_SIZE;
 
     ctx.save();
-    ctx.fillStyle = "black";
+    ctx.fillStyle = 'black';
     ctx.fillRect(
       playerPos.x * cellSize + cellSize * 0.1,
       playerPos.y * cellSize + cellSize * 0.1,
       cellSize * 0.8,
-      cellSize * 0.8
+      cellSize * 0.8,
     );
     ctx.restore();
   };
@@ -104,12 +98,12 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
   };
   raf = requestAnimationFrame(draw);
 
-  window.addEventListener("resize", resize);
-  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener('resize', resize);
+  window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("keyup", onKeyUp);
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('keyup', onKeyUp);
   };
 };

@@ -28,9 +28,9 @@ export const DIRS = [
 export const INITIALS_KEY_COLS = 7;
 export const INITIALS_KEY_ROWS = 4;
 export const INITIALS_KEY_GRID: string[] = [
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ", // 26
-  "DEL",
-  "SPC",
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ', // 26
+  'DEL',
+  'SPC',
 ];
 export const INITIALS_MOVE_DIR = {
   ArrowLeft: { dr: 0, dc: -1 },
