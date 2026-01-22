@@ -65,6 +65,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '두들 점프',
+      eng: 'Doodle Jump',
+    },
+    href: '/doodle',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '키어로33',
       eng: 'Kero33',
     },
