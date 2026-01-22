@@ -57,6 +57,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '공룡 달리기',
+      eng: 'Dino',
+    },
+    href: '/dino',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '키어로33',
       eng: 'Kero33',
     },
