@@ -4,7 +4,7 @@ import Dino from './_components/Dino';
 
 const controls = [
   { key: 'Space / ↑', action: '점프' },
-  { key: '↓', action: '숙이기' },
+  { key: '↓', action: '숙이기 / 낙하' },
   { key: 'S', action: '게임 시작' },
   { key: 'R', action: '재시작' },
 ];
