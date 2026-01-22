@@ -50,7 +50,6 @@ export const setupAsteroid = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
 
   let lastTime = 0;
-  let acc = 0; // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)
   let sec = 0; // 총 경과 시간
 
   // ==================== Game State ====================
@@ -59,7 +58,6 @@ export const setupAsteroid = (canvas: HTMLCanvasElement) => {
     if (isStarted) return;
     isStarted = true;
     lastTime = 0;
-    acc = 0;
     sec = 0;
   };
 
@@ -70,7 +68,6 @@ export const setupAsteroid = (canvas: HTMLCanvasElement) => {
     isGameOver = false;
     score = 0;
     lastTime = 0;
-    acc = 0;
     sec = 0;
 
     // TODO: 게임 오브젝트 초기화
@@ -423,7 +420,6 @@ export const setupAsteroid = (canvas: HTMLCanvasElement) => {
     lastTime = t;
 
     dt = Math.min(dt, 0.05);
-    acc += dt;
     sec += dt;
 
     if (isStarted && !isGameOver) {

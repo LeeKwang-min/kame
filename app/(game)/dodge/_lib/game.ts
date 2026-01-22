@@ -40,6 +40,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     if (isStarted) return;
     isStarted = true;
     lastTime = 0;
+    sec = 0;
   };
 
   const resetGame = () => {
