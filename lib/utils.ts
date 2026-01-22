@@ -89,3 +89,14 @@ export const pointCircleHit = (
   const dy = py - cy;
   return dx * dx + dy * dy <= cr * cr;
 };
+
+export const isPointInRect = (
+  px: number,
+  py: number,
+  rx: number,
+  ry: number,
+  rw: number,
+  rh: number,
+) => {
+  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+};

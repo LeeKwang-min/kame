@@ -49,6 +49,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '탁구',
+      eng: 'Pong',
+    },
+    href: '/pong',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '키어로33',
       eng: 'Kero33',
     },
