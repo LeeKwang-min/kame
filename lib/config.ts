@@ -81,6 +81,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '미사일 커맨드',
+      eng: 'Missile Command',
+    },
+    href: '/missilecommand',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '2048',
       eng: '2048',
     },
