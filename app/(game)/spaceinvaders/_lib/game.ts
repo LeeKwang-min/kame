@@ -67,7 +67,9 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
 
   // ==================== Game State ====================
 
-  const initGame = () => {
+  const startGame = () => {
+    if (gameState !== 'ready') return;
+
     // 플레이어 초기 위치 (하단 중앙)
     player = {
       x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2,
@@ -92,6 +94,19 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
     sec = 0;
   };
 
+  const resetGame = () => {
+    gameState = 'ready';
+    playerBullets = [];
+    enemyBullets = [];
+    enemies = [];
+    enemyDirection = 1;
+    enemySpeedMultiplier = 1;
+    score = 0;
+    lives = 3;
+    lastTime = 0;
+    sec = 0;
+  };
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
 
@@ -107,23 +122,14 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
 
   const onKeyDown = (e: KeyboardEvent) => {
     // 게임 시작
-    if (e.code === 'KeyS' && gameState === 'ready') {
-      initGame();
+    if (e.code === 'KeyS') {
+      startGame();
       return;
     }
 
     // 재시작 (모든 상태 초기화)
     if (e.code === 'KeyR') {
-      gameState = 'ready';
-      playerBullets = [];
-      enemyBullets = [];
-      enemies = [];
-      enemyDirection = 1;
-      enemySpeedMultiplier = 1;
-      score = 0;
-      lives = 3;
-      lastTime = 0;
-      sec = 0;
+      resetGame();
       return;
     }
 
@@ -457,16 +463,16 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
   // ==================== Game Loop ====================
 
   let raf = 0;
-  const gameLoop = (t: number) => {
+  const draw = (t: number) => {
     update(t);
     render();
-    raf = requestAnimationFrame(gameLoop);
+    raf = requestAnimationFrame(draw);
   };
 
   // ==================== Init ====================
 
   resize();
-  raf = requestAnimationFrame(gameLoop);
+  raf = requestAnimationFrame(draw);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 

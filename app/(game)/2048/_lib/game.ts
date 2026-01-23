@@ -41,7 +41,7 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
 
   // ==================== Game State ====================
 
-  const initGame = () => {
+  const resetGame = () => {
     grid = createEmptyGrid();
     score = 0;
     gameState = 'playing';
@@ -139,7 +139,7 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyR') {
-      initGame();
+      resetGame();
       return;
     }
 
@@ -365,16 +365,16 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
   // ==================== Game Loop ====================
 
   let raf = 0;
-  const gameLoop = () => {
+  const draw = () => {
     render();
-    raf = requestAnimationFrame(gameLoop);
+    raf = requestAnimationFrame(draw);
   };
 
   // ==================== Init ====================
 
-  initGame();
+  resetGame();
   resize();
-  raf = requestAnimationFrame(gameLoop);
+  raf = requestAnimationFrame(draw);
   window.addEventListener('keydown', onKeyDown);
 
   return () => {
