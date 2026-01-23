@@ -4,6 +4,7 @@ import './globals.css';
 import ScreenReaderInfo from '@/components/common/ScreenReaderInfo';
 import TanstackQueryProvider from '@/provider/TanstackQueryProvider';
 import { Toaster } from 'sonner';
+import { Analytics } from "@vercel/analytics/next"
 
 const mono = Space_Mono({
   variable: '--font-geist-mono',
@@ -79,6 +80,7 @@ export default function RootLayout({
         <ScreenReaderInfo />
         <TanstackQueryProvider>{children}</TanstackQueryProvider>
         <Toaster position="bottom-right" />
+        <Analytics />
       </body>
     </html>
   );
