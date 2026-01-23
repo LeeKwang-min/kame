@@ -73,6 +73,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '2048',
+      eng: '2048',
+    },
+    href: '/2048',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '키어로33',
       eng: 'Kero33',
     },
