@@ -39,6 +39,7 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
   };
 
   let isFastFalling = false;
+  let isDownKeyHeld = false; // 아래 방향키가 눌려있는지 추적
 
   // 장애물 배열
   let obstacles: TObstacle[] = [];
@@ -66,7 +67,7 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
   const startGame = () => {
     if (isStarted) return;
     isStarted = true;
-    lastTime = 0;
+    lastTime = 0; // 다음 프레임에서 설정됨
     sec = 0;
   };
 
@@ -97,6 +98,7 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
     };
 
     isFastFalling = false;
+    isDownKeyHeld = false;
 
     // 장애물 초기화
     obstacles = [];
@@ -153,6 +155,7 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
 
     // 아래 방향키
     if (e.code === 'ArrowDown' && isStarted && !isGameOver) {
+      isDownKeyHeld = true; // 아래 키 눌림 상태 추적
       if (dino.isJumping) {
         // 공중에서: Fast Fall (빠른 낙하)
         isFastFalling = true;
@@ -172,6 +175,7 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
   const onKeyUp = (e: KeyboardEvent) => {
     // 숙이기 해제
     if (e.code === 'ArrowDown') {
+      isDownKeyHeld = false; // 아래 키 눌림 상태 해제
       dino.isDucking = false;
       isFastFalling = false;
     }
@@ -184,8 +188,9 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
   };
 
   // 점수 증가 (10ms당 1점 → 0.01초당 1점)
+  // ⚠️ Math.floor를 제거 - 고주사율 모니터에서 dt가 0.01 미만이면 항상 0이 됨
   const updateScore = (dt: number) => {
-    score += Math.floor(dt * 100);
+    score += dt * 100;
   };
 
   // 공룡 업데이트 (점프/중력)
@@ -210,6 +215,11 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
       dino.vy = 0;
       dino.isJumping = false;
       isFastFalling = false; // Fast Fall 해제
+
+      // 착지 시 아래 키가 눌려있으면 바로 숙이기 전환
+      if (isDownKeyHeld) {
+        dino.isDucking = true;
+      }
     }
 
     // 높이 업데이트 (숙이기 시)
@@ -346,24 +356,31 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
   };
 
   const update = (t: number) => {
+    // 게임이 시작되지 않았으면 시간 계산 안함
+    if (!isStarted || isGameOver) {
+      lastTime = t;
+      return;
+    }
+
+    // 첫 프레임이면 lastTime 설정
     if (!lastTime) lastTime = t;
+
     let dt = (t - lastTime) / 1000;
     lastTime = t;
 
+    // 프레임 드랍 방지
     dt = Math.min(dt, 0.05);
     sec += dt;
 
-    if (isStarted && !isGameOver) {
-      updateGameSpeed(dt);
-      updateScore(dt);
-      updateDino(dt);
-      updateObstacles(dt);
-      updateGround(dt);
-      updateAnimation(dt);
+    updateGameSpeed(dt);
+    updateScore(dt);
+    updateDino(dt);
+    updateObstacles(dt);
+    updateGround(dt);
+    updateAnimation(dt);
 
-      if (checkCollision()) {
-        isGameOver = true;
-      }
+    if (checkCollision()) {
+      isGameOver = true;
     }
   };
 
@@ -517,10 +534,15 @@ export const setupDino = (canvas: HTMLCanvasElement) => {
 
   // 점수 그리기
   const renderScore = () => {
+    const rect = canvas.getBoundingClientRect();
     ctx.fillStyle = '#535353';
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(String(score).padStart(5, '0'), canvas.width - 20, 40);
+    ctx.fillText(
+      String(Math.floor(score)).padStart(5, '0'),
+      rect.width - 20,
+      40,
+    );
   };
 
   // 게임 오버 화면

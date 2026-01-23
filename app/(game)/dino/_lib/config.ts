@@ -18,8 +18,8 @@ export const SPEED_INCREMENT = 0.5; // 프레임당 속도 증가량
 export const MAX_SPEED = 800; // 최대 속도
 
 // ==================== 장애물 설정 ====================
-export const OBSTACLE_MIN_GAP = 500; // 장애물 최소 간격
-export const OBSTACLE_MAX_GAP = 700; // 장애물 최대 간격
+export const OBSTACLE_MIN_GAP = 400; // 장애물 최소 간격
+export const OBSTACLE_MAX_GAP = 600; // 장애물 최대 간격
 
 // 장애물 크기
 export const CACTUS_SMALL = { width: 17, height: 35 };

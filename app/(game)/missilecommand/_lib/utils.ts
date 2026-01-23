@@ -38,7 +38,12 @@ export const getRandomAliveCity = (cities: TCity[]): TCity | null => {
 };
 
 // 두 점 사이의 거리
-export const distance = (x1: number, y1: number, x2: number, y2: number): number => {
+export const distance = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number => {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 };
 
