@@ -73,6 +73,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '스페이스 인베이더',
+      eng: 'Space Invaders',
+    },
+    href: '/spaceinvaders',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '2048',
       eng: '2048',
     },
