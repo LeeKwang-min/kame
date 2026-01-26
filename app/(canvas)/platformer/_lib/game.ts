@@ -86,7 +86,9 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
   // ==================== 맵 초기화 ====================
 
   // 맵에서 특정 타일 위치 찾기
-  const findTilePosition = (tileType: number): { x: number; y: number } | null => {
+  const findTilePosition = (
+    tileType: number,
+  ): { x: number; y: number } | null => {
     for (let row = 0; row < level.length; row++) {
       for (let col = 0; col < level[row].length; col++) {
         if (level[row][col] === tileType) {
@@ -325,7 +327,7 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
       isCleared = true;
       isGameOver = true;
     }
-  }
+  };
 
   const update = (t: number) => {
     if (!lastTime) lastTime = t;
@@ -352,7 +354,6 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
   };
 
   // ==================== Render Functions ====================
-
 
   // 맵 타일 그리기
   const renderTiles = () => {
@@ -386,7 +387,11 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
     const fontSize = Math.max(16, tileSize * 0.6);
     ctx.font = `bold ${fontSize}px sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('★', goal.x + goal.width / 2, goal.y + goal.height / 2 + fontSize * 0.3);
+    ctx.fillText(
+      '★',
+      goal.x + goal.width / 2,
+      goal.y + goal.height / 2 + fontSize * 0.3,
+    );
   };
 
   // 플레이어 그리기
@@ -407,7 +412,12 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
     ctx.fillStyle = 'black';
     const pupilSize = eyeSize * 0.5;
     const pupilOffset = player.facingRight ? eyeSize * 0.5 : 0;
-    ctx.fillRect(eyeX + pupilOffset, eyeY + eyeSize * 0.25, pupilSize, pupilSize);
+    ctx.fillRect(
+      eyeX + pupilOffset,
+      eyeY + eyeSize * 0.25,
+      pupilSize,
+      pupilSize,
+    );
   };
 
   // 레벨 표시
@@ -416,7 +426,11 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.font = `bold ${fontSize}px sans-serif`;
     ctx.textAlign = 'left';
-    ctx.fillText(`Level ${levelIndex + 1} / ${LEVELS.length}`, 10, fontSize + 5);
+    ctx.fillText(
+      `Level ${levelIndex + 1} / ${LEVELS.length}`,
+      10,
+      fontSize + 5,
+    );
   };
 
   // 클리어 화면
@@ -436,18 +450,38 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
 
     if (levelIndex >= LEVELS.length - 1 && isGameOver) {
       // 모든 레벨 클리어
-      ctx.fillText('ALL CLEAR!', rect.width / 2, rect.height / 2 - titleSize * 0.5);
+      ctx.fillText(
+        'ALL CLEAR!',
+        rect.width / 2,
+        rect.height / 2 - titleSize * 0.5,
+      );
       ctx.fillStyle = 'white';
       ctx.font = `${textSize}px sans-serif`;
-      ctx.fillText('Congratulations!', rect.width / 2, rect.height / 2 + textSize);
+      ctx.fillText(
+        'Congratulations!',
+        rect.width / 2,
+        rect.height / 2 + textSize,
+      );
     } else {
-      ctx.fillText(`LEVEL ${levelIndex} CLEAR!`, rect.width / 2, rect.height / 2 - titleSize * 0.5);
+      ctx.fillText(
+        `LEVEL ${levelIndex} CLEAR!`,
+        rect.width / 2,
+        rect.height / 2 - titleSize * 0.5,
+      );
     }
 
     ctx.fillStyle = 'white';
     ctx.font = `${textSize}px sans-serif`;
-    ctx.fillText(`Time: ${sec.toFixed(2)}s`, rect.width / 2, rect.height / 2 + textSize * 1.5);
-    ctx.fillText('Press R to restart', rect.width / 2, rect.height / 2 + textSize * 3);
+    ctx.fillText(
+      `Time: ${sec.toFixed(2)}s`,
+      rect.width / 2,
+      rect.height / 2 + textSize * 1.5,
+    );
+    ctx.fillText(
+      'Press R to restart',
+      rect.width / 2,
+      rect.height / 2 + textSize * 3,
+    );
   };
 
   // 시작 화면
@@ -461,10 +495,18 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
     ctx.fillStyle = '#333';
     ctx.font = `${titleSize}px sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(`Level ${levelIndex + 1}`, rect.width / 2, rect.height / 2 - titleSize);
+    ctx.fillText(
+      `Level ${levelIndex + 1}`,
+      rect.width / 2,
+      rect.height / 2 - titleSize,
+    );
     ctx.fillText('Press S to start', rect.width / 2, rect.height / 2);
     ctx.font = `${textSize}px sans-serif`;
-    ctx.fillText('← → : Move, ↑ or Space : Jump', rect.width / 2, rect.height / 2 + titleSize);
+    ctx.fillText(
+      '← → : Move, ↑ or Space : Jump',
+      rect.width / 2,
+      rect.height / 2 + titleSize,
+    );
   };
 
   const render = () => {
