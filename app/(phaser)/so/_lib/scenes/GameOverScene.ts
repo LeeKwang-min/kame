@@ -26,7 +26,7 @@ export class GameOverScene extends Phaser.Scene {
       width,
       height,
       0x000000,
-      0.7
+      0.7,
     );
 
     // GAME OVER 텍스트
@@ -45,7 +45,7 @@ export class GameOverScene extends Phaser.Scene {
       {
         fontSize: '28px',
         color: '#ffffff',
-      }
+      },
     );
     scoreText.setOrigin(0.5);
 
@@ -57,7 +57,7 @@ export class GameOverScene extends Phaser.Scene {
       {
         fontSize: '20px',
         color: '#aaaaaa',
-      }
+      },
     );
     restartText.setOrigin(0.5);
 
