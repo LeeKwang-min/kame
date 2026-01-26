@@ -107,6 +107,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '플랫포머',
+      eng: 'Platformer',
+    },
+    href: '/platformer',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '키어로33',
       eng: 'Kero33',
     },
