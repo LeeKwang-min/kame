@@ -2,8 +2,8 @@ import {
   INITIALS_KEY_COLS,
   INITIALS_KEY_ROWS,
   INITIALS_MOVE_DIR,
-} from '@/app/(game)/dodge/_lib/config';
-import { initialLabelAt } from '@/app/(game)/dodge/_lib/utils';
+} from '@/app/(canvas)/dodge/_lib/config';
+import { initialLabelAt } from '@/app/(canvas)/dodge/_lib/utils';
 
 export const gameOver = (
   canvas: HTMLCanvasElement,
