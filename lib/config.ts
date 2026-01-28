@@ -1,13 +1,12 @@
 export const MENU_LIST = [
-  // {
-  //   name: {
-  //     kor: '키어로33',
-  //     eng: 'Kero33',
-  //   },
-  //   href: '/something',
-  //   category: 'Phaser',
-  //   disabled: true,
-  // },
+  {
+    name: {
+      kor: '벽돌 깨기',
+      eng: 'Breakout',
+    },
+    href: '/pbreakout',
+    category: 'Phaser',
+  },
   // 이 아래로 Canvas API
   {
     name: {
