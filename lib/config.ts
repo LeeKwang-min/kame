@@ -119,6 +119,5 @@ export const MENU_LIST = [
     },
     href: '/kero33',
     category: 'Game',
-    disabled: true,
   },
 ];

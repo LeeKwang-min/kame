@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(file:*)",
+      "Bash(npx tsc:*)",
+      "Bash(convert:*)",
+      "Bash(magick:*)"
+    ]
+  }
+}
