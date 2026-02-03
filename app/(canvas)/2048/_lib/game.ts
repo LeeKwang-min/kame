@@ -17,8 +17,19 @@ import {
   canMove,
   hasWon,
 } from './utils';
+import {
+  createGameOverHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 
-export const setup2048 = (canvas: HTMLCanvasElement) => {
+export type T2048Callbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setup2048 = (
+  canvas: HTMLCanvasElement,
+  callbacks?: T2048Callbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -39,6 +50,20 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
   // 입력 큐 (애니메이션 중 입력 저장)
   let inputQueue: ('left' | 'right' | 'up' | 'down')[] = [];
 
+  // 게임 오버 HUD
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, '2048', gameOverCallbacks);
+
   // ==================== Game State ====================
 
   const resetGame = () => {
@@ -50,6 +75,7 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
     newTile = null;
     isAnimating = false;
     inputQueue = [];
+    gameOverHud.reset();
 
     for (let i = 0; i < INITIAL_TILES; i++) {
       addRandomTile(grid);
@@ -138,7 +164,14 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === 'KeyR') {
+    // 게임 오버 시 HUD 처리
+    if (gameState === 'gameover') {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    // 재시작 (게임 오버가 아닐 때만)
+    if (e.code === 'KeyR' && gameState !== 'gameover') {
       resetGame();
       return;
     }
@@ -302,25 +335,22 @@ export const setup2048 = (canvas: HTMLCanvasElement) => {
 
     const size = GRID_SIZE * CELL_SIZE + (GRID_SIZE + 1) * CELL_GAP;
 
-    ctx.fillStyle =
-      gameState === 'won'
-        ? 'rgba(237, 194, 46, 0.5)'
-        : 'rgba(238, 228, 218, 0.73)';
-    ctx.fillRect(0, 0, size, size);
-
-    ctx.fillStyle = gameState === 'won' ? '#f9f6f2' : '#776e65';
-    ctx.font = 'bold 48px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    const text = gameState === 'won' ? 'You Win!' : 'Game Over!';
-    ctx.fillText(text, size / 2, size / 2 - 30);
-
-    ctx.font = '18px sans-serif';
     if (gameState === 'won') {
+      ctx.fillStyle = 'rgba(237, 194, 46, 0.5)';
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = '#f9f6f2';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('You Win!', size / 2, size / 2 - 30);
+
+      ctx.font = '18px sans-serif';
       ctx.fillText('Press SPACE to continue', size / 2, size / 2 + 20);
+      ctx.fillText('Press R to restart', size / 2, size / 2 + 50);
+    } else if (gameState === 'gameover') {
+      gameOverHud.render(score);
     }
-    ctx.fillText('Press R to restart', size / 2, size / 2 + 50);
   };
 
   const render = () => {

@@ -1,5 +1,8 @@
+'use client';
+
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
+import { useGetScores } from '@/service/scores';
 import SpaceInvaders from './_components/SpaceInvaders';
 
 const controls = [
@@ -10,6 +13,8 @@ const controls = [
 ];
 
 function SpaceInvadersPage() {
+  const { data: scores = [], isLoading } = useGetScores('spaceinvaders');
+
   return (
     <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-64">
@@ -19,7 +24,7 @@ function SpaceInvadersPage() {
         <SpaceInvaders />
       </div>
       <aside className="shrink-0 w-64">
-        <RankBoard data={[]} />
+        <RankBoard data={scores} isLoading={isLoading} showCountry />
       </aside>
     </section>
   );

@@ -1,16 +1,28 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { setupSpaceInvaders } from '../_lib/game';
+import { setupSpaceInvaders, TSpaceInvadersCallbacks } from '../_lib/game';
+import { useCreateScore } from '@/service/scores';
 
 function SpaceInvaders() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { mutateAsync: saveScore } = useCreateScore('spaceinvaders');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    return setupSpaceInvaders(canvas);
-  }, []);
+    const callbacks: TSpaceInvadersCallbacks = {
+      onScoreSave: async (initials, score) => {
+        await saveScore({
+          gameType: 'spaceinvaders',
+          initials,
+          score: Math.floor(score),
+        });
+      },
+    };
+
+    return setupSpaceInvaders(canvas, callbacks);
+  }, [saveScore]);
 
   return (
     <div className="w-full h-full">

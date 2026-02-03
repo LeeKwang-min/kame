@@ -1,4 +1,9 @@
-import { drawHud } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 import {
   ENEMY_RADIUS,
   PLAYER_RADIUS,
@@ -14,7 +19,14 @@ import {
   spawnOutsideByDir,
 } from './utils';
 
-export const setupDodge = (canvas: HTMLCanvasElement) => {
+export type TDodgeCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupDodge = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TDodgeCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -36,6 +48,19 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
   let isStarted = false;
 
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'dodge', gameOverCallbacks);
+
   const startGame = () => {
     if (isStarted) return;
     isStarted = true;
@@ -50,6 +75,7 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     score = 0;
     spawnAcc = 0;
     enemies = [];
+    gameOverHud.reset();
 
     const rect = canvas.getBoundingClientRect();
     player = {
@@ -79,7 +105,12 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
       return;
     }
 
-    if (e.code === 'KeyR') {
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -97,8 +128,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // ==================== Update Functions ====================
-
   const updatePlayer = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
 
@@ -109,7 +138,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     if (keys.ArrowUp) dy -= 1;
     if (keys.ArrowDown) dy += 1;
 
-    // 대각선 이동 시 속도 정규화
     if (dx !== 0 && dy !== 0) {
       const inv = 1 / Math.sqrt(2);
       dx *= inv;
@@ -119,7 +147,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     player.x += dx * PLAYER_SPEED * dt;
     player.y += dy * PLAYER_SPEED * dt;
 
-    // 경계 체크
     player.x = Math.max(
       PLAYER_RADIUS,
       Math.min(rect.width - PLAYER_RADIUS, player.x),
@@ -155,7 +182,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
   const updateEnemies = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
 
-    // 적 스폰
     spawnAcc += dt;
     const interval = getSpawnInterval(sec);
     while (spawnAcc >= interval) {
@@ -163,13 +189,11 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
       spawnEnemy();
     }
 
-    // 적 이동
     for (const e of enemies) {
       e.x += e.vx * e.speed * dt;
       e.y += e.vy * e.speed * dt;
     }
 
-    // 화면 밖 적 제거
     const isOutside = (e: Enemy) => {
       const m = e.r + 2;
       return (
@@ -213,8 +237,6 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // ==================== Render Functions ====================
-
   const renderPlayer = () => {
     ctx.beginPath();
     ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
@@ -239,13 +261,25 @@ export const setupDodge = (canvas: HTMLCanvasElement) => {
     renderEnemies();
   };
 
-  // ==================== Game Loop ====================
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(score);
+      return;
+    }
+
+    gameHud(ctx, score, sec);
+  };
 
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

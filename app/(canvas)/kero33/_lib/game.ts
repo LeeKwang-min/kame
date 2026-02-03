@@ -17,6 +17,14 @@ import {
   PLAYER_DIR,
   PLAYER_DIR_CODES,
 } from './utils';
+import {
+  createGameOverHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
+
+export type TKero33Callbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
 
 // 이미지 로드 헬퍼
 const loadImage = (src: string): Promise<HTMLImageElement> => {
@@ -36,7 +44,10 @@ type GameImages = {
   tileDanger: HTMLImageElement | null;
 };
 
-export const setupKero33 = (canvas: HTMLCanvasElement) => {
+export const setupKero33 = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TKero33Callbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -53,6 +64,20 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
     tileWarn: null,
     tileDanger: null,
   };
+
+  // 게임 오버 HUD
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      startGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'kero33', gameOverCallbacks);
 
   // 베이스 경로 (Next.js public 폴더 기준)
   const basePath = '/kero33';
@@ -93,15 +118,22 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
     state.phase = 'playing';
     currentPattern = null;
     lastTickTime = performance.now();
+    gameOverHud.reset();
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (state.phase === 'ready' || state.phase === 'gameover') {
+    if (state.phase === 'ready') {
       if (e.code === 'KeyS') {
         startGame();
         e.preventDefault();
         return;
       }
+    }
+
+    // 게임 오버 시 HUD 처리
+    if (state.phase === 'gameover') {
+      const handled = gameOverHud.onKeyDown(e, state.score);
+      if (handled) return;
     }
 
     if (state.phase !== 'playing') return;
@@ -587,7 +619,7 @@ export const setupKero33 = (canvas: HTMLCanvasElement) => {
     if (state.phase === 'ready') {
       drawOverlay('KERO33', 'Press S to start');
     } else if (state.phase === 'gameover') {
-      drawOverlay(`GAME OVER`, `Score: ${state.score} - Press S to retry`);
+      gameOverHud.render(state.score);
     }
 
     raf = requestAnimationFrame(draw);

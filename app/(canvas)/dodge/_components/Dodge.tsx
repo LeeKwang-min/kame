@@ -1,42 +1,35 @@
 'use client';
+
 import { useEffect, useRef } from 'react';
-import { setupDodge } from '../_lib/game';
-import RankBoard from '@/components/common/RankBoard';
+import { setupDodge, TDodgeCallbacks } from '../_lib/game';
+import { useCreateScore } from '@/service/scores';
 
 function Dodge() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { mutateAsync: saveScore } = useCreateScore('dodge');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    return setupDodge(canvas);
-  }, []);
+    const callbacks: TDodgeCallbacks = {
+      onScoreSave: async (initials, score) => {
+        await saveScore({
+          gameType: 'dodge',
+          initials,
+          score: Math.floor(score),
+        });
+      },
+    };
+
+    return setupDodge(canvas, callbacks);
+  }, [saveScore]);
 
   return (
     <div className="w-full h-full">
       <canvas ref={canvasRef} className="w-full h-[600px] border touch-none" />
     </div>
   );
-
-  // return (
-  //   <div className="w-full h-full gap-2 grid grid-cols-[1fr_180px]">
-  //     <canvas ref={canvasRef} className="w-full h-[600px] border touch-none" />
-  //     <RankBoard data={[{
-  //       initials: "AAA",
-  //       score: 100,
-  //     }, {
-  //       initials: "BBB",
-  //       score: 90,
-  //     }, {
-  //       initials: "CCC",
-  //       score: 80,
-  //     }, {
-  //       initials: "DDD",
-  //       score: 70,
-  //     }]} className="max-h-[600px]" />
-  //   </div>
-  // );
 }
 
 export default Dodge;

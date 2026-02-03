@@ -1,4 +1,9 @@
-import { drawHud } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 import {
   BALL_RADIUS,
   BALL_SPEED,
@@ -19,7 +24,14 @@ import {
 import { TBall, TBrick, TPaddle } from './types';
 import { circleRectHit } from '@/lib/utils';
 
-export const setupBreakOut = (canvas: HTMLCanvasElement) => {
+export type TBreakoutCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupBreakOut = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TBreakoutCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -45,6 +57,24 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
   let lastTime = 0;
   let sec = 0;
 
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(
+    canvas,
+    ctx,
+    'breakout',
+    gameOverCallbacks,
+  );
+
   const startGame = () => {
     if (isStarted) return;
     isStarted = true;
@@ -55,7 +85,6 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
   const createBricks = (canvasWidth: number): TBrick[] => {
     const result: TBrick[] = [];
 
-    // 벽돌 총 너비 계산 (중앙 정렬용)
     const BRICK_WIDTH = Math.floor((canvasWidth - 120) / BRICK_COLS);
     const totalWidth = BRICK_COLS * BRICK_WIDTH + (BRICK_COLS - 1) * BRICK_GAP;
     const startX = (canvasWidth - totalWidth) / 2;
@@ -85,6 +114,7 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     score = 0;
     lastTime = 0;
     sec = 0;
+    gameOverHud.reset();
 
     paddle = {
       x: rect.width / 2 - PADDLE_WIDTH / 2,
@@ -124,7 +154,12 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
       return;
     }
 
-    if (e.code === 'KeyR') {
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -156,7 +191,6 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     const minVy = BALL_SPEED * MIN_VY_RATIO;
 
     if (Math.abs(ball.vy) < minVy) {
-      // vy를 최소값으로 (방향 유지)
       ball.vy = ball.vy >= 0 ? minVy : -minVy;
 
       const remainingSpeed = Math.sqrt(BALL_SPEED ** 2 - ball.vy ** 2);
@@ -176,19 +210,15 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     );
     if (!hit || ball.vy <= 0) return;
 
-    // 패들 속도 계산 (현재 프레임에서 패들이 움직이는 방향)
     let paddleVx = 0;
     if (keys.ArrowLeft) paddleVx = -PADDLE_SPEED;
     if (keys.ArrowRight) paddleVx = PADDLE_SPEED;
 
-    // 기본 반사 (y 방향만 뒤집기)
     ball.vy *= -1;
 
-    // 패들 속도의 일부를 공에 전달 (30~50% 정도)
     const influence = 0.4;
     ball.vx += paddleVx * influence;
 
-    // 속도 정규화 (총 속도 유지)
     const currentSpeed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2);
     const targetSpeed = BALL_SPEED;
     ball.vx = (ball.vx / currentSpeed) * targetSpeed;
@@ -225,12 +255,9 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
         const dx = ballCenterX - brickCenterX;
         const dy = ballCenterY - brickCenterY;
 
-        // 가로/세로 비율 -> 어느 면인지
         if (Math.abs(dx / brick.width) > Math.abs(dy / brick.height)) {
-          // 좌우 면에 충돌
           ball.vx *= -1;
         } else {
-          // 상하 면에 충돌
           ball.vy *= -1;
         }
 
@@ -331,11 +358,25 @@ export const setupBreakOut = (canvas: HTMLCanvasElement) => {
     renderBall();
   };
 
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(score);
+      return;
+    }
+
+    gameHud(ctx, score, sec);
+  };
+
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

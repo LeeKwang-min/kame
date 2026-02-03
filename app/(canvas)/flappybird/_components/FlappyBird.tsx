@@ -1,16 +1,29 @@
 'use client';
+
 import { useEffect, useRef } from 'react';
-import { setupFlappyBird } from '../_lib/game';
+import { setupFlappyBird, TFlappyBirdCallbacks } from '../_lib/game';
+import { useCreateScore } from '@/service/scores';
 
 function FlappyBird() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { mutateAsync: saveScore } = useCreateScore('flappybird');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    return setupFlappyBird(canvas);
-  }, []);
+    const callbacks: TFlappyBirdCallbacks = {
+      onScoreSave: async (initials, score) => {
+        await saveScore({
+          gameType: 'flappybird',
+          initials,
+          score: Math.floor(score),
+        });
+      },
+    };
+
+    return setupFlappyBird(canvas, callbacks);
+  }, [saveScore]);
 
   return (
     <div className="w-full h-full">

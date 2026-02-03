@@ -1,16 +1,28 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { setupMissileCommand } from '../_lib/game';
+import { setupMissileCommand, TMissileCommandCallbacks } from '../_lib/game';
+import { useCreateScore } from '@/service/scores';
 
 function MissileCommand() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { mutateAsync: saveScore } = useCreateScore('missilecommand');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    return setupMissileCommand(canvas);
-  }, []);
+    const callbacks: TMissileCommandCallbacks = {
+      onScoreSave: async (initials, score) => {
+        await saveScore({
+          gameType: 'missilecommand',
+          initials,
+          score: Math.floor(score),
+        });
+      },
+    };
+
+    return setupMissileCommand(canvas, callbacks);
+  }, [saveScore]);
 
   return (
     <div className="w-full h-full">

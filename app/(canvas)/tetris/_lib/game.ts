@@ -1,4 +1,8 @@
-import { drawHudWithoutPlay } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 import { TBoard, TTetromino, TTetrominoType } from './types';
 import {
   BASE_STEP,
@@ -22,11 +26,17 @@ import {
   isValidPosition,
 } from './utils';
 
-export const setupTetris = (canvas: HTMLCanvasElement) => {
+export type TTetrisCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupTetris = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TTetrisCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // ==================== State ====================
   let board: TBoard = createEmptyBoard();
   let current: TTetromino = createTetromino(getRandomType());
   let nextType: TTetrominoType = getRandomType();
@@ -43,10 +53,21 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
 
   let lastTime = 0;
-  let acc = 0; // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)
-  let sec = 0; // 총 경과 시간
+  let acc = 0;
+  let sec = 0;
 
-  // ==================== Game State ====================
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'tetris', gameOverCallbacks);
 
   const startGame = () => {
     if (isStarted) return;
@@ -57,16 +78,14 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
   };
 
   const resetGame = () => {
-    const rect = canvas.getBoundingClientRect();
-
     isStarted = false;
     isGameOver = false;
     score = 0;
     lastTime = 0;
     acc = 0;
     sec = 0;
+    gameOverHud.reset();
 
-    // TODO: 게임 오브젝트 초기화
     board = createEmptyBoard();
     current = createTetromino(getRandomType());
     nextType = getRandomType();
@@ -92,15 +111,18 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     resetGame();
   };
 
-  // ==================== Input Handlers ====================
-
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
       startGame();
       return;
     }
 
-    if (e.code === 'KeyR') {
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -123,7 +145,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
         break;
 
       case 'ArrowDown':
-        // 소프트 드롭
         if (isValidPosition(board, current, 0, 1)) {
           current.y++;
         }
@@ -132,19 +153,16 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
 
       case 'ArrowUp':
       case 'KeyX':
-        // 시계방향 회전
         rotatePiece(1);
         e.preventDefault();
         break;
 
       case 'KeyZ':
-        // 반시계방향 회전
         rotatePiece(-1);
         e.preventDefault();
         break;
 
       case 'Space':
-        // 하드 드롭
         while (isValidPosition(board, current, 0, 1)) {
           current.y++;
         }
@@ -159,18 +177,14 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // ==================== Update Functions ====================
-  // 회전 함수
   const rotatePiece = (dir: 1 | -1) => {
     const newRotation = (current.rotation + dir + 4) % 4;
 
-    // 기본 회전 시도
     if (isValidPosition(board, current, 0, 0, newRotation)) {
       current.rotation = newRotation;
       return;
     }
 
-    // 벽 차기 (Wall Kick) - 좌우로 밀어보기
     const kicks = [1, -1, 2, -2];
     for (const kick of kicks) {
       if (isValidPosition(board, current, kick, 0, newRotation)) {
@@ -181,7 +195,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // 피스 고정
   const lockPiece = () => {
     const shape = getShape(current);
 
@@ -217,7 +230,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     canHold = false;
   };
 
-  // 라인 클리어
   const clearLines = () => {
     let cleared = 0;
 
@@ -226,7 +238,7 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
         board.splice(row, 1);
         board.unshift(Array(COLS).fill(null));
         cleared++;
-        row++; // 같은 줄 다시 체크
+        row++;
       }
     }
 
@@ -234,7 +246,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
       lines += cleared;
       score += SCORE_PER_LINE[cleared] || 0;
 
-      // 레벨업 (10줄마다)
       const newLevel = Math.floor(lines / 10) + 1;
       if (newLevel > level) {
         level = newLevel;
@@ -243,24 +254,15 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // 새 피스 스폰
   const spawnPiece = () => {
     current = createTetromino(nextType);
     nextType = getRandomType();
     canHold = true;
 
-    // 스폰 위치에서 충돌 = 게임 오버
     if (!isValidPosition(board, current)) {
       isGameOver = true;
     }
   };
-
-  // TODO: 각 오브젝트별 update 함수 작성
-  // const updatePlayer = (dt: number) => { ... }
-  // const updateEnemies = (dt: number) => { ... }
-
-  // TODO: 충돌 처리 함수 작성
-  // const handleCollision = (): boolean => { ... }
 
   const update = (t: number) => {
     if (!lastTime) lastTime = t;
@@ -272,7 +274,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     sec += dt;
 
     if (isStarted && !isGameOver) {
-      // TODO: update 함수들 호출
       while (acc >= step) {
         acc -= step;
 
@@ -286,10 +287,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // ==================== Render Functions ====================
-
-  // TODO: 각 오브젝트별 render 함수 작성
-  // 보드 그리드 렌더링
   const renderGrid = () => {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
     ctx.lineWidth = 0.5;
@@ -301,7 +298,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // 고정된 블록 렌더링
   const renderBoard = () => {
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
@@ -319,7 +315,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // 현재 떨어지는 피스 렌더링
   const renderCurrentPiece = () => {
     const shape = getShape(current);
     ctx.fillStyle = COLORS[current.type];
@@ -335,14 +330,13 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // 고스트 피스 렌더링 (하드 드롭 위치 미리보기)
   const renderGhostPiece = () => {
     let ghostY = current.y;
     while (isValidPosition(board, { ...current, y: ghostY + 1 }, 0, 0)) {
       ghostY++;
     }
 
-    if (ghostY === current.y) return; // 같은 위치면 그리지 않음
+    if (ghostY === current.y) return;
 
     const shape = getShape(current);
     ctx.fillStyle = COLORS[current.type];
@@ -361,15 +355,12 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     ctx.globalAlpha = 1.0;
   };
 
-  // 사이드 패널 배경
   const renderSidePanel = () => {
     const boardWidth = COLS * CELL;
 
-    // 패널 배경
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(boardWidth, 0, SIDE_PANEL_WIDTH, ROWS * CELL);
 
-    // 구분선
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -378,31 +369,26 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     ctx.stroke();
   };
 
-  // 미리보기 블록 그리기 (공통 함수)
   const renderPreviewPiece = (
     type: TTetrominoType | null,
     centerX: number,
     centerY: number,
     label: string,
   ) => {
-    // 라벨
     ctx.fillStyle = '#888';
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(label, centerX, centerY - 45);
 
     if (!type) {
-      // 빈 상태 표시
       ctx.fillStyle = '#333';
       ctx.fillText('Empty', centerX, centerY + 10);
       return;
     }
 
-    // 블록 그리기
-    const shape = TETROMINOES[type][0]; // 기본 회전 상태
+    const shape = TETROMINOES[type][0];
     const previewCell = PREVIEW_CELL;
 
-    // 블록 중앙 정렬을 위한 오프셋 계산
     const shapeWidth = shape[0].length * previewCell;
     const shapeHeight = shape.length * previewCell;
     const startX = centerX - shapeWidth / 2;
@@ -424,7 +410,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // Next 피스 렌더링
   const renderNextPiece = () => {
     const boardWidth = COLS * CELL;
     const centerX = boardWidth + SIDE_PANEL_WIDTH / 2;
@@ -433,7 +418,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     renderPreviewPiece(nextType, centerX, centerY, 'NEXT');
   };
 
-  // Hold 피스 렌더링
   const renderHoldPiece = () => {
     const boardWidth = COLS * CELL;
     const centerX = boardWidth + SIDE_PANEL_WIDTH / 2;
@@ -441,14 +425,12 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
 
     renderPreviewPiece(holdType, centerX, centerY, 'HOLD');
 
-    // Hold 불가 상태면 어둡게 표시
     if (!canHold && holdType) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.fillRect(boardWidth + 10, 0, SIDE_PANEL_WIDTH, 100);
     }
   };
 
-  // 게임 정보 렌더링
   const renderGameInfo = () => {
     const boardWidth = COLS * CELL;
     const x = boardWidth + SIDE_PANEL_WIDTH / 2;
@@ -458,13 +440,11 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
 
-    // Score
     ctx.fillText('SCORE', x, y);
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText(String(score), x, y + 20);
 
-    // Level
     y += 60;
     ctx.fillStyle = '#888';
     ctx.font = 'bold 12px sans-serif';
@@ -473,7 +453,6 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText(String(level), x, y + 20);
 
-    // Lines
     y += 60;
     ctx.fillStyle = '#888';
     ctx.font = 'bold 12px sans-serif';
@@ -487,26 +466,34 @@ export const setupTetris = (canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
 
-    // 게임 보드
     renderGrid();
     renderBoard();
     renderGhostPiece();
     renderCurrentPiece();
 
-    // ↓↓↓ 사이드 패널 추가 ↓↓↓
     renderSidePanel();
     renderNextPiece();
     renderHoldPiece();
     renderGameInfo();
   };
 
-  // ==================== Game Loop ====================
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(score);
+      return;
+    }
+  };
 
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
-    drawHudWithoutPlay(canvas, ctx, score, isStarted, isGameOver);
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

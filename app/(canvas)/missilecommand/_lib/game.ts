@@ -12,8 +12,20 @@ import {
   COLORS,
 } from './config';
 import { createCities, getRandomAliveCity, circleCircleHit } from './utils';
+import {
+  createGameOverHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 
-export const setupMissileCommand = (canvas: HTMLCanvasElement) => {
+export type TMissileCommandCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupMissileCommand = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TMissileCommandCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -42,6 +54,20 @@ export const setupMissileCommand = (canvas: HTMLCanvasElement) => {
   let sec = 0;
   let spawnTimer = 0; // 적 스폰 타이머
 
+  // 게임 오버 HUD
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'missilecommand', gameOverCallbacks);
+
   // ==================== Game State ====================
 
   const startGame = () => {
@@ -58,6 +84,7 @@ export const setupMissileCommand = (canvas: HTMLCanvasElement) => {
     lastTime = 0;
     sec = 0;
     spawnTimer = 0;
+    gameOverHud.reset();
 
     // 난이도 초기화
     difficultyLevel = 1;
@@ -87,12 +114,19 @@ export const setupMissileCommand = (canvas: HTMLCanvasElement) => {
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === 'KeyS') {
+    if (e.code === 'KeyS' && !isStarted && !isGameOver) {
       startGame();
       return;
     }
 
-    if (e.code === 'KeyR') {
+    // 게임 오버 시 HUD 처리
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    // 재시작 (게임 오버가 아닐 때만)
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -635,37 +669,7 @@ export const setupMissileCommand = (canvas: HTMLCanvasElement) => {
 
     // 게임 오버 화면
     if (isGameOver) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(CANVAS_WIDTH / 2 - 150, CANVAS_HEIGHT / 2 - 100, 300, 200);
-
-      ctx.fillStyle = '#ff0000';
-      ctx.font = '40px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 40);
-
-      ctx.fillStyle = '#ffff00';
-      ctx.font = '24px monospace';
-      ctx.fillText(
-        `Final Score: ${score}`,
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 10,
-      );
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '18px monospace';
-      ctx.fillText(
-        `Level Reached: ${difficultyLevel}`,
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 45,
-      );
-
-      ctx.fillStyle = '#00ff00';
-      ctx.font = '16px monospace';
-      ctx.fillText(
-        'Press R to Restart',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 80,
-      );
+      gameOverHud.render(score);
     }
   };
 

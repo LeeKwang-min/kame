@@ -1,4 +1,8 @@
-import { drawHud } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 import { TPlayer, TPlatform, TPlatformType } from './types';
 import {
   PLAYER_WIDTH,
@@ -17,7 +21,14 @@ import {
   INITIAL_PLATFORMS,
 } from './config';
 
-export const setupDoodle = (canvas: HTMLCanvasElement) => {
+export type TDoodleCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupDoodle = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TDoodleCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -50,6 +61,20 @@ export const setupDoodle = (canvas: HTMLCanvasElement) => {
 
   let lastTime = 0;
   const sec = 0; // 총 경과 시간
+
+  // 게임 오버 HUD
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'doodle', gameOverCallbacks);
 
   // ==================== Game State ====================
 
@@ -147,6 +172,7 @@ export const setupDoodle = (canvas: HTMLCanvasElement) => {
     score = 0;
     highestY = rect.height;
     lastTime = 0;
+    gameOverHud.reset();
 
     // 플레이어 초기 위치 (바닥 플랫폼 위)
     player = {
@@ -179,16 +205,19 @@ export const setupDoodle = (canvas: HTMLCanvasElement) => {
 
   const onKeyDown = (e: KeyboardEvent) => {
     // 게임 시작
-    // if (!isStarted && !isGameOver) {
-    //   startGame();
-    // }
-    if (e.code === 'KeyS') {
+    if (e.code === 'KeyS' && !isStarted && !isGameOver) {
       startGame();
       return;
     }
 
-    // 재시작
-    if (e.code === 'KeyR') {
+    // 게임 오버 시 HUD 처리
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, Math.floor(score));
+      if (handled) return;
+    }
+
+    // 재시작 (게임 오버가 아닐 때만)
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -441,40 +470,6 @@ export const setupDoodle = (canvas: HTMLCanvasElement) => {
     ctx.fillText(`Score: ${score}`, 20, 40);
   };
 
-  // 게임 오버 화면
-  const renderGameOver = () => {
-    if (!isGameOver) return;
-
-    const rect = canvas.getBoundingClientRect();
-
-    // 반투명 오버레이
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, rect.width, rect.height);
-
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 36px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', rect.width / 2, rect.height / 2 - 30);
-
-    ctx.font = '24px sans-serif';
-    ctx.fillText(`Score: ${score}`, rect.width / 2, rect.height / 2 + 20);
-
-    ctx.font = '18px sans-serif';
-    ctx.fillText('Press R to restart', rect.width / 2, rect.height / 2 + 60);
-  };
-
-  // 시작 화면
-  const renderStart = () => {
-    if (isStarted || isGameOver) return;
-
-    const rect = canvas.getBoundingClientRect();
-
-    ctx.fillStyle = '#333';
-    ctx.font = '24px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Press S key to start', rect.width / 2, rect.height / 2);
-  };
-
   const render = () => {
     const rect = canvas.getBoundingClientRect();
 
@@ -485,8 +480,18 @@ export const setupDoodle = (canvas: HTMLCanvasElement) => {
     renderPlatforms();
     renderPlayer();
     renderScore();
-    renderGameOver();
-    renderStart();
+  };
+
+  const drawHud = () => {
+    if (!isStarted && !isGameOver) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(Math.floor(score));
+      return;
+    }
   };
 
   // ==================== Game Loop ====================
@@ -495,6 +500,7 @@ export const setupDoodle = (canvas: HTMLCanvasElement) => {
   const draw = (t: number) => {
     update(t);
     render();
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

@@ -18,8 +18,20 @@ import {
 } from './config';
 import { createEnemies, getEnemyBounds, getShootingEnemy } from './utils';
 import { rectRectHit } from '@/lib/utils';
+import {
+  createGameOverHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 
-export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
+export type TSpaceInvadersCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupSpaceInvaders = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TSpaceInvadersCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -74,6 +86,20 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
   // 시간
   let lastTime = 0;
   let sec = 0;
+
+  // 게임 오버 HUD
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'spaceinvaders', gameOverCallbacks);
 
   // ==================== Game State ====================
 
@@ -140,6 +166,7 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
     animTimer = 0;
     lastTime = 0;
     sec = 0;
+    gameOverHud.reset();
   };
 
   const resize = () => {
@@ -157,13 +184,19 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
 
   const onKeyDown = (e: KeyboardEvent) => {
     // 게임 시작
-    if (e.code === 'KeyS') {
+    if (e.code === 'KeyS' && gameState === 'ready') {
       startGame();
       return;
     }
 
-    // 재시작 (모든 상태 초기화)
-    if (e.code === 'KeyR') {
+    // 게임 오버 시 HUD 처리
+    if (gameState === 'gameover') {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    // 재시작 (게임 오버가 아닐 때만)
+    if (e.code === 'KeyR' && gameState !== 'gameover') {
       resetGame();
       return;
     }
@@ -646,33 +679,7 @@ export const setupSpaceInvaders = (canvas: HTMLCanvasElement) => {
         CANVAS_HEIGHT / 2 + 40,
       );
     } else if (gameState === 'gameover') {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(CANVAS_WIDTH / 2 - 150, CANVAS_HEIGHT / 2 - 80, 300, 160);
-
-      ctx.fillStyle = '#ff0000';
-      ctx.font = '36px monospace';
-      ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
-
-      ctx.font = '20px monospace';
-      ctx.fillStyle = '#ffff00';
-      ctx.fillText(
-        `Final Score: ${score}`,
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 10,
-      );
-      ctx.fillText(
-        `Wave Reached: ${wave}`,
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 35,
-      );
-
-      ctx.font = '16px monospace';
-      ctx.fillStyle = COLORS.text;
-      ctx.fillText(
-        'Press R to Restart',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 60,
-      );
+      gameOverHud.render(score);
     }
   };
 

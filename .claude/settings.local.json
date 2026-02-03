@@ -5,7 +5,8 @@
       "Bash(file:*)",
       "Bash(npx tsc:*)",
       "Bash(convert:*)",
-      "Bash(magick:*)"
+      "Bash(magick:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

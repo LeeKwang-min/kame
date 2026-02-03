@@ -1,4 +1,9 @@
-import { drawHud } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 import { Pipe, Point } from './types';
 import {
   BIRD_GRAVITY,
@@ -15,7 +20,14 @@ import {
 } from './config';
 import { circleRectHit, rand } from '@/lib/utils';
 
-export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
+export type TFlappyBirdCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupFlappyBird = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TFlappyBirdCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -31,6 +43,24 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
 
   let lastTime = 0;
   let sec = 0;
+
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(
+    canvas,
+    ctx,
+    'flappybird',
+    gameOverCallbacks,
+  );
 
   const startGame = () => {
     if (isStarted) return;
@@ -49,6 +79,7 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     score = 0;
     lastTime = 0;
     sec = 0;
+    gameOverHud.reset();
 
     bird = { x: 300, y: rect.height / 2 };
     pipes = [];
@@ -74,7 +105,12 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
       return;
     }
 
-    if (e.code === 'KeyR') {
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -84,8 +120,6 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
       return;
     }
   };
-
-  // ==================== Update Functions ====================
 
   const makePipe = (screenW: number, screenH: number): Pipe => {
     const width = PIPE_WIDTH;
@@ -107,14 +141,12 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
   const updatePipes = (dt: number) => {
     const rect = canvas.getBoundingClientRect();
 
-    // 파이프 스폰
     spawnTimer += dt;
     if (spawnTimer >= PIPE_SPAWN_INTERVAL) {
       spawnTimer = 0;
       pipes.push(makePipe(rect.width, rect.height));
     }
 
-    // 파이프 이동
     const currentSpeed = Math.min(
       PIPE_SPEED_MAX,
       PIPE_SPEED + sec * PIPE_SPEED_PER_SECOND,
@@ -123,7 +155,6 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
       p.x -= currentSpeed * dt;
     }
 
-    // 화면 밖 파이프 제거
     pipes = pipes.filter((p) => p.x + p.width > 0);
   };
 
@@ -194,8 +225,6 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     }
   };
 
-  // ==================== Render Functions ====================
-
   const renderBird = () => {
     ctx.beginPath();
     ctx.arc(bird.x, bird.y, BIRD_RADIUS, 0, Math.PI * 2);
@@ -221,13 +250,25 @@ export const setupFlappyBird = (canvas: HTMLCanvasElement) => {
     renderBird();
   };
 
-  // ==================== Game Loop ====================
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(score);
+      return;
+    }
+
+    gameHud(ctx, score, sec);
+  };
 
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

@@ -1,16 +1,29 @@
 'use client';
+
 import { useEffect, useRef } from 'react';
-import { setupSnake } from '../_lib/game';
+import { setupSnake, TSnakeCallbacks } from '../_lib/game';
+import { useCreateScore } from '@/service/scores';
 
 function Snake() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { mutateAsync: saveScore } = useCreateScore('snake');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    return setupSnake(canvas);
-  }, []);
+    const callbacks: TSnakeCallbacks = {
+      onScoreSave: async (initials, score) => {
+        await saveScore({
+          gameType: 'snake',
+          initials,
+          score: Math.floor(score),
+        });
+      },
+    };
+
+    return setupSnake(canvas, callbacks);
+  }, [saveScore]);
 
   return (
     <div className="w-full h-full">

@@ -1,5 +1,8 @@
+'use client';
+
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
+import { useGetScores } from '@/service/scores';
 import Doodle from './_components/Doodle';
 
 const controls = [
@@ -9,6 +12,8 @@ const controls = [
 ];
 
 function DoodlePage() {
+  const { data: scores = [], isLoading } = useGetScores('doodle');
+
   return (
     <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-64">
@@ -18,7 +23,7 @@ function DoodlePage() {
         <Doodle />
       </div>
       <aside className="shrink-0 w-64">
-        <RankBoard data={[]} />
+        <RankBoard data={scores} isLoading={isLoading} showCountry />
       </aside>
     </section>
   );

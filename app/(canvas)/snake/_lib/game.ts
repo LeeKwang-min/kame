@@ -1,8 +1,20 @@
-import { drawHud } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 import { CELL, DIR, STEP } from './config';
 import { Point } from './types';
 
-export const setupSnake = (canvas: HTMLCanvasElement) => {
+export type TSnakeCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupSnake = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TSnakeCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -16,8 +28,21 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
   let isGameOver = false;
 
   let lastTime = 0;
-  let acc = 0; // tick용 누적(잔여) 시간
+  let acc = 0;
   let sec = 0;
+
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'snake', gameOverCallbacks);
 
   const spawnFood = (): Point => {
     const rect = canvas.getBoundingClientRect();
@@ -50,6 +75,7 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     lastTime = 0;
     acc = 0;
     sec = 0;
+    gameOverHud.reset();
 
     const startX = Math.floor(rect.width / 2 / CELL) * CELL;
     const startY = Math.floor(rect.height / 2 / CELL) * CELL;
@@ -84,7 +110,12 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
       return;
     }
 
-    if (e.code === 'KeyR') {
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -98,8 +129,6 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
       e.preventDefault();
     }
   };
-
-  // ==================== Update Functions ====================
 
   const handleWallCollision = (newHead: Point): boolean => {
     const rect = canvas.getBoundingClientRect();
@@ -126,22 +155,18 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     const head = snake[0];
     const newHead = { x: head.x + dir.x * CELL, y: head.y + dir.y * CELL };
 
-    // 벽 충돌 체크
     if (handleWallCollision(newHead)) {
       isGameOver = true;
       return;
     }
 
-    // 자기 자신 충돌 체크
     if (handleSelfCollision(newHead)) {
       isGameOver = true;
       return;
     }
 
-    // 뱀 이동
     snake = [newHead, ...snake];
 
-    // 음식 충돌 체크
     if (handleFoodCollision(newHead)) {
       score += 1;
       food = spawnFood();
@@ -167,8 +192,6 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
       }
     }
   };
-
-  // ==================== Render Functions ====================
 
   const renderSnake = () => {
     const head = snake[0];
@@ -197,13 +220,25 @@ export const setupSnake = (canvas: HTMLCanvasElement) => {
     renderFood();
   };
 
-  // ==================== Game Loop ====================
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(score);
+      return;
+    }
+
+    gameHud(ctx, score, sec);
+  };
 
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

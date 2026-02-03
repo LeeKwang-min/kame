@@ -1,6 +1,9 @@
+'use client';
+
 import ControlInfoTable from '@/components/common/ControlInfoTable';
-import Tetris from './_components/Tetris';
 import RankBoard from '@/components/common/RankBoard';
+import { useGetScores } from '@/service/scores';
+import Tetris from './_components/Tetris';
 
 const controls = [
   { key: '← →', action: '좌우 이동' },
@@ -14,6 +17,8 @@ const controls = [
 ];
 
 function TetrisPage() {
+  const { data: scores = [], isLoading } = useGetScores('tetris');
+
   return (
     <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-64">
@@ -23,7 +28,7 @@ function TetrisPage() {
         <Tetris />
       </div>
       <aside className="shrink-0 w-64">
-        <RankBoard data={[]} />
+        <RankBoard data={scores} isLoading={isLoading} showCountry />
       </aside>
     </section>
   );

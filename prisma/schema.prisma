@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Score {
+  id        String   @id @default(cuid())
+  gameType  String   @map("game_type")
+  initials  String   @db.VarChar(3)
+  score     Int
+  country   String?  @db.VarChar(2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([gameType, score(sort: Desc)], name: "idx_game_score")
+  @@map("scores")
+}

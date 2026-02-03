@@ -11,8 +11,20 @@ import {
   MAX_FALL_SPEED_RATIO,
   COLORS,
 } from './config';
+import {
+  createGameOverHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 
-export const setupPlatformer = (canvas: HTMLCanvasElement) => {
+export type TPlatformerCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+export const setupPlatformer = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TPlatformerCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -80,6 +92,24 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
   let isCleared = false; // 클리어 여부
   let lastTime = 0;
   let sec = 0;
+  let totalSec = 0; // 모든 레벨 클리어 시간
+
+  // 게임 오버 HUD (클리어 시 점수 저장용)
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      levelIndex = 0;
+      level = LEVELS[levelIndex];
+      totalSec = 0;
+      resetGame();
+    },
+  };
+
+  const gameOverHud = createGameOverHud(canvas, ctx, 'platformer', gameOverCallbacks);
 
   // ==================== Game State ====================
 
@@ -121,6 +151,7 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
     isCleared = false;
     lastTime = 0;
     sec = 0;
+    gameOverHud.reset();
 
     // 시작 위치 찾기 (타일 타입 2)
     const startPos = findTilePosition(2);
@@ -168,12 +199,21 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === 'KeyS') {
+    if (e.code === 'KeyS' && !isStarted && !isGameOver) {
       startGame();
       return;
     }
 
-    if (e.code === 'KeyR') {
+    // 클리어 시 HUD 처리 (시간을 점수로 변환 - 빠를수록 높은 점수)
+    if (isCleared && isGameOver) {
+      // 시간 기반 점수: 최대 10000점 - 경과시간(초) * 100
+      const timeScore = Math.max(0, Math.floor(10000 - totalSec * 100));
+      const handled = gameOverHud.onKeyDown(e, timeScore);
+      if (handled) return;
+    }
+
+    // 재시작 (클리어가 아닐 때만)
+    if (e.code === 'KeyR' && !isCleared) {
       resetGame();
       return;
     }
@@ -319,10 +359,12 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
   };
 
   const nextLevel = () => {
+    totalSec += sec; // 현재 레벨 시간 누적
     if (levelIndex < LEVELS.length - 1) {
       levelIndex++;
       level = LEVELS[levelIndex];
       resetGame();
+      isStarted = true; // 다음 레벨은 바로 시작
     } else {
       isCleared = true;
       isGameOver = true;
@@ -437,51 +479,12 @@ export const setupPlatformer = (canvas: HTMLCanvasElement) => {
   const renderCleared = () => {
     if (!isCleared) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const titleSize = Math.max(24, tileSize * 0.9);
-    const textSize = Math.max(14, tileSize * 0.45);
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, rect.width, rect.height);
-
-    ctx.fillStyle = '#FFD700';
-    ctx.font = `bold ${titleSize}px sans-serif`;
-    ctx.textAlign = 'center';
-
+    // 모든 레벨 클리어 시 점수 저장 HUD
     if (levelIndex >= LEVELS.length - 1 && isGameOver) {
-      // 모든 레벨 클리어
-      ctx.fillText(
-        'ALL CLEAR!',
-        rect.width / 2,
-        rect.height / 2 - titleSize * 0.5,
-      );
-      ctx.fillStyle = 'white';
-      ctx.font = `${textSize}px sans-serif`;
-      ctx.fillText(
-        'Congratulations!',
-        rect.width / 2,
-        rect.height / 2 + textSize,
-      );
-    } else {
-      ctx.fillText(
-        `LEVEL ${levelIndex} CLEAR!`,
-        rect.width / 2,
-        rect.height / 2 - titleSize * 0.5,
-      );
+      // 시간 기반 점수: 최대 10000점 - 경과시간(초) * 100
+      const timeScore = Math.max(0, Math.floor(10000 - totalSec * 100));
+      gameOverHud.render(timeScore);
     }
-
-    ctx.fillStyle = 'white';
-    ctx.font = `${textSize}px sans-serif`;
-    ctx.fillText(
-      `Time: ${sec.toFixed(2)}s`,
-      rect.width / 2,
-      rect.height / 2 + textSize * 1.5,
-    );
-    ctx.fillText(
-      'Press R to restart',
-      rect.width / 2,
-      rect.height / 2 + textSize * 3,
-    );
   };
 
   // 시작 화면
