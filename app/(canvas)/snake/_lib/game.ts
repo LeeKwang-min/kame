@@ -585,12 +585,10 @@ export const setupSnake = (
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener('resize', resize);
   window.addEventListener('keydown', onKeyDown);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKeyDown);
   };
 };

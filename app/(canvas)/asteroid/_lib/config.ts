@@ -1,3 +1,5 @@
+export const CANVAS_SIZE = 620;
+
 export const SHIP_RADIUS = 15;
 export const SHIP_ROTATION_SPEED = 4; // rad/sec
 export const SHIP_THRUST = 300; // 가속도

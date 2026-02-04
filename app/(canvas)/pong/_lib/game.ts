@@ -840,7 +840,6 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
 
   resize();
   updateButtonPositions(); // 초기 버튼 위치 설정
-  window.addEventListener('resize', resize);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   canvas.addEventListener('click', onClick); // 클릭 이벤트 추가
@@ -848,7 +847,6 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
     canvas.removeEventListener('click', onClick);

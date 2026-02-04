@@ -531,13 +531,11 @@ export const setupDoodle = (
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener('resize', resize);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
   };

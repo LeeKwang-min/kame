@@ -6,6 +6,7 @@ import {
   TGameOverCallbacks,
 } from '@/lib/game';
 import {
+  CANVAS_SIZE,
   SHIP_RADIUS,
   SHIP_ROTATION_SPEED,
   SHIP_THRUST,
@@ -90,8 +91,6 @@ export const setupAsteroid = (
   };
 
   const resetGame = () => {
-    const rect = canvas.getBoundingClientRect();
-
     isStarted = false;
     isGameOver = false;
     isPaused = false;
@@ -101,8 +100,8 @@ export const setupAsteroid = (
     gameOverHud.reset();
 
     ship = {
-      x: rect.width / 2,
-      y: rect.height / 2,
+      x: CANVAS_SIZE / 2,
+      y: CANVAS_SIZE / 2,
       vx: 0,
       vy: 0,
       angle: -Math.PI / 2,
@@ -120,13 +119,13 @@ export const setupAsteroid = (
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
 
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    canvas.width = Math.round(CANVAS_SIZE * dpr);
+    canvas.height = Math.round(CANVAS_SIZE * dpr);
+    canvas.style.width = `${CANVAS_SIZE}px`;
+    canvas.style.height = `${CANVAS_SIZE}px`;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
 
     resetGame();
   };
@@ -185,8 +184,6 @@ export const setupAsteroid = (
   };
 
   const updateShip = (dt: number) => {
-    const rect = canvas.getBoundingClientRect();
-
     if (keys.ArrowLeft) ship.angle -= SHIP_ROTATION_SPEED * dt;
     if (keys.ArrowRight) ship.angle += SHIP_ROTATION_SPEED * dt;
 
@@ -207,10 +204,10 @@ export const setupAsteroid = (
     ship.x += ship.vx * dt;
     ship.y += ship.vy * dt;
 
-    if (ship.x < 0) ship.x = rect.width;
-    if (ship.x > rect.width) ship.x = 0;
-    if (ship.y < 0) ship.y = rect.height;
-    if (ship.y > rect.height) ship.y = 0;
+    if (ship.x < 0) ship.x = CANVAS_SIZE;
+    if (ship.x > CANVAS_SIZE) ship.x = 0;
+    if (ship.y < 0) ship.y = CANVAS_SIZE;
+    if (ship.y > CANVAS_SIZE) ship.y = 0;
   };
 
   const fireBullet = () => {
@@ -266,17 +263,15 @@ export const setupAsteroid = (
   };
 
   const spawnInitialAsteroids = () => {
-    const rect = canvas.getBoundingClientRect();
-
     for (let i = 0; i < INITIAL_ASTEROIDS; i++) {
       let x: number, y: number;
 
       if (Math.random() < 0.5) {
-        x = Math.random() < 0.5 ? 50 : rect.width - 50;
-        y = Math.random() * rect.height;
+        x = Math.random() < 0.5 ? 50 : CANVAS_SIZE - 50;
+        y = Math.random() * CANVAS_SIZE;
       } else {
-        x = Math.random() * rect.width;
-        y = Math.random() < 0.5 ? 50 : rect.height - 50;
+        x = Math.random() * CANVAS_SIZE;
+        y = Math.random() < 0.5 ? 50 : CANVAS_SIZE - 50;
       }
 
       asteroids.push(createAsteroid(x, y, ASTEROID_SIZE[0]));
@@ -284,27 +279,23 @@ export const setupAsteroid = (
   };
 
   const updateAsteroids = (dt: number) => {
-    const rect = canvas.getBoundingClientRect();
-
     for (const asteroid of asteroids) {
       asteroid.x += asteroid.vx * dt;
       asteroid.y += asteroid.vy * dt;
 
       if (asteroid.x < -asteroid.radius)
-        asteroid.x = rect.width + asteroid.radius;
-      if (asteroid.x > rect.width + asteroid.radius)
+        asteroid.x = CANVAS_SIZE + asteroid.radius;
+      if (asteroid.x > CANVAS_SIZE + asteroid.radius)
         asteroid.x = -asteroid.radius;
       if (asteroid.y < -asteroid.radius)
-        asteroid.y = rect.height + asteroid.radius;
-      if (asteroid.y > rect.height + asteroid.radius)
+        asteroid.y = CANVAS_SIZE + asteroid.radius;
+      if (asteroid.y > CANVAS_SIZE + asteroid.radius)
         asteroid.y = -asteroid.radius;
     }
   };
 
   const startNextWave = () => {
     wave++;
-
-    const rect = canvas.getBoundingClientRect();
 
     const asteroidCount = INITIAL_ASTEROIDS + (wave - 1);
 
@@ -313,11 +304,11 @@ export const setupAsteroid = (
 
       do {
         if (Math.random() < 0.5) {
-          x = Math.random() < 0.5 ? 50 : rect.width - 50;
-          y = Math.random() * rect.height;
+          x = Math.random() < 0.5 ? 50 : CANVAS_SIZE - 50;
+          y = Math.random() * CANVAS_SIZE;
         } else {
-          x = Math.random() * rect.width;
-          y = Math.random() < 0.5 ? 50 : rect.height - 50;
+          x = Math.random() * CANVAS_SIZE;
+          y = Math.random() < 0.5 ? 50 : CANVAS_SIZE - 50;
         }
       } while (Math.sqrt((x - ship.x) ** 2 + (y - ship.y) ** 2) < 150);
 
@@ -508,8 +499,7 @@ export const setupAsteroid = (
   };
 
   const render = () => {
-    const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     renderAsteroids();
     renderBullets();
@@ -546,13 +536,11 @@ export const setupAsteroid = (
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener('resize', resize);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
   };

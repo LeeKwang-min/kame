@@ -6,6 +6,7 @@ import {
   TGameOverCallbacks,
 } from '@/lib/game';
 import {
+  CANVAS_SIZE,
   ENEMY_RADIUS,
   PLAYER_RADIUS,
   PLAYER_SPEED,
@@ -16,8 +17,7 @@ import {
   circleCircleCollide,
   getEnemySpeedRange,
   getSpawnInterval,
-  pickDir,
-  spawnOutsideByDir,
+  spawnAimingAtPlayer,
 } from './utils';
 
 export type TDodgeCallbacks = {
@@ -80,10 +80,9 @@ export const setupDodge = (
     enemies = [];
     gameOverHud.reset();
 
-    const rect = canvas.getBoundingClientRect();
     player = {
-      x: rect.width / 2,
-      y: rect.height / 2,
+      x: CANVAS_SIZE / 2,
+      y: CANVAS_SIZE / 2,
     };
 
     lastTime = 0;
@@ -91,13 +90,13 @@ export const setupDodge = (
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
 
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    canvas.width = Math.round(CANVAS_SIZE * dpr);
+    canvas.height = Math.round(CANVAS_SIZE * dpr);
+    canvas.style.width = `${CANVAS_SIZE}px`;
+    canvas.style.height = `${CANVAS_SIZE}px`;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
 
     resetGame();
   };
@@ -144,8 +143,6 @@ export const setupDodge = (
   };
 
   const updatePlayer = (dt: number) => {
-    const rect = canvas.getBoundingClientRect();
-
     let dx = 0;
     let dy = 0;
     if (keys.ArrowLeft) dx -= 1;
@@ -164,24 +161,27 @@ export const setupDodge = (
 
     player.x = Math.max(
       PLAYER_RADIUS,
-      Math.min(rect.width - PLAYER_RADIUS, player.x),
+      Math.min(CANVAS_SIZE - PLAYER_RADIUS, player.x),
     );
     player.y = Math.max(
       PLAYER_RADIUS,
-      Math.min(rect.height - PLAYER_RADIUS, player.y),
+      Math.min(CANVAS_SIZE - PLAYER_RADIUS, player.y),
     );
   };
 
   const spawnEnemy = () => {
     if (!isStarted || isGameOver) return;
 
-    const rect = canvas.getBoundingClientRect();
-
-    const dir = pickDir();
     const { min, max } = getEnemySpeedRange(sec);
     const speed = min + Math.random() * (max - min);
 
-    const { x, y } = spawnOutsideByDir(rect, ENEMY_RADIUS, dir);
+    // 플레이어를 조준하여 발사
+    const { x, y, vx, vy } = spawnAimingAtPlayer(
+      CANVAS_SIZE,
+      ENEMY_RADIUS,
+      player.x,
+      player.y,
+    );
 
     enemies.push({
       id: enemyId++,
@@ -189,14 +189,12 @@ export const setupDodge = (
       y,
       r: ENEMY_RADIUS,
       speed,
-      vx: dir.vx,
-      vy: dir.vy,
+      vx,
+      vy,
     });
   };
 
   const updateEnemies = (dt: number) => {
-    const rect = canvas.getBoundingClientRect();
-
     spawnAcc += dt;
     const interval = getSpawnInterval(sec);
     while (spawnAcc >= interval) {
@@ -212,7 +210,7 @@ export const setupDodge = (
     const isOutside = (e: Enemy) => {
       const m = e.r + 2;
       return (
-        e.x < -m || e.x > rect.width + m || e.y < -m || e.y > rect.height + m
+        e.x < -m || e.x > CANVAS_SIZE + m || e.y < -m || e.y > CANVAS_SIZE + m
       );
     };
     enemies = enemies.filter((e) => !isOutside(e));
@@ -271,8 +269,7 @@ export const setupDodge = (
   };
 
   const render = () => {
-    const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     renderPlayer();
     renderEnemies();
@@ -308,13 +305,11 @@ export const setupDodge = (
   raf = requestAnimationFrame(draw);
 
   resize();
-  window.addEventListener('resize', resize);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
   };
