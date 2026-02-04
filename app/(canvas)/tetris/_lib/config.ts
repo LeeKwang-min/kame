@@ -12,6 +12,18 @@ export const SPEED_INCREASE = 0.03; // 레벨당 감소량 - 더 완만하게
 export const SCORE_PER_LINE = [0, 100, 300, 800, 1000]; // 0 ~ 4줄 제거 시 점수
 export const COMBO_MULTIPLIER = 0.5; // 콤보당 추가 배수 (1콤보 = 1.5x, 2콤보 = 2x, ...)
 
+// Lock Delay 설정
+export const LOCK_DELAY = 0.5; // 바닥에 닿은 후 확정까지 대기 시간 (초)
+export const LOCK_MOVE_LIMIT = 15; // Lock delay 중 최대 이동/회전 횟수
+
+// T-Spin 점수
+export const TSPIN_SCORE = {
+  MINI: 100,
+  SINGLE: 800,
+  DOUBLE: 1200,
+  TRIPLE: 1600,
+};
+
 export const TETROMINO_TYPES: TTetrominoType[] = [
   'I',
   'O',

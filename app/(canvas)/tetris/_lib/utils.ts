@@ -1,5 +1,5 @@
 import { COLS, ROWS, TETROMINO_TYPES, TETROMINOES } from './config';
-import { TBoard, TTetromino, TTetrominoType } from './types';
+import { TBoard, TTetromino, TTetrominoType, TTSpinType } from './types';
 
 export const createEmptyBoard = (): TBoard => {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -83,4 +83,62 @@ export const isValidPosition = (
     }
   }
   return true;
+};
+
+// T-Spin 판정: T 블록의 4개 코너를 체크
+// T 블록의 중심은 회전 상태에 따라 (x+1, y+1) 위치
+export const checkTSpin = (
+  board: TBoard,
+  piece: TTetromino,
+  wasRotation: boolean,
+): TTSpinType => {
+  // T 블록이 아니면 T-Spin 아님
+  if (piece.type !== 'T') return 'NONE';
+
+  // 회전으로 착지하지 않았으면 T-Spin 아님
+  if (!wasRotation) return 'NONE';
+
+  // T 블록의 중심 위치 (3x3 매트릭스에서 중심은 (1,1))
+  const centerX = piece.x + 1;
+  const centerY = piece.y + 1;
+
+  // 4개 코너 위치
+  const corners = [
+    { x: centerX - 1, y: centerY - 1 }, // 왼쪽 위
+    { x: centerX + 1, y: centerY - 1 }, // 오른쪽 위
+    { x: centerX - 1, y: centerY + 1 }, // 왼쪽 아래
+    { x: centerX + 1, y: centerY + 1 }, // 오른쪽 아래
+  ];
+
+  // 각 코너가 막혀있는지 체크 (벽, 바닥, 또는 블록)
+  const isBlocked = (x: number, y: number): boolean => {
+    if (x < 0 || x >= COLS) return true; // 좌우 벽
+    if (y >= ROWS) return true; // 바닥
+    if (y < 0) return false; // 위쪽은 막힌 것으로 치지 않음
+    return board[y][x] !== null; // 블록이 있으면 막힌 것
+  };
+
+  const blockedCorners = corners.filter((c) => isBlocked(c.x, c.y)).length;
+
+  // 3개 이상의 코너가 막혀있으면 T-Spin
+  if (blockedCorners >= 3) {
+    // T-Spin Full vs Mini 판정
+    // T의 "앞쪽" 2개 코너가 막혀있으면 Full, 아니면 Mini
+    // 회전 상태에 따른 앞쪽 코너 인덱스
+    const frontCornersByRotation: Record<number, [number, number]> = {
+      0: [0, 1], // 0° - 위쪽 2개가 앞
+      1: [1, 3], // 90° - 오른쪽 2개가 앞
+      2: [2, 3], // 180° - 아래쪽 2개가 앞
+      3: [0, 2], // 270° - 왼쪽 2개가 앞
+    };
+
+    const [front1, front2] = frontCornersByRotation[piece.rotation];
+    const frontBlocked =
+      isBlocked(corners[front1].x, corners[front1].y) &&
+      isBlocked(corners[front2].x, corners[front2].y);
+
+    return frontBlocked ? 'FULL' : 'MINI';
+  }
+
+  return 'NONE';
 };

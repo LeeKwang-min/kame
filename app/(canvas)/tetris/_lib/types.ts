@@ -9,3 +9,6 @@ export type TTetromino = {
 };
 
 export type TBoard = (TTetrominoType | null)[][]; // ROWS x COLS
+
+// T-Spin 판정 결과
+export type TTSpinType = 'NONE' | 'MINI' | 'FULL';
