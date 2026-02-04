@@ -12,7 +12,11 @@ export type TGameType =
   | 'spaceinvaders'
   | 'missilecommand'
   | 'platformer'
-  | 'kero33';
+  | 'kero33'
+  | 'enhance'
+  | 'slot'
+  | 'highlow'
+  | 'roulette';
 
 export type TScore = {
   id: string;

@@ -17,6 +17,10 @@ const VALID_GAME_TYPES: TGameType[] = [
   'missilecommand',
   'platformer',
   'kero33',
+  'enhance',
+  'slot',
+  'highlow',
+  'roulette',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

@@ -8,7 +8,8 @@
       "Bash(magick:*)",
       "Bash(npm install:*)",
       "Bash(yarn build)",
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

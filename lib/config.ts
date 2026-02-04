@@ -1,13 +1,36 @@
 export const MENU_LIST = [
-  // {
-  //   name: {
-  //     kor: '벽돌 깨기',
-  //     eng: 'Breakout',
-  //   },
-  //   href: '/pbreakout',
-  //   category: 'Phaser',
-  // },
-  // 이 아래로 Canvas API
+  {
+    name: {
+      kor: '강화 시뮬레이터',
+      eng: 'Enhance Simulator',
+    },
+    href: '/enhance',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '슬롯머신',
+      eng: 'Slot Machine',
+    },
+    href: '/slot',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '하이로우',
+      eng: 'High Low',
+    },
+    href: '/highlow',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '룰렛',
+      eng: 'Roulette',
+    },
+    href: '/roulette',
+    category: 'Good Luck',
+  },
   {
     name: {
       kor: '테트리스',

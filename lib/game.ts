@@ -19,7 +19,7 @@ export const gameStartHud = (
   const rect = canvas.getBoundingClientRect();
 
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,1)';
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
   ctx.fillRect(0, 0, rect.width, rect.height);
   ctx.fillStyle = 'white';
   ctx.font = '24px sans-serif';
