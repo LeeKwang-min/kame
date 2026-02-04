@@ -5,20 +5,11 @@ import {
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
-import { CELL, DIR, STEP } from './config';
+import { CELL, DIR, INPUT_BUFFER_SIZE, STEP } from './config';
 import { Point } from './types';
 
 export type TSnakeCallbacks = {
   onScoreSave: (initials: string, score: number) => Promise<void>;
-};
-
-const loadImage = (src: string): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
 };
 
 export const setupSnake = (
@@ -30,8 +21,14 @@ export const setupSnake = (
 
   let snake: Point[] = [{ x: 0, y: 0 }];
   let dir: Point = { x: 0, y: 0 };
-  let nextDir: Point = dir;
   let food: Point = { x: 0, y: 0 };
+
+  // 입력 버퍼 (빠른 연속 입력 처리)
+  let inputBuffer: Point[] = [];
+
+  // 보간용 변수
+  let moveProgress = 0; // 0~1 사이, 현재 이동 진행률
+  let prevSnake: Point[] = [{ x: 0, y: 0 }]; // 이전 프레임의 뱀 위치 (보간용)
 
   let score = 0;
   let isStarted = false;
@@ -41,20 +38,6 @@ export const setupSnake = (
   let lastTime = 0;
   let acc = 0;
   let sec = 0;
-
-  let tileDark: HTMLImageElement | null = null;
-  let tileLight: HTMLImageElement | null = null;
-  let tilesLoaded = false;
-
-  // 타일 이미지만 로딩 (뱀은 사각형으로 렌더링)
-  Promise.all([
-    loadImage('/snake/_assets/tile_dark.png'),
-    loadImage('/snake/_assets/tile_light.png'),
-  ]).then(([dark, light]) => {
-    tileDark = dark;
-    tileLight = light;
-    tilesLoaded = true;
-  });
 
   const gameOverCallbacks: TGameOverCallbacks = {
     onScoreSave: async (initials, finalScore) => {
@@ -126,6 +109,8 @@ export const setupSnake = (
     lastTime = 0;
     acc = 0;
     sec = 0;
+    moveProgress = 0;
+    inputBuffer = [];
     gameOverHud.reset();
 
     const startX = Math.floor(rect.width / 2 / CELL) * CELL;
@@ -136,8 +121,8 @@ export const setupSnake = (
       { x: startX - CELL, y: startY },
       { x: startX - CELL * 2, y: startY },
     ];
+    prevSnake = snake.map((seg) => ({ ...seg }));
     dir = { x: 1, y: 0 };
-    nextDir = dir;
 
     food = spawnFood();
   };
@@ -187,9 +172,21 @@ export const setupSnake = (
     if (e.key in DIR) {
       const cand = DIR[e.key as keyof typeof DIR];
 
-      if (cand.x + dir.x === 0 && cand.y + dir.y === 0) return;
+      // 현재 방향 또는 대기 중인 방향과 반대 방향인지 체크
+      const lastDir = inputBuffer.length > 0 ? inputBuffer[inputBuffer.length - 1] : dir;
+      if (cand.x + lastDir.x === 0 && cand.y + lastDir.y === 0) return;
 
-      nextDir = cand;
+      // 같은 방향 중복 입력 방지
+      if (cand.x === lastDir.x && cand.y === lastDir.y) return;
+
+      // 버퍼에 추가 (최대 크기 제한)
+      if (inputBuffer.length < INPUT_BUFFER_SIZE) {
+        inputBuffer.push(cand);
+      } else {
+        // 버퍼가 가득 차면 마지막 입력 교체
+        inputBuffer[inputBuffer.length - 1] = cand;
+      }
+
       e.preventDefault();
     }
   };
@@ -215,7 +212,18 @@ export const setupSnake = (
   };
 
   const updateSnake = () => {
-    dir = nextDir;
+    // 이전 위치 저장 (보간용)
+    prevSnake = snake.map((seg) => ({ ...seg }));
+
+    // 입력 버퍼에서 다음 방향 가져오기
+    if (inputBuffer.length > 0) {
+      const nextInput = inputBuffer.shift()!;
+      // 반대 방향이 아닌지 다시 체크 (안전장치)
+      if (!(nextInput.x + dir.x === 0 && nextInput.y + dir.y === 0)) {
+        dir = nextInput;
+      }
+    }
+
     const head = snake[0];
     const newHead = { x: head.x + dir.x * CELL, y: head.y + dir.y * CELL };
 
@@ -237,6 +245,9 @@ export const setupSnake = (
     } else {
       snake = snake.slice(0, -1);
     }
+
+    // 이동 진행률 리셋
+    moveProgress = 0;
   };
 
   const update = (t: number) => {
@@ -251,6 +262,9 @@ export const setupSnake = (
     sec += dt;
 
     if (isStarted && !isGameOver) {
+      // 이동 진행률 업데이트 (보간용)
+      moveProgress = Math.min(acc / STEP, 1);
+
       while (acc >= STEP) {
         updateSnake();
         acc -= STEP;
@@ -261,58 +275,281 @@ export const setupSnake = (
 
 
   const renderGrid = () => {
-    if (!tileDark || !tileLight) return;
-
     const rect = canvas.getBoundingClientRect();
     const cols = Math.floor(rect.width / CELL);
     const rows = Math.floor(rect.height / CELL);
 
+    // 체커보드 패턴 그리드 (잔디밭 느낌)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const tile = (c + r) % 2 === 0 ? tileDark : tileLight;
-        ctx.drawImage(tile, c * CELL, r * CELL, CELL, CELL);
+        if ((c + r) % 2 === 0) {
+          ctx.fillStyle = '#a8d5a2'; // 밝은 잔디
+        } else {
+          ctx.fillStyle = '#8fc786'; // 어두운 잔디
+        }
+        ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
       }
     }
   };
 
-  const renderSnake = () => {
-    const padding = 2;
-    const size = CELL - padding * 2;
-
-    // 머리 (밝은 초록)
-    const head = snake[0];
-    if (head) {
-      ctx.fillStyle = '#4CAF50';
-      ctx.fillRect(head.x + padding, head.y + padding, size, size);
+  // 보간된 위치 계산
+  const getInterpolatedPos = (current: Point, prev: Point | undefined): Point => {
+    if (!prev || !isStarted || isGameOver) {
+      return current;
     }
 
-    // 몸통 (초록)
-    ctx.fillStyle = '#388E3C';
-    for (let i = 1; i < snake.length; i++) {
+    // easeOutQuad로 더 부드러운 느낌
+    const t = moveProgress;
+    const eased = t * (2 - t);
+
+    return {
+      x: prev.x + (current.x - prev.x) * eased,
+      y: prev.y + (current.y - prev.y) * eased,
+    };
+  };
+
+  const GAP = 2; // 세그먼트 사이 간격
+
+  const renderSnakeHead = (pos: Point) => {
+    const gap = GAP;
+    const size = CELL - gap * 2;
+    const cx = pos.x + CELL / 2;
+    const cy = pos.y + CELL / 2;
+    const radius = size / 2;
+
+    ctx.fillStyle = '#5C6BC0'; // 인디고 블루
+
+    // 방향에 따른 둥근 머리 모양 (사각형 + 반원)
+    ctx.beginPath();
+    if (dir.x === 1) {
+      // 오른쪽
+      ctx.rect(pos.x + gap, pos.y + gap, size / 2, size);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pos.x + gap + size / 2, cy, radius, -Math.PI / 2, Math.PI / 2);
+      ctx.fill();
+    } else if (dir.x === -1) {
+      // 왼쪽
+      ctx.rect(pos.x + gap + size / 2, pos.y + gap, size / 2, size);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pos.x + gap + size / 2, cy, radius, Math.PI / 2, -Math.PI / 2);
+      ctx.fill();
+    } else if (dir.y === -1) {
+      // 위
+      ctx.rect(pos.x + gap, pos.y + gap + size / 2, size, size / 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, pos.y + gap + size / 2, radius, Math.PI, 0);
+      ctx.fill();
+    } else if (dir.y === 1) {
+      // 아래
+      ctx.rect(pos.x + gap, pos.y + gap, size, size / 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, pos.y + gap + size / 2, radius, 0, Math.PI);
+      ctx.fill();
+    } else {
+      // 정지 상태 (기본 오른쪽)
+      ctx.rect(pos.x + gap, pos.y + gap, size / 2, size);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pos.x + gap + size / 2, cy, radius, -Math.PI / 2, Math.PI / 2);
+      ctx.fill();
+    }
+
+    // 눈 그리기
+    ctx.fillStyle = '#fff';
+    const eyeSize = 4;
+    const pupilSize = 2;
+    let eye1x: number, eye1y: number, eye2x: number, eye2y: number;
+
+    if (dir.x === 1) {
+      eye1x = cx + 3;
+      eye1y = cy - 5;
+      eye2x = cx + 3;
+      eye2y = cy + 5;
+    } else if (dir.x === -1) {
+      eye1x = cx - 3;
+      eye1y = cy - 5;
+      eye2x = cx - 3;
+      eye2y = cy + 5;
+    } else if (dir.y === -1) {
+      eye1x = cx - 5;
+      eye1y = cy - 3;
+      eye2x = cx + 5;
+      eye2y = cy - 3;
+    } else if (dir.y === 1) {
+      eye1x = cx - 5;
+      eye1y = cy + 3;
+      eye2x = cx + 5;
+      eye2y = cy + 3;
+    } else {
+      eye1x = cx + 3;
+      eye1y = cy - 5;
+      eye2x = cx + 3;
+      eye2y = cy + 5;
+    }
+
+    // 흰자
+    ctx.beginPath();
+    ctx.arc(eye1x, eye1y, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(eye2x, eye2y, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 눈동자
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(eye1x + dir.x * 1.5, eye1y + dir.y * 1.5, pupilSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(eye2x + dir.x * 1.5, eye2y + dir.y * 1.5, pupilSize, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  const renderSnakeTail = (pos: Point, tailDir: Point) => {
+    const gap = GAP;
+    const size = CELL - gap * 2;
+    const cx = pos.x + CELL / 2;
+    const cy = pos.y + CELL / 2;
+    const radius = size / 2;
+
+    // 꼬리 색상 (가장 어두운 몸통 색) - 인디고 블루 계열
+    const darkness = Math.min(snake.length * 3, 40);
+    const r = Math.max(92 - darkness, 50);
+    const g = Math.max(107 - darkness, 60);
+    const b = Math.max(192 - darkness, 140);
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
+    // 꼬리 방향 반대쪽으로 둥글게 (사각형 + 반원)
+    ctx.beginPath();
+    if (tailDir.x === 1) {
+      // 몸통이 오른쪽 → 꼬리는 왼쪽으로 둥글게
+      ctx.rect(pos.x + gap + size / 2, pos.y + gap, size / 2, size);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pos.x + gap + size / 2, cy, radius, Math.PI / 2, -Math.PI / 2);
+      ctx.fill();
+    } else if (tailDir.x === -1) {
+      // 몸통이 왼쪽 → 꼬리는 오른쪽으로 둥글게
+      ctx.rect(pos.x + gap, pos.y + gap, size / 2, size);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pos.x + gap + size / 2, cy, radius, -Math.PI / 2, Math.PI / 2);
+      ctx.fill();
+    } else if (tailDir.y === -1) {
+      // 몸통이 위 → 꼬리는 아래로 둥글게
+      ctx.rect(pos.x + gap, pos.y + gap, size, size / 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, pos.y + gap + size / 2, radius, 0, Math.PI);
+      ctx.fill();
+    } else if (tailDir.y === 1) {
+      // 몸통이 아래 → 꼬리는 위로 둥글게
+      ctx.rect(pos.x + gap, pos.y + gap + size / 2, size, size / 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, pos.y + gap + size / 2, radius, Math.PI, 0);
+      ctx.fill();
+    } else {
+      // 기본 (왼쪽으로 둥글게)
+      ctx.rect(pos.x + gap + size / 2, pos.y + gap, size / 2, size);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pos.x + gap + size / 2, cy, radius, Math.PI / 2, -Math.PI / 2);
+      ctx.fill();
+    }
+  };
+
+  const renderSnake = () => {
+    // 뱀이 2칸 이상일 때만 꼬리 그리기
+    if (snake.length >= 2) {
+      const tailIdx = snake.length - 1;
+      const tail = snake[tailIdx];
+      const prevTail = prevSnake[tailIdx];
+      const beforeTail = snake[tailIdx - 1];
+
+      if (tail && beforeTail) {
+        const pos = getInterpolatedPos(tail, prevTail);
+        // 꼬리 방향: 마지막에서 두번째 세그먼트를 향하는 방향
+        const tailDir = {
+          x: Math.sign(beforeTail.x - tail.x),
+          y: Math.sign(beforeTail.y - tail.y),
+        };
+        renderSnakeTail(pos, tailDir);
+      }
+    }
+
+    // 몸통 그리기 (꼬리와 머리 제외)
+    const gap = GAP;
+    const size = CELL - gap * 2;
+    for (let i = snake.length - 2; i >= 1; i--) {
       const seg = snake[i];
-      ctx.fillRect(seg.x + padding, seg.y + padding, size, size);
+      const prevSeg = prevSnake[i];
+      const pos = getInterpolatedPos(seg, prevSeg);
+
+      // 몸통 그라데이션 (머리에서 멀어질수록 어두워짐) - 인디고 블루 계열
+      const darkness = Math.min(i * 3, 40);
+      const r = Math.max(92 - darkness, 50);
+      const g = Math.max(107 - darkness, 60);
+      const b = Math.max(192 - darkness, 140);
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
+      // 둥근 사각형으로 몸통 그리기
+      ctx.beginPath();
+      ctx.roundRect(pos.x + gap, pos.y + gap, size, size, 4);
+      ctx.fill();
+    }
+
+    // 머리 그리기
+    const head = snake[0];
+    const prevHead = prevSnake[0];
+    if (head) {
+      const pos = getInterpolatedPos(head, prevHead);
+      renderSnakeHead(pos);
     }
   };
 
   const renderFood = () => {
-    const padding = 4;
-    const size = CELL - padding * 2;
-    ctx.fillStyle = '#F44336';
-    ctx.fillRect(food.x + padding, food.y + padding, size, size);
+    const cx = food.x + CELL / 2;
+    const cy = food.y + CELL / 2;
+    const radius = CELL / 2 - 4;
+
+    // 사과 본체 (빨간색)
+    ctx.fillStyle = '#E53935';
+    ctx.beginPath();
+    ctx.arc(cx, cy + 2, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 하이라이트 (광택)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.beginPath();
+    ctx.arc(cx - 4, cy - 2, radius * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 줄기 (갈색)
+    ctx.strokeStyle = '#5D4037';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - radius + 2);
+    ctx.lineTo(cx + 1, cy - radius - 4);
+    ctx.stroke();
+
+    // 잎 (초록색)
+    ctx.fillStyle = '#4CAF50';
+    ctx.beginPath();
+    ctx.ellipse(cx + 5, cy - radius - 2, 5, 3, Math.PI / 4, 0, Math.PI * 2);
+    ctx.fill();
   };
 
   const render = () => {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
 
-    if (tilesLoaded && tileDark && tileLight) {
-      renderGrid();
-    } else {
-      // 폴백: 단색 배경
-      ctx.fillStyle = '#1a1a2e';
-      ctx.fillRect(0, 0, rect.width, rect.height);
-    }
-
+    renderGrid();
     renderSnake();
     renderFood();
   };

@@ -112,12 +112,12 @@ export const MENU_LIST = [
     href: '/2048',
     category: 'Game',
   },
-  {
-    name: {
-      kor: '플랫포머',
-      eng: 'Platformer',
-    },
-    href: '/platformer',
-    category: 'Game',
-  },
+  // {
+  //   name: {
+  //     kor: '플랫포머',
+  //     eng: 'Platformer',
+  //   },
+  //   href: '/platformer',
+  //   category: 'Game',
+  // },
 ];

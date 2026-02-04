@@ -5,9 +5,9 @@ export const DIR = {
   ArrowRight: { x: 1, y: 0 },
 } as const;
 
-export const SPEED = 320;
+export const SPEED = 280;
 export const CELL = 32;
 export const STEP = CELL / SPEED;
 
-// 스프라이트 시트 설정 (1280x1280 이미지, 4x4 그리드)
-export const SPRITE_SIZE = 320; // 원본 스프라이트 셀 크기 (1280/4)
+// 입력 버퍼 최대 크기 (빠른 연속 입력 처리용)
+export const INPUT_BUFFER_SIZE = 2;

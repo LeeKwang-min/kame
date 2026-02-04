@@ -16,14 +16,16 @@ function SnakePage() {
   const { data: scores = [], isLoading } = useGetScores('snake');
 
   return (
-    <section className="w-full h-full flex gap-6 items-start">
-      <aside className="shrink-0 w-64 space-y-4">
+    <section className="w-full h-full flex gap-6 items-start justify-center">
+      <aside className="shrink-0 w-72">
         <ControlInfoTable controls={controls} />
-        <RankBoard data={scores} isLoading={isLoading} showCountry />
       </aside>
-      <div className="flex-1 h-full">
+      <div className="flex-1 h-full max-w-[620px]">
         <Snake />
       </div>
+      <aside className="shrink-0 w-64">
+        <RankBoard data={scores} isLoading={isLoading} showCountry />
+      </aside>
     </section>
   );
 }
