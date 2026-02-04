@@ -20,7 +20,7 @@ function G2048Page() {
       <aside className="shrink-0 w-64">
         <ControlInfoTable controls={controls} />
       </aside>
-      <div className="flex-1 h-[480px] max-w-[480px]">
+      <div className="flex-1 h-[620px] max-w-[620px]">
         <G2048 />
       </div>
       <aside className="shrink-0 w-64">

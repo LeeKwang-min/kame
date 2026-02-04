@@ -363,14 +363,14 @@ export const setup2048 = (
       ctx.fillRect(0, 0, size, size);
 
       ctx.fillStyle = '#f9f6f2';
-      ctx.font = 'bold 48px sans-serif';
+      ctx.font = 'bold 64px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('You Win!', size / 2, size / 2 - 30);
+      ctx.fillText('You Win!', size / 2, size / 2 - 40);
 
-      ctx.font = '18px sans-serif';
-      ctx.fillText('Press SPACE to continue', size / 2, size / 2 + 20);
-      ctx.fillText('Press R to restart', size / 2, size / 2 + 50);
+      ctx.font = '24px sans-serif';
+      ctx.fillText('Press SPACE to continue', size / 2, size / 2 + 30);
+      ctx.fillText('Press R to restart', size / 2, size / 2 + 65);
     } else if (gameState === 'gameover') {
       gameOverHud.render(score);
     }
@@ -409,10 +409,10 @@ export const setup2048 = (
   };
 
   const getFontSize = (value: number): number => {
-    if (value < 100) return 45;
-    if (value < 1000) return 40;
-    if (value < 10000) return 32;
-    return 26;
+    if (value < 100) return 60;
+    if (value < 1000) return 52;
+    if (value < 10000) return 44;
+    return 36;
   };
 
   // ==================== Game Loop ====================

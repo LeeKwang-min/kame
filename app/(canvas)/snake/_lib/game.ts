@@ -170,6 +170,9 @@ export const setupSnake = (
     if (isPaused) return;
 
     if (e.key in DIR) {
+      // 방향키는 항상 기본 동작(스크롤) 방지
+      e.preventDefault();
+
       const cand = DIR[e.key as keyof typeof DIR];
 
       // 현재 방향 또는 대기 중인 방향과 반대 방향인지 체크
@@ -186,8 +189,6 @@ export const setupSnake = (
         // 버퍼가 가득 차면 마지막 입력 교체
         inputBuffer[inputBuffer.length - 1] = cand;
       }
-
-      e.preventDefault();
     }
   };
 

@@ -34,6 +34,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '2048',
+      eng: '2048',
+    },
+    href: '/2048',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },
@@ -102,14 +110,6 @@ export const MENU_LIST = [
       eng: 'Missile Command',
     },
     href: '/missilecommand',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '2048',
-      eng: '2048',
-    },
-    href: '/2048',
     category: 'Game',
   },
   // {

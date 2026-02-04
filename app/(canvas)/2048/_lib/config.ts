@@ -2,9 +2,9 @@
 export const GRID_SIZE = 4;
 
 // 셀 크기
-export const CELL_SIZE = 100;
-export const CELL_GAP = 10;
-export const CELL_RADIUS = 6;
+export const CELL_SIZE = 140;
+export const CELL_GAP = 12;
+export const CELL_RADIUS = 8;
 
 // 시작 타일 개수
 export const INITIAL_TILES = 2;
