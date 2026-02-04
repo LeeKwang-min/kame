@@ -10,6 +10,15 @@ export type TEnhanceCallbacks = {
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
+type Button = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  action: () => void;
+  label: string;
+};
+
 export const setupEnhance = (
   canvas: HTMLCanvasElement,
   callbacks?: TEnhanceCallbacks,
@@ -29,6 +38,8 @@ export const setupEnhance = (
   let isAnimating = false;
   let pendingResult: EnhanceResult | null = null;
   let globalTime = 0;
+  let buttons: Button[] = [];
+  let hoveredButton: Button | null = null;
 
   const gameOverCallbacks: TGameOverCallbacks = {
     onScoreSave: async (initials, finalScore) => {
@@ -107,6 +118,51 @@ export const setupEnhance = (
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
+  const getCanvasPos = (e: MouseEvent | Touch): { x: number; y: number } => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+  const findButton = (x: number, y: number): Button | null => {
+    for (const btn of buttons) {
+      if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) {
+        return btn;
+      }
+    }
+    return null;
+  };
+
+  const handleClick = (x: number, y: number) => {
+    if (state.phase === 'gameover') return;
+
+    const btn = findButton(x, y);
+    if (btn) {
+      btn.action();
+    }
+  };
+
+  const onMouseMove = (e: MouseEvent) => {
+    const pos = getCanvasPos(e);
+    hoveredButton = findButton(pos.x, pos.y);
+    canvas.style.cursor = hoveredButton ? 'pointer' : 'default';
+  };
+
+  const onMouseDown = (e: MouseEvent) => {
+    const pos = getCanvasPos(e);
+    handleClick(pos.x, pos.y);
+  };
+
+  const onTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      const pos = getCanvasPos(e.touches[0]);
+      handleClick(pos.x, pos.y);
+    }
+  };
+
   const onKeyDown = (e: KeyboardEvent) => {
     if (state.phase === 'gameover') {
       const handled = gameOverHud.onKeyDown(e, state.maxLevel);
@@ -127,7 +183,6 @@ export const setupEnhance = (
 
   // ========== 렌더링 함수들 ==========
 
-  // 공통: 파티클 렌더링
   const renderParticles = (cx: number, cy: number, radius: number, count: number, color: string) => {
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + globalTime * 0.001;
@@ -145,7 +200,6 @@ export const setupEnhance = (
     ctx.globalAlpha = 1;
   };
 
-  // 공통: 후광 렌더링
   const renderAura = (cx: number, cy: number, radius: number, color: string, intensity: number = 1) => {
     const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
     gradient.addColorStop(0, color + '60');
@@ -158,7 +212,6 @@ export const setupEnhance = (
     ctx.fill();
   };
 
-  // Common (0-4): 기본 다이아몬드
   const renderCommonItem = (cx: number, cy: number, size: number, level: number) => {
     const tier = getTierConfig(level);
     const scale = 1 + level * 0.05;
@@ -177,7 +230,6 @@ export const setupEnhance = (
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // 내부 하이라이트
     ctx.fillStyle = tier.secondaryColor + '40';
     ctx.beginPath();
     ctx.moveTo(cx, cy - s * 0.7);
@@ -188,7 +240,6 @@ export const setupEnhance = (
     ctx.fill();
   };
 
-  // Uncommon (5-9): 별 모양
   const renderUncommonItem = (cx: number, cy: number, size: number, level: number) => {
     const tier = getTierConfig(level);
     const points = 5;
@@ -216,7 +267,6 @@ export const setupEnhance = (
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // 중심 원
     const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, innerR * 0.8);
     gradient.addColorStop(0, tier.secondaryColor);
     gradient.addColorStop(1, tier.primaryColor);
@@ -226,7 +276,6 @@ export const setupEnhance = (
     ctx.fill();
   };
 
-  // Rare (10-14): 방패 모양
   const renderRareItem = (cx: number, cy: number, size: number, level: number) => {
     const tier = getTierConfig(level);
     const s = size * (1.15 + (level - 10) * 0.05);
@@ -234,7 +283,6 @@ export const setupEnhance = (
     renderAura(cx, cy, s * 2, tier.glowColor, 0.7);
     renderParticles(cx, cy, s * 1.5, tier.particleCount, tier.secondaryColor);
 
-    // 방패 외곽
     ctx.fillStyle = tier.primaryColor;
     ctx.beginPath();
     ctx.moveTo(cx, cy - s);
@@ -246,12 +294,10 @@ export const setupEnhance = (
     ctx.closePath();
     ctx.fill();
 
-    // 테두리
     ctx.strokeStyle = tier.secondaryColor;
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // 내부 장식 - 십자
     ctx.strokeStyle = tier.secondaryColor;
     ctx.lineWidth = 6;
     ctx.lineCap = 'round';
@@ -262,14 +308,12 @@ export const setupEnhance = (
     ctx.lineTo(cx + s * 0.35, cy - s * 0.1);
     ctx.stroke();
 
-    // 상단 보석
     ctx.fillStyle = '#FFD700';
     ctx.beginPath();
     ctx.arc(cx, cy - s * 0.65, s * 0.15, 0, Math.PI * 2);
     ctx.fill();
   };
 
-  // Epic (15-19): 왕관 모양
   const renderEpicItem = (cx: number, cy: number, size: number, level: number) => {
     const tier = getTierConfig(level);
     const s = size * (1.2 + (level - 15) * 0.05);
@@ -277,7 +321,6 @@ export const setupEnhance = (
     renderAura(cx, cy, s * 2.2, tier.glowColor, 1);
     renderParticles(cx, cy, s * 1.6, tier.particleCount, tier.secondaryColor);
 
-    // 왕관 베이스
     const gradient = ctx.createLinearGradient(cx - s, cy, cx + s, cy);
     gradient.addColorStop(0, tier.primaryColor);
     gradient.addColorStop(0.5, tier.secondaryColor);
@@ -299,7 +342,6 @@ export const setupEnhance = (
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // 보석들
     const gemPositions = [
       { x: cx - s * 0.55, y: cy - s * 0.1 },
       { x: cx, y: cy - s * 0.5 },
@@ -320,12 +362,10 @@ export const setupEnhance = (
       ctx.fill();
     });
 
-    // 왕관 밴드
     ctx.fillStyle = '#FFD700';
     ctx.fillRect(cx - s * 0.85, cy + s * 0.35, s * 1.7, s * 0.2);
   };
 
-  // Legendary (20-24): 날개 달린 보석
   const renderLegendaryItem = (cx: number, cy: number, size: number, level: number) => {
     const tier = getTierConfig(level);
     const s = size * (1.25 + (level - 20) * 0.05);
@@ -334,7 +374,6 @@ export const setupEnhance = (
     renderAura(cx, cy, s * 2.5, tier.glowColor, 1.5);
     renderParticles(cx, cy, s * 2, tier.particleCount, tier.secondaryColor);
 
-    // 날개 (왼쪽)
     ctx.save();
     ctx.translate(cx - s * 0.5, cy);
     ctx.rotate(-0.3 - wingFlap);
@@ -350,7 +389,6 @@ export const setupEnhance = (
     ctx.fill();
     ctx.restore();
 
-    // 날개 (오른쪽)
     ctx.save();
     ctx.translate(cx + s * 0.5, cy);
     ctx.rotate(0.3 + wingFlap);
@@ -366,7 +404,6 @@ export const setupEnhance = (
     ctx.fill();
     ctx.restore();
 
-    // 중앙 보석
     const gemGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.7);
     gemGradient.addColorStop(0, '#FFF8E1');
     gemGradient.addColorStop(0.3, tier.secondaryColor);
@@ -384,7 +421,6 @@ export const setupEnhance = (
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // 보석 내부 빛
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.beginPath();
     ctx.moveTo(cx, cy - s * 0.5);
@@ -395,18 +431,15 @@ export const setupEnhance = (
     ctx.fill();
   };
 
-  // Mythic (25): 신화급 - 화려한 최종 형태
   const renderMythicItem = (cx: number, cy: number, size: number) => {
     const tier = getTierConfig(25);
     const s = size * 1.5;
     const pulse = 1 + Math.sin(globalTime * 0.002) * 0.1;
 
-    // 다중 후광
     renderAura(cx, cy, s * 3.5 * pulse, '#FF5252', 2);
     renderAura(cx, cy, s * 2.8 * pulse, '#FF8A80', 1.5);
     renderAura(cx, cy, s * 2.2 * pulse, '#FFAB91', 1);
 
-    // 회전하는 외곽 링
     ctx.strokeStyle = '#FFD700';
     ctx.lineWidth = 3;
     for (let i = 0; i < 3; i++) {
@@ -424,7 +457,6 @@ export const setupEnhance = (
     renderParticles(cx, cy, s * 2, tier.particleCount, '#FFD700');
     renderParticles(cx, cy, s * 1.5, 8, '#FF5252');
 
-    // 메인 보석 - 복잡한 형태
     const gradient = ctx.createRadialGradient(cx, cy - s * 0.2, 0, cx, cy, s);
     gradient.addColorStop(0, '#FFFFFF');
     gradient.addColorStop(0.2, '#FFCDD2');
@@ -433,7 +465,6 @@ export const setupEnhance = (
 
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    // 8각형 별
     for (let i = 0; i < 16; i++) {
       const r = i % 2 === 0 ? s : s * 0.6;
       const angle = (Math.PI * i) / 8 - Math.PI / 2 + globalTime * 0.0003;
@@ -445,7 +476,6 @@ export const setupEnhance = (
     ctx.closePath();
     ctx.fill();
 
-    // 테두리 발광
     ctx.shadowColor = '#FFD700';
     ctx.shadowBlur = 20;
     ctx.strokeStyle = '#FFD700';
@@ -453,7 +483,6 @@ export const setupEnhance = (
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // 중앙 코어
     const coreGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.4);
     coreGradient.addColorStop(0, '#FFFFFF');
     coreGradient.addColorStop(0.5, '#FFD700');
@@ -463,7 +492,6 @@ export const setupEnhance = (
     ctx.arc(cx, cy, s * 0.35 * pulse, 0, Math.PI * 2);
     ctx.fill();
 
-    // 빛줄기
     ctx.strokeStyle = 'rgba(255,215,0,0.6)';
     ctx.lineWidth = 2;
     for (let i = 0; i < 12; i++) {
@@ -477,7 +505,6 @@ export const setupEnhance = (
     }
   };
 
-  // 메인 아이템 렌더링
   const renderItem = (cx: number, cy: number, size: number, level: number) => {
     const tierName = getTierByLevel(level);
 
@@ -502,7 +529,6 @@ export const setupEnhance = (
         break;
     }
 
-    // 레벨 텍스트
     ctx.fillStyle = 'white';
     ctx.font = 'bold 28px sans-serif';
     ctx.textAlign = 'center';
@@ -513,7 +539,6 @@ export const setupEnhance = (
     ctx.shadowBlur = 0;
   };
 
-  // 강화 애니메이션
   const renderEnhanceAnimation = (cx: number, cy: number) => {
     const progress = animationProgress;
     const sparkCount = 16;
@@ -532,7 +557,6 @@ export const setupEnhance = (
       ctx.fill();
     }
 
-    // 중앙 폭발 효과
     const burstAlpha = Math.max(0, 1 - progress * 2);
     if (burstAlpha > 0) {
       const burstGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100 * progress);
@@ -545,18 +569,47 @@ export const setupEnhance = (
     }
   };
 
+  const renderButton = (btn: Button, isHovered: boolean) => {
+    const gradient = ctx.createLinearGradient(btn.x, btn.y, btn.x, btn.y + btn.h);
+    if (isHovered) {
+      gradient.addColorStop(0, '#FFD700');
+      gradient.addColorStop(1, '#FFA000');
+    } else {
+      gradient.addColorStop(0, '#4CAF50');
+      gradient.addColorStop(1, '#2E7D32');
+    }
+
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = isHovered ? '#FFD700' : '#4CAF50';
+    ctx.shadowBlur = isHovered ? 15 : 5;
+    ctx.beginPath();
+    ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 10);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = isHovered ? '#FFF' : '#81C784';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(btn.label, btn.x + btn.w / 2, btn.y + btn.h / 2);
+  };
+
   const renderGameScreen = () => {
     const rect = canvas.getBoundingClientRect();
     const cx = rect.width / 2;
 
-    // 배경 그라데이션
+    buttons = [];
+
     const bgGradient = ctx.createLinearGradient(0, 0, 0, rect.height);
     bgGradient.addColorStop(0, '#0f0f23');
     bgGradient.addColorStop(1, '#1a1a3e');
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // 배경 별
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     for (let i = 0; i < 50; i++) {
       const x = (i * 137.5) % rect.width;
@@ -567,7 +620,6 @@ export const setupEnhance = (
       ctx.fill();
     }
 
-    // 상단 정보
     const tier = getTierConfig(state.level);
     ctx.fillStyle = 'white';
     ctx.font = '18px sans-serif';
@@ -575,13 +627,11 @@ export const setupEnhance = (
     ctx.fillText(`Max Level: ${state.maxLevel}`, 20, 30);
     ctx.fillText(`Attempts: ${state.attempts}`, 20, 55);
 
-    // 등급 표시
     ctx.textAlign = 'right';
     ctx.fillStyle = tier.primaryColor;
     ctx.font = 'bold 20px sans-serif';
     ctx.fillText(`${tier.nameKor} (${tier.name})`, rect.width - 20, 30);
 
-    // 아이템 렌더링
     const itemCy = 220;
     renderItem(cx, itemCy, 55, state.level);
 
@@ -589,7 +639,6 @@ export const setupEnhance = (
       renderEnhanceAnimation(cx, itemCy);
     }
 
-    // 강화 정보
     const successRate = getSuccessRate(state.level);
     ctx.fillStyle = 'white';
     ctx.font = '18px sans-serif';
@@ -610,17 +659,46 @@ export const setupEnhance = (
       }
     }
 
-    // 결과 메시지
     if (state.lastResult && !isAnimating) {
       ctx.font = 'bold 28px sans-serif';
       ctx.fillStyle = getResultColor(state.lastResult);
-      ctx.fillText(getResultText(state.lastResult), cx, 480);
+      ctx.fillText(getResultText(state.lastResult), cx, 460);
     }
 
-    // 조작 안내
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    // 강화 버튼
+    if (state.phase === 'playing' && state.level < MAX_LEVEL && !isAnimating) {
+      const enhanceBtn: Button = {
+        x: cx - 80,
+        y: 500,
+        w: 160,
+        h: 50,
+        action: doEnhance,
+        label: '강화하기',
+      };
+      buttons.push(enhanceBtn);
+      renderButton(enhanceBtn, hoveredButton === enhanceBtn);
+    }
+
+    // 재시작 버튼
+    const restartBtn: Button = {
+      x: cx - 50,
+      y: 560,
+      w: 100,
+      h: 35,
+      action: resetGame,
+      label: '재시작',
+    };
+    buttons.push(restartBtn);
+
+    ctx.fillStyle = hoveredButton === restartBtn ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)';
+    ctx.beginPath();
+    ctx.roundRect(restartBtn.x, restartBtn.y, restartBtn.w, restartBtn.h, 5);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
     ctx.font = '14px sans-serif';
-    ctx.fillText('Space / Enter: 강화  |  R: 재시작', cx, 560);
+    ctx.textAlign = 'center';
+    ctx.fillText('재시작 (R)', cx, restartBtn.y + restartBtn.h / 2 + 5);
 
     if (state.level >= MAX_LEVEL) {
       ctx.font = 'bold 36px sans-serif';
@@ -667,10 +745,17 @@ export const setupEnhance = (
 
   resize();
   raf = requestAnimationFrame(draw);
+
   window.addEventListener('keydown', onKeyDown);
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('mousedown', onMouseDown);
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
+    canvas.removeEventListener('mousemove', onMouseMove);
+    canvas.removeEventListener('mousedown', onMouseDown);
+    canvas.removeEventListener('touchstart', onTouchStart);
   };
 };

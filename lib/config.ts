@@ -14,6 +14,7 @@ export const MENU_LIST = [
     },
     href: '/slot',
     category: 'Good Luck',
+    disabled: true,
   },
   {
     name: {
@@ -22,6 +23,7 @@ export const MENU_LIST = [
     },
     href: '/highlow',
     category: 'Good Luck',
+    disabled: true,
   },
   {
     name: {
@@ -30,6 +32,7 @@ export const MENU_LIST = [
     },
     href: '/roulette',
     category: 'Good Luck',
+    disabled: true,
   },
   {
     name: {
