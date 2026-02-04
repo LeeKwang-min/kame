@@ -10,6 +10,7 @@ import {
   CELL_GAP,
   COLORS,
   COLS,
+  COMBO_MULTIPLIER,
   MIN_STEP,
   PREVIEW_CELL,
   ROWS,
@@ -19,9 +20,9 @@ import {
   TETROMINOES,
 } from './config';
 import {
+  createBag,
   createEmptyBoard,
   createTetromino,
-  getRandomType,
   getShape,
   isValidPosition,
 } from './utils';
@@ -37,9 +38,11 @@ export const setupTetris = (
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  const bag = createBag();
+
   let board: TBoard = createEmptyBoard();
-  let current: TTetromino = createTetromino(getRandomType());
-  let nextType: TTetrominoType = getRandomType();
+  let current: TTetromino = createTetromino(bag.getNext());
+  let nextType: TTetrominoType = bag.getNext();
 
   let holdType: TTetrominoType | null = null;
   let canHold = true;
@@ -49,6 +52,7 @@ export const setupTetris = (
   let step = BASE_STEP;
 
   let score = 0;
+  let combo = 0; // 콤보 카운터
   let isStarted = false;
   let isGameOver = false;
 
@@ -81,14 +85,16 @@ export const setupTetris = (
     isStarted = false;
     isGameOver = false;
     score = 0;
+    combo = 0;
     lastTime = 0;
     acc = 0;
     sec = 0;
     gameOverHud.reset();
 
+    bag.reset();
     board = createEmptyBoard();
-    current = createTetromino(getRandomType());
-    nextType = getRandomType();
+    current = createTetromino(bag.getNext());
+    nextType = bag.getNext();
 
     holdType = null;
     canHold = true;
@@ -244,19 +250,28 @@ export const setupTetris = (
 
     if (cleared > 0) {
       lines += cleared;
-      score += SCORE_PER_LINE[cleared] || 0;
+
+      // 콤보 배수 적용: 기본 점수 × (1 + combo × COMBO_MULTIPLIER)
+      const baseScore = SCORE_PER_LINE[cleared] || 0;
+      const comboMultiplier = 1 + combo * COMBO_MULTIPLIER;
+      score += Math.floor(baseScore * comboMultiplier);
+
+      combo++; // 콤보 증가
 
       const newLevel = Math.floor(lines / 10) + 1;
       if (newLevel > level) {
         level = newLevel;
         step = Math.max(MIN_STEP, BASE_STEP - (level - 1) * SPEED_INCREASE);
       }
+    } else {
+      // 줄을 제거하지 못하면 콤보 리셋
+      combo = 0;
     }
   };
 
   const spawnPiece = () => {
     current = createTetromino(nextType);
-    nextType = getRandomType();
+    nextType = bag.getNext();
     canHold = true;
 
     if (!isValidPosition(board, current)) {
@@ -434,7 +449,7 @@ export const setupTetris = (
   const renderGameInfo = () => {
     const boardWidth = COLS * CELL;
     const x = boardWidth + SIDE_PANEL_WIDTH / 2;
-    let y = 420;
+    let y = 340;
 
     ctx.fillStyle = '#888';
     ctx.font = 'bold 12px sans-serif';
@@ -445,7 +460,7 @@ export const setupTetris = (
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText(String(score), x, y + 20);
 
-    y += 60;
+    y += 55;
     ctx.fillStyle = '#888';
     ctx.font = 'bold 12px sans-serif';
     ctx.fillText('LEVEL', x, y);
@@ -453,13 +468,24 @@ export const setupTetris = (
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText(String(level), x, y + 20);
 
-    y += 60;
+    y += 55;
     ctx.fillStyle = '#888';
     ctx.font = 'bold 12px sans-serif';
     ctx.fillText('LINES', x, y);
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText(String(lines), x, y + 20);
+
+    // 콤보 표시 (콤보가 1 이상일 때만)
+    if (combo > 0) {
+      y += 55;
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('COMBO', x, y);
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText(`×${(1 + combo * COMBO_MULTIPLIER).toFixed(1)}`, x, y + 20);
+    }
   };
 
   const render = () => {

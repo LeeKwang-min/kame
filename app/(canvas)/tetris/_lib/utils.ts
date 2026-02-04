@@ -5,6 +5,34 @@ export const createEmptyBoard = (): TBoard => {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
 };
 
+// 7-bag 시스템: 7개 도형을 섞어서 순서대로 사용
+const shuffleArray = <T>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+export const createBag = () => {
+  let bag: TTetrominoType[] = [];
+
+  const getNext = (): TTetrominoType => {
+    if (bag.length === 0) {
+      bag = shuffleArray([...TETROMINO_TYPES]);
+    }
+    return bag.pop()!;
+  };
+
+  const reset = () => {
+    bag = [];
+  };
+
+  return { getNext, reset };
+};
+
+// 레거시 함수 (호환성 유지용)
 export const getRandomType = (): TTetrominoType => {
   const idx = Math.floor(Math.random() * TETROMINO_TYPES.length);
   return TETROMINO_TYPES[idx];

@@ -5,11 +5,12 @@ export const ROWS = 20;
 export const CELL = 30;
 export const CELL_GAP = 0.5;
 
-export const BASE_STEP = 1.0; // 초기 낙하 간격 (초)
-export const MIN_STEP = 0.05; // 최소 낙하 간격
-export const SPEED_INCREASE = 0.05; // 레벨당 감소량
+export const BASE_STEP = 0.7; // 초기 낙하 간격 (초) - 초반 더 빠르게
+export const MIN_STEP = 0.15; // 최소 낙하 간격 - 후반 속도 제한
+export const SPEED_INCREASE = 0.03; // 레벨당 감소량 - 더 완만하게
 
-export const SCORE_PER_LINE = [0, 100, 300, 500, 800]; // 0 ~ 4줄 제거 시 점수
+export const SCORE_PER_LINE = [0, 100, 300, 800, 1000]; // 0 ~ 4줄 제거 시 점수
+export const COMBO_MULTIPLIER = 0.5; // 콤보당 추가 배수 (1콤보 = 1.5x, 2콤보 = 2x, ...)
 
 export const TETROMINO_TYPES: TTetrominoType[] = [
   'I',
