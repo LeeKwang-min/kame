@@ -29,7 +29,7 @@ export const createGameOverHud = (
   let isSubmitting = false;
   let isSaved = false;
 
-  const isEndEnabled = () => initials.length >= 3 && !isSubmitting && !isSaved;
+  const isEndEnabled = () => initials.length >= 1 && !isSubmitting && !isSaved;
 
   const applyChoice = (label: string) => {
     if (label === 'DEL') {
@@ -37,11 +37,11 @@ export const createGameOverHud = (
       return;
     }
     if (label === 'SPC') {
-      if (initials.length < 3) initials += ' ';
+      if (initials.length < 5) initials += ' ';
       return;
     }
     if (/^[A-Z]$/.test(label)) {
-      if (initials.length < 3) initials += label;
+      if (initials.length < 5) initials += label;
       return;
     }
   };
@@ -130,7 +130,7 @@ export const createGameOverHud = (
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'white';
 
     ctx.font = '52px sans-serif';
     ctx.fillText('GAME OVER', cx, 110);
@@ -138,17 +138,31 @@ export const createGameOverHud = (
     ctx.font = '22px sans-serif';
     ctx.fillText(`Score: ${totalScore}`, cx, 155);
 
-    const padded = (initials + '___').slice(0, 3);
+    const padded = (initials + '_____').slice(0, 5);
     const initialsText = padded.split('').join(' ');
+
+    // 이니셜 배경 박스
+    const initialsBoxW = 180;
+    const initialsBoxH = 40;
+    const initialsBoxX = cx - initialsBoxW / 2;
+    const initialsBoxY = 180;
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillRect(initialsBoxX, initialsBoxY, initialsBoxW, initialsBoxH);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(initialsBoxX, initialsBoxY, initialsBoxW, initialsBoxH);
+
     ctx.font = '24px monospace';
-    ctx.fillText(`${initialsText}`, cx, 200);
+    ctx.fillStyle = '#222';
+    ctx.fillText(`${initialsText}`, cx, initialsBoxY + initialsBoxH / 2);
 
     ctx.font = '14px sans-serif';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.fillText(
       'Arrow: Move   Enter: Select   Backspace: DEL   R: Restart',
       cx,
-      230,
+      240,
     );
 
     const cols = INITIALS_KEY_COLS;
@@ -231,14 +245,14 @@ export const createGameOverHud = (
     ctx.globalAlpha = 1;
 
     ctx.font = '14px sans-serif';
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
 
     if (isSubmitting) {
       ctx.fillText('Saving...', cx, endY + endH + 18);
     } else if (isSaved) {
       ctx.fillText('Saved! Press R to restart.', cx, endY + endH + 18);
     } else if (!endEnabled) {
-      ctx.fillText('END is enabled after 3 characters.', cx, endY + endH + 18);
+      ctx.fillText('Enter your initials (1-5 chars).', cx, endY + endH + 18);
     }
 
     ctx.restore();
