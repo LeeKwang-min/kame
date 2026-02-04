@@ -7,7 +7,8 @@ import FlappyBird from './_components/FlappyBird';
 
 const controls = [
   { key: 'Space', action: '점프' },
-  { key: 'S', action: '게임 시작' },
+  { key: 'S', action: '게임 시작 / 재개' },
+  { key: 'P', action: '일시정지' },
   { key: 'R', action: '재시작' },
 ];
 

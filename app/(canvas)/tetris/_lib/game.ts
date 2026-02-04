@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -55,6 +56,7 @@ export const setupTetris = (
   let combo = 0; // 콤보 카운터
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   let acc = 0;
@@ -84,6 +86,7 @@ export const setupTetris = (
   const resetGame = () => {
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     combo = 0;
     lastTime = 0;
@@ -119,7 +122,17 @@ export const setupTetris = (
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
       startGame();
+      return;
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -133,7 +146,7 @@ export const setupTetris = (
       return;
     }
 
-    if (!isStarted || isGameOver) return;
+    if (!isStarted || isGameOver || isPaused) return;
 
     switch (e.code) {
       case 'ArrowLeft':
@@ -280,6 +293,8 @@ export const setupTetris = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -511,6 +526,11 @@ export const setupTetris = (
 
     if (isGameOver) {
       gameOverHud.render(score);
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
   };

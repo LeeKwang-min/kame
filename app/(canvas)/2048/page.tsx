@@ -7,6 +7,8 @@ import G2048 from './_components/G2048';
 
 const controls = [
   { key: '← → ↑ ↓', action: '블럭 이동' },
+  { key: 'P', action: '일시정지' },
+  { key: 'S', action: '재개' },
   { key: 'R', action: '재시작' },
 ];
 

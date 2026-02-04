@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -47,6 +48,7 @@ export const setupDodge = (
   let spawnAcc = 0;
   let isGameOver = false;
   let isStarted = false;
+  let isPaused = false;
 
   const gameOverCallbacks: TGameOverCallbacks = {
     onScoreSave: async (initials, finalScore) => {
@@ -71,6 +73,7 @@ export const setupDodge = (
   const resetGame = () => {
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     sec = 0;
     score = 0;
     spawnAcc = 0;
@@ -101,7 +104,17 @@ export const setupDodge = (
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
       startGame();
+      return;
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -114,6 +127,8 @@ export const setupDodge = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     if (e.key in keys) {
       keys[e.key as keyof typeof keys] = true;
@@ -219,6 +234,8 @@ export const setupDodge = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -269,6 +286,11 @@ export const setupDodge = (
 
     if (isGameOver) {
       gameOverHud.render(score);
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
 

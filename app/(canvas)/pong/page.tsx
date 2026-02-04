@@ -8,7 +8,8 @@ import Pong from './_components/Pong';
 const controls = [
   { key: 'W / S', action: 'P1 패들 이동' },
   { key: '↑ / ↓', action: 'P2 패들 이동 (멀티)' },
-  { key: 'Space', action: '게임 시작' },
+  { key: 'Space', action: '게임 시작 / 재개' },
+  { key: 'P', action: '일시정지' },
   { key: 'R', action: '재시작' },
   { key: 'ESC', action: '메뉴로' },
 ];

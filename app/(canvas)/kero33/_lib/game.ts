@@ -19,6 +19,7 @@ import {
 } from './utils';
 import {
   createGameOverHud,
+  gamePauseHud,
   TGameOverCallbacks,
 } from '@/lib/game';
 
@@ -56,6 +57,7 @@ export const setupKero33 = (
   let currentPattern: Pattern | null = null;
   let imagesLoaded = false;
   let currentDirection: keyof typeof PLAYER_DIR | null = null; // 현재 누르고 있는 방향키
+  let isPaused = false;
 
   // 이미지 캐시
   const images: GameImages = {
@@ -118,16 +120,29 @@ export const setupKero33 = (
     state.phase = 'playing';
     currentPattern = null;
     lastTickTime = performance.now();
+    isPaused = false;
     gameOverHud.reset();
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (state.phase === 'ready') {
-      if (e.code === 'KeyS') {
+    // 게임 시작 / 일시정지 해제
+    if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTickTime = performance.now();
+        return;
+      }
+      if (state.phase === 'ready') {
         startGame();
         e.preventDefault();
         return;
       }
+    }
+
+    // 일시정지
+    if (e.code === 'KeyP' && state.phase === 'playing' && !isPaused) {
+      isPaused = true;
+      return;
     }
 
     // 게임 오버 시 HUD 처리
@@ -136,7 +151,7 @@ export const setupKero33 = (
       if (handled) return;
     }
 
-    if (state.phase !== 'playing') return;
+    if (state.phase !== 'playing' || isPaused) return;
 
     // 방향키 입력 처리
     if (PLAYER_DIR_CODES.includes(e.code as keyof typeof PLAYER_DIR)) {
@@ -603,7 +618,7 @@ export const setupKero33 = (
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
 
-    if (state.phase === 'playing') {
+    if (state.phase === 'playing' && !isPaused) {
       const tickInterval = calculateTickInterval(state.level);
       if (time - lastTickTime >= tickInterval) {
         gameTick(time);
@@ -620,6 +635,8 @@ export const setupKero33 = (
       drawOverlay('KERO33', 'Press S to start');
     } else if (state.phase === 'gameover') {
       gameOverHud.render(state.score);
+    } else if (isPaused) {
+      gamePauseHud(canvas, ctx);
     }
 
     raf = requestAnimationFrame(draw);

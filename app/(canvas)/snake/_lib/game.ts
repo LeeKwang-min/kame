@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -26,6 +27,7 @@ export const setupSnake = (
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   let acc = 0;
@@ -71,6 +73,7 @@ export const setupSnake = (
 
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     lastTime = 0;
     acc = 0;
@@ -106,7 +109,17 @@ export const setupSnake = (
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
       startGame();
+      return;
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -119,6 +132,8 @@ export const setupSnake = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     if (e.key in DIR) {
       const cand = DIR[e.key as keyof typeof DIR];
@@ -176,6 +191,8 @@ export const setupSnake = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -228,6 +245,11 @@ export const setupSnake = (
 
     if (isGameOver) {
       gameOverHud.render(score);
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
 

@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -58,6 +59,7 @@ export const setupDoodle = (
   let highestY = 0; // 도달한 최고 높이 (점수 계산용)
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   const sec = 0; // 총 경과 시간
@@ -169,6 +171,7 @@ export const setupDoodle = (
 
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     highestY = rect.height;
     lastTime = 0;
@@ -205,8 +208,20 @@ export const setupDoodle = (
 
   const onKeyDown = (e: KeyboardEvent) => {
     // 게임 시작
-    if (e.code === 'KeyS' && !isStarted && !isGameOver) {
-      startGame();
+    if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
+      if (!isStarted && !isGameOver) {
+        startGame();
+        return;
+      }
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -221,6 +236,8 @@ export const setupDoodle = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     // 좌우 이동
     if (e.code === 'ArrowLeft') {
@@ -381,6 +398,8 @@ export const setupDoodle = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -490,6 +509,11 @@ export const setupDoodle = (
 
     if (isGameOver) {
       gameOverHud.render(Math.floor(score));
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
   };

@@ -12,7 +12,8 @@ const controls = [
   { key: '↑ / X', action: '시계 방향 회전' },
   { key: 'Z', action: '반시계 방향 회전' },
   { key: 'C', action: '홀드' },
-  { key: 'S', action: '게임 시작' },
+  { key: 'S', action: '게임 시작 / 재개' },
+  { key: 'P', action: '일시정지' },
   { key: 'R', action: '재시작' },
 ];
 

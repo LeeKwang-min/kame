@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -59,6 +60,7 @@ export const setupDino = (
   let gameSpeed = INITIAL_SPEED;
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   let sec = 0;
@@ -92,6 +94,7 @@ export const setupDino = (
 
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     lastTime = 0;
     sec = 0;
@@ -140,6 +143,19 @@ export const setupDino = (
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
+    if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
+      return;
+    }
+
     if (
       (e.code === 'Space' || e.code === 'ArrowUp') &&
       !isStarted &&
@@ -152,6 +168,8 @@ export const setupDino = (
       const handled = gameOverHud.onKeyDown(e, Math.floor(score));
       if (handled) return;
     }
+
+    if (isPaused) return;
 
     if (
       (e.code === 'Space' || e.code === 'ArrowUp') &&
@@ -335,6 +353,8 @@ export const setupDino = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!isStarted || isGameOver) {
       lastTime = t;
       return;
@@ -508,6 +528,11 @@ export const setupDino = (
 
     if (isGameOver) {
       gameOverHud.render(Math.floor(score));
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
   };

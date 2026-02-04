@@ -20,6 +20,7 @@ import { createEnemies, getEnemyBounds, getShootingEnemy } from './utils';
 import { rectRectHit } from '@/lib/utils';
 import {
   createGameOverHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -46,6 +47,7 @@ export const setupSpaceInvaders = (
 
   // 게임 상태
   let gameState: TGameState = 'ready';
+  let isPaused = false;
   let score = 0;
   let lives = 3;
 
@@ -152,6 +154,7 @@ export const setupSpaceInvaders = (
 
   const resetGame = () => {
     gameState = 'ready';
+    isPaused = false;
     playerBullets = [];
     enemyBullets = [];
     enemies = [];
@@ -183,9 +186,22 @@ export const setupSpaceInvaders = (
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
-    // 게임 시작
-    if (e.code === 'KeyS' && gameState === 'ready') {
-      startGame();
+    // 게임 시작 / 일시정지 해제
+    if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
+      if (gameState === 'ready') {
+        startGame();
+        return;
+      }
+    }
+
+    // 일시정지
+    if (e.code === 'KeyP' && gameState === 'playing' && !isPaused) {
+      isPaused = true;
       return;
     }
 
@@ -200,6 +216,8 @@ export const setupSpaceInvaders = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     // 이동 및 발사 키
     if (e.code in keys) {
@@ -418,6 +436,8 @@ export const setupSpaceInvaders = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -680,6 +700,8 @@ export const setupSpaceInvaders = (
       );
     } else if (gameState === 'gameover') {
       gameOverHud.render(score);
+    } else if (isPaused) {
+      gamePauseHud(canvas, ctx);
     }
   };
 

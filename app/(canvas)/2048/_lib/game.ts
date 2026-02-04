@@ -19,6 +19,7 @@ import {
 } from './utils';
 import {
   createGameOverHud,
+  gamePauseHud,
   TGameOverCallbacks,
 } from '@/lib/game';
 
@@ -40,6 +41,7 @@ export const setup2048 = (
   let bestScore = 0;
   let gameState: TGameState = 'playing';
   let keepPlaying = false;
+  let isPaused = false;
 
   // 애니메이션 상태
   let animatedTiles: TAnimatedTile[] = [];
@@ -71,6 +73,7 @@ export const setup2048 = (
     score = 0;
     gameState = 'playing';
     keepPlaying = false;
+    isPaused = false;
     animatedTiles = [];
     newTile = null;
     isAnimating = false;
@@ -99,6 +102,7 @@ export const setup2048 = (
   const handleMove = (direction: 'left' | 'right' | 'up' | 'down') => {
     if (gameState === 'gameover') return;
     if (gameState === 'won' && !keepPlaying) return;
+    if (isPaused) return;
 
     // 애니메이션 중이면 큐에 저장
     if (isAnimating) {
@@ -164,6 +168,18 @@ export const setup2048 = (
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
+    // 일시정지 해제 (S 키)
+    if (e.code === 'KeyS' && isPaused) {
+      isPaused = false;
+      return;
+    }
+
+    // 일시정지 (P 키)
+    if (e.code === 'KeyP' && gameState === 'playing' && !isPaused) {
+      isPaused = true;
+      return;
+    }
+
     // 게임 오버 시 HUD 처리
     if (gameState === 'gameover') {
       const handled = gameOverHud.onKeyDown(e, score);
@@ -175,6 +191,8 @@ export const setup2048 = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     if (gameState === 'won' && !keepPlaying) {
       if (e.code === 'Space') {
@@ -331,9 +349,14 @@ export const setup2048 = (
   };
 
   const renderOverlay = () => {
-    if (gameState === 'playing') return;
+    if (gameState === 'playing' && !isPaused) return;
 
     const size = GRID_SIZE * CELL_SIZE + (GRID_SIZE + 1) * CELL_GAP;
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
+      return;
+    }
 
     if (gameState === 'won') {
       ctx.fillStyle = 'rgba(237, 194, 46, 0.5)';

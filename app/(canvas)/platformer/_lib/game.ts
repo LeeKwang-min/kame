@@ -13,6 +13,7 @@ import {
 } from './config';
 import {
   createGameOverHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -90,6 +91,7 @@ export const setupPlatformer = (
   let isStarted = false;
   let isGameOver = false;
   let isCleared = false; // 클리어 여부
+  let isPaused = false;
   let lastTime = 0;
   let sec = 0;
   let totalSec = 0; // 모든 레벨 클리어 시간
@@ -149,6 +151,7 @@ export const setupPlatformer = (
     isStarted = false;
     isGameOver = false;
     isCleared = false;
+    isPaused = false;
     lastTime = 0;
     sec = 0;
     gameOverHud.reset();
@@ -199,8 +202,20 @@ export const setupPlatformer = (
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === 'KeyS' && !isStarted && !isGameOver) {
-      startGame();
+    if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
+      if (!isStarted && !isGameOver) {
+        startGame();
+        return;
+      }
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver && !isCleared) {
+      isPaused = true;
       return;
     }
 
@@ -217,6 +232,8 @@ export const setupPlatformer = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     // 좌우 이동
     if (e.code === 'ArrowLeft') {
@@ -372,6 +389,8 @@ export const setupPlatformer = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -512,6 +531,11 @@ export const setupPlatformer = (
     );
   };
 
+  const renderPaused = () => {
+    if (!isPaused) return;
+    gamePauseHud(canvas, ctx);
+  };
+
   const render = () => {
     const rect = canvas.getBoundingClientRect();
 
@@ -525,6 +549,7 @@ export const setupPlatformer = (
     renderLevelInfo();
     renderCleared();
     renderStart();
+    renderPaused();
   };
 
   // ==================== Game Loop ====================

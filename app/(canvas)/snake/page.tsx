@@ -7,7 +7,8 @@ import Snake from './_components/Snake';
 
 const controls = [
   { key: '↑ ↓ ← →', action: '방향 전환' },
-  { key: 'S', action: '게임 시작' },
+  { key: 'S', action: '게임 시작 / 재개' },
+  { key: 'P', action: '일시정지' },
   { key: 'R', action: '재시작' },
 ];
 

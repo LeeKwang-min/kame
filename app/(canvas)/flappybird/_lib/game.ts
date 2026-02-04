@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -40,6 +41,7 @@ export const setupFlappyBird = (
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   let sec = 0;
@@ -76,6 +78,7 @@ export const setupFlappyBird = (
     vy = 0;
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     lastTime = 0;
     sec = 0;
@@ -101,7 +104,17 @@ export const setupFlappyBird = (
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
       startGame();
+      return;
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -114,6 +127,8 @@ export const setupFlappyBird = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     if (e.code === 'Space') {
       vy = -BIRD_JUMP;
@@ -205,6 +220,8 @@ export const setupFlappyBird = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -258,6 +275,11 @@ export const setupFlappyBird = (
 
     if (isGameOver) {
       gameOverHud.render(score);
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
 

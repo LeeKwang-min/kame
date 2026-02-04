@@ -7,7 +7,8 @@ import MissileCommand from './_components/MissileCommand';
 
 const controls = [
   { key: '마우스 클릭', action: '포탑 발사' },
-  { key: 'S', action: '게임 시작' },
+  { key: 'S', action: '게임 시작 / 재개' },
+  { key: 'P', action: '일시정지' },
   { key: 'R', action: '재시작' },
 ];
 

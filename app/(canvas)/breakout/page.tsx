@@ -8,7 +8,8 @@ import BreakOut from './_components/BreakOut';
 const controls = [
   { key: '← →', action: '패들 이동' },
   { key: 'Space', action: '공 발사' },
-  { key: 'S', action: '게임 시작' },
+  { key: 'S', action: '게임 시작 / 재개' },
+  { key: 'P', action: '일시정지' },
   { key: 'R', action: '재시작' },
 ];
 

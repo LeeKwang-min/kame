@@ -13,6 +13,7 @@ import {
   AI_ERROR_CHANCE,
 } from './config';
 import { circleRectHit, isPointInRect } from '@/lib/utils';
+import { gamePauseHud } from '@/lib/game';
 
 export const setupPong = (canvas: HTMLCanvasElement) => {
   const ctx = canvas.getContext('2d');
@@ -55,6 +56,7 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
   let mode: TGameMode = 'multi';
   let difficulty: TDifficulty = 'normal';
   let winner: 'p1' | 'p2' | null = null;
+  let isPaused = false;
 
   let lastTime = 0;
   let sec = 0;
@@ -140,6 +142,7 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
 
     phase = 'ready';
     winner = null;
+    isPaused = false;
     score = { p1: 0, p2: 0 };
     lastTime = 0;
     sec = 0;
@@ -232,9 +235,22 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
+    // Space: 시작 / 일시정지 해제
     if (e.code === 'Space') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        e.preventDefault();
+        return;
+      }
       if (phase === 'ready') startGame();
       e.preventDefault();
+      return;
+    }
+
+    // P: 일시정지
+    if (e.code === 'KeyP' && phase === 'playing' && !isPaused) {
+      isPaused = true;
       return;
     }
 
@@ -250,6 +266,7 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
 
     // 게임 중일 때만 패들 조작 가능
     if (phase !== 'playing' && phase !== 'ready') return;
+    if (isPaused) return;
 
     // Player 1: W, S
     if (e.code === 'KeyW') p1Keys.w = true;
@@ -579,6 +596,7 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
   const update = (t: number) => {
     // 메뉴 상태에서는 업데이트 불필요
     if (phase === 'menu' || phase === 'difficulty') return;
+    if (isPaused) return;
 
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
@@ -802,6 +820,10 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
 
     if (phase === 'gameover') {
       renderWinner();
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx, { resumeKey: 'Space' });
     }
   };
 

@@ -3,6 +3,7 @@ export {
   type TGameOverCallbacks,
   type TGameOverHudState,
 } from './game/gameOverHud';
+export { gamePauseHud } from './game/gamePauseHud';
 export {
   INITIALS_KEY_COLS,
   INITIALS_KEY_GRID,
@@ -25,6 +26,10 @@ export const gameStartHud = (
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText("Press 'S' for start", rect.width / 2, rect.height / 2);
+
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillText("P: Pause  R: Restart", rect.width / 2, rect.height / 2 + 35);
   ctx.restore();
 };
 

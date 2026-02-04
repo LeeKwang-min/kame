@@ -14,6 +14,7 @@ import {
 import { createCities, getRandomAliveCity, circleCircleHit } from './utils';
 import {
   createGameOverHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -42,6 +43,7 @@ export const setupMissileCommand = (
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   // 난이도 시스템
   let difficultyLevel = 1;
@@ -80,6 +82,7 @@ export const setupMissileCommand = (
   const resetGame = () => {
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     lastTime = 0;
     sec = 0;
@@ -114,8 +117,20 @@ export const setupMissileCommand = (
   // ==================== Input Handlers ====================
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === 'KeyS' && !isStarted && !isGameOver) {
-      startGame();
+    if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
+      if (!isStarted && !isGameOver) {
+        startGame();
+        return;
+      }
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -141,7 +156,7 @@ export const setupMissileCommand = (
 
   // 마우스 클릭 - 요격 미사일 발사
   const onClick = (e: MouseEvent) => {
-    if (!isStarted || isGameOver) return;
+    if (!isStarted || isGameOver || isPaused) return;
 
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -345,6 +360,8 @@ export const setupMissileCommand = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -670,6 +687,11 @@ export const setupMissileCommand = (
     // 게임 오버 화면
     if (isGameOver) {
       gameOverHud.render(score);
+    }
+
+    // 일시정지 화면
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
     }
   };
 

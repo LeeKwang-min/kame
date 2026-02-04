@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
 } from '@/lib/game';
@@ -58,6 +59,7 @@ export const setupAsteroid = (
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   let sec = 0;
@@ -92,6 +94,7 @@ export const setupAsteroid = (
 
     isStarted = false;
     isGameOver = false;
+    isPaused = false;
     score = 0;
     lastTime = 0;
     sec = 0;
@@ -130,7 +133,17 @@ export const setupAsteroid = (
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
+      if (isPaused) {
+        isPaused = false;
+        lastTime = 0;
+        return;
+      }
       startGame();
+      return;
+    }
+
+    if (e.code === 'KeyP' && isStarted && !isGameOver) {
+      isPaused = true;
       return;
     }
 
@@ -143,6 +156,8 @@ export const setupAsteroid = (
       resetGame();
       return;
     }
+
+    if (isPaused) return;
 
     if (e.code === 'Space') {
       keys.Space = true;
@@ -407,6 +422,8 @@ export const setupAsteroid = (
   };
 
   const update = (t: number) => {
+    if (isPaused) return;
+
     if (!lastTime) lastTime = t;
     let dt = (t - lastTime) / 1000;
     lastTime = t;
@@ -507,6 +524,11 @@ export const setupAsteroid = (
 
     if (isGameOver) {
       gameOverHud.render(score);
+      return;
+    }
+
+    if (isPaused) {
+      gamePauseHud(canvas, ctx);
       return;
     }
 
