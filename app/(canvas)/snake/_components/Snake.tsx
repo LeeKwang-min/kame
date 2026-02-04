@@ -26,8 +26,11 @@ function Snake() {
   }, [saveScore]);
 
   return (
-    <div className="w-full h-full">
-      <canvas ref={canvasRef} className="w-full h-[600px] border touch-none" />
+    <div className="w-full h-full flex justify-center">
+      <canvas
+        ref={canvasRef}
+        className="w-[640px] h-[640px] border touch-none"
+      />
     </div>
   );
 }
