@@ -1,6 +1,24 @@
-import { drawHud } from '@/lib/game';
+import {
+  createGameOverHud,
+  gameHud,
+  gameStartHud,
+  TGameOverCallbacks,
+} from '@/lib/game';
 
-export const setupTemplate = (canvas: HTMLCanvasElement) => {
+// ==================== Types ====================
+// TODO: 게임에 맞게 TGameType을 변경하세요 (예: 'dodge', 'snake' 등)
+// @types/scores.ts에 새 게임 타입을 추가해야 합니다.
+
+export type TTemplateCallbacks = {
+  onScoreSave: (initials: string, score: number) => Promise<void>;
+};
+
+// ==================== Setup ====================
+
+export const setupTemplate = (
+  canvas: HTMLCanvasElement,
+  callbacks?: TTemplateCallbacks,
+) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -21,6 +39,27 @@ export const setupTemplate = (canvas: HTMLCanvasElement) => {
   let acc = 0; // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)
   let sec = 0; // 총 경과 시간
 
+  // ==================== Game Over HUD ====================
+
+  const gameOverCallbacks: TGameOverCallbacks = {
+    onScoreSave: async (initials, finalScore) => {
+      if (callbacks?.onScoreSave) {
+        await callbacks.onScoreSave(initials, finalScore);
+      }
+    },
+    onRestart: () => {
+      resetGame();
+    },
+  };
+
+  // TODO: 'template'을 실제 게임 타입으로 변경하세요
+  const gameOverHud = createGameOverHud(
+    canvas,
+    ctx,
+    'dodge', // TODO: TGameType으로 변경 (예: 'snake', 'tetris' 등)
+    gameOverCallbacks,
+  );
+
   // ==================== Game State ====================
 
   const startGame = () => {
@@ -40,6 +79,7 @@ export const setupTemplate = (canvas: HTMLCanvasElement) => {
     lastTime = 0;
     acc = 0;
     sec = 0;
+    gameOverHud.reset();
 
     // TODO: 게임 오브젝트 초기화
   };
@@ -65,7 +105,14 @@ export const setupTemplate = (canvas: HTMLCanvasElement) => {
       return;
     }
 
-    if (e.code === 'KeyR') {
+    // 게임 오버 상태에서는 GameOverHud가 키 입력 처리
+    if (isGameOver) {
+      const handled = gameOverHud.onKeyDown(e, score);
+      if (handled) return;
+    }
+
+    // 게임 진행 중에만 R키로 리셋 가능
+    if (e.code === 'KeyR' && !isGameOver) {
       resetGame();
       return;
     }
@@ -130,13 +177,29 @@ export const setupTemplate = (canvas: HTMLCanvasElement) => {
     renderPoint();
   };
 
+  // ==================== HUD ====================
+
+  const drawHud = () => {
+    if (!isStarted) {
+      gameStartHud(canvas, ctx);
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.render(score);
+      return;
+    }
+
+    gameHud(ctx, score, sec);
+  };
+
   // ==================== Game Loop ====================
 
   let raf = 0;
   const draw = (t: number) => {
     update(t);
     render();
-    drawHud(canvas, ctx, score, sec, isStarted, isGameOver);
+    drawHud();
 
     raf = requestAnimationFrame(draw);
   };

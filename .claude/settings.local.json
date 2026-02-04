@@ -6,7 +6,8 @@
       "Bash(npx tsc:*)",
       "Bash(convert:*)",
       "Bash(magick:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(yarn build)"
     ]
   }
 }
