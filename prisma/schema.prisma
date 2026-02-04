@@ -10,7 +10,7 @@ datasource db {
 model Score {
   id        String   @id @default(cuid())
   gameType  String   @map("game_type")
-  initials  String   @db.VarChar(3)
+  initials  String   @db.VarChar(5)
   score     Int
   country   String?  @db.VarChar(2)
   createdAt DateTime @default(now()) @map("created_at")

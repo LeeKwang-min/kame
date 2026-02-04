@@ -67,9 +67,9 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: 'Invalid gameType' }, { status: 400 });
     }
 
-    if (!initials || initials.length !== 3) {
+    if (!initials || initials.length < 1 || initials.length > 5) {
       return Response.json(
-        { error: 'Initials must be exactly 3 characters' },
+        { error: 'Initials must be 1-5 characters' },
         { status: 400 },
       );
     }
