@@ -1,13 +1,29 @@
 export const MENU_LIST = [
+  // {
+  //   name: {
+  //     kor: '벽돌 깨기',
+  //     eng: 'Breakout',
+  //   },
+  //   href: '/pbreakout',
+  //   category: 'Phaser',
+  // },
+  // 이 아래로 Canvas API
   {
     name: {
-      kor: '벽돌 깨기',
-      eng: 'Breakout',
+      kor: '테트리스',
+      eng: 'Tetris',
     },
-    href: '/pbreakout',
-    category: 'Phaser',
+    href: '/tetris',
+    category: 'Game',
   },
-  // 이 아래로 Canvas API
+  {
+    name: {
+      kor: '뱀 게임',
+      eng: 'Snake Game',
+    },
+    href: '/snake',
+    category: 'Game',
+  },
   {
     name: {
       kor: '키어로33',
@@ -22,14 +38,6 @@ export const MENU_LIST = [
       eng: 'Dodge',
     },
     href: '/dodge',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '뱀 게임',
-      eng: 'Snake Game',
-    },
-    href: '/snake',
     category: 'Game',
   },
   {
@@ -54,14 +62,6 @@ export const MENU_LIST = [
       eng: 'Asteroid',
     },
     href: '/asteroid',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '테트리스',
-      eng: 'Tetris',
-    },
-    href: '/tetris',
     category: 'Game',
   },
   {
