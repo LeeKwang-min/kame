@@ -18,7 +18,8 @@ export type TGameType =
   | 'highlow'
   | 'roulette'
   | 'rps'
-  | 'pacman';
+  | 'pacman'
+  | 'burger';
 
 export type TScore = {
   id: string;

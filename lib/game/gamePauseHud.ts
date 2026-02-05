@@ -1,5 +1,6 @@
 type TGamePauseHudOptions = {
   resumeKey?: string;
+  showRestartHint?: boolean;
 };
 
 export const gamePauseHud = (
@@ -11,6 +12,7 @@ export const gamePauseHud = (
   const cx = rect.width / 2;
   const cy = rect.height / 2;
   const resumeKey = options?.resumeKey || 'S';
+  const showRestartHint = options?.showRestartHint ?? true;
 
   ctx.save();
 
@@ -30,7 +32,9 @@ export const gamePauseHud = (
   ctx.font = '18px sans-serif';
   ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
   ctx.fillText(`Press '${resumeKey}' to Resume`, cx, cy + 20);
-  ctx.fillText("Press 'R' to Restart", cx, cy + 50);
+  if (showRestartHint) {
+    ctx.fillText("Press 'R' to Restart", cx, cy + 50);
+  }
 
   ctx.restore();
 };

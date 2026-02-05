@@ -24,6 +24,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'roulette',
   'rps',
   'pacman',
+  'burger',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

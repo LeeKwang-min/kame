@@ -42,6 +42,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '햄버거 쌓기',
+      eng: 'Burger Stack',
+    },
+    href: '/burger',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

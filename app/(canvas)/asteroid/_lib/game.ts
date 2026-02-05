@@ -27,6 +27,7 @@ import { circleCircleHit } from '@/lib/utils';
 export type TAsteroidCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupAsteroid = (
