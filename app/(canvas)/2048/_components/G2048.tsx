@@ -22,15 +22,15 @@ function G2048() {
           console.error('Failed to create game session:', error);
         }
       },
-      onScoreSave: async (initials, score) => {
-        if (!sessionTokenRef.current) return;
-        await saveScore({
+      onScoreSave: async (score) => {
+        if (!sessionTokenRef.current) return { saved: false };
+        const result = await saveScore({
           gameType: '2048',
-          initials,
           score: Math.floor(score),
           sessionToken: sessionTokenRef.current,
         });
         sessionTokenRef.current = null;
+        return result;
       },
     };
 

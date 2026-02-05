@@ -3,6 +3,7 @@ import {
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { TDino, TObstacle, TObstacleType, TGround } from './types';
 import {
@@ -29,7 +30,7 @@ import { rectRectHit } from '@/lib/utils';
 
 export type TDinoCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 export const setupDino = (
@@ -71,10 +72,11 @@ export const setupDino = (
   const ANIM_SPEED = 0.1;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

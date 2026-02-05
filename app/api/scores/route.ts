@@ -1,6 +1,7 @@
 import { TGameType } from '@/@types/scores';
 import { GAME_SECURITY_CONFIG, RATE_LIMIT } from '@/lib/game-security/config';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
 import { NextRequest } from 'next/server';
 
 const VALID_GAME_TYPES: TGameType[] = [
@@ -79,18 +80,33 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { gameType, initials, score, sessionToken } = body;
+    const { gameType, score, sessionToken } = body;
 
-    // 1. 기본 검증
-    if (!gameType || !isValidGameType(gameType)) {
-      return Response.json({ error: 'Invalid gameType' }, { status: 400 });
+    // 1. 사용자 인증 검증 (필수)
+    const authSession = await auth();
+    if (!authSession?.user?.id) {
+      return Response.json(
+        { error: 'LOGIN_REQUIRED', message: 'Login is required to save scores' },
+        { status: 401 },
+      );
     }
 
-    if (!initials || initials.length < 1 || initials.length > 5) {
+    // 2. 사용자 이니셜 확인
+    const user = await prisma.user.findUnique({
+      where: { id: authSession.user.id },
+      select: { initials: true },
+    });
+
+    if (!user?.initials) {
       return Response.json(
-        { error: 'Initials must be 1-5 characters' },
+        { error: 'INITIALS_REQUIRED', message: 'Set your initials first in My Page' },
         { status: 400 },
       );
+    }
+
+    // 3. 기본 검증
+    if (!gameType || !isValidGameType(gameType)) {
+      return Response.json({ error: 'Invalid gameType' }, { status: 400 });
     }
 
     if (typeof score !== 'number' || score < 0) {
@@ -100,7 +116,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. 세션 토큰 검증
+    // 4. 세션 토큰 검증
     if (!sessionToken) {
       return Response.json(
         { error: 'MISSING_SESSION_TOKEN', message: 'Session token is required' },
@@ -108,35 +124,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await prisma.gameSession.findUnique({
+    const gameSession = await prisma.gameSession.findUnique({
       where: { token: sessionToken },
     });
 
-    if (!session) {
+    if (!gameSession) {
       return Response.json(
         { error: 'INVALID_SESSION_TOKEN', message: 'Invalid session token' },
         { status: 401 },
       );
     }
 
-    if (session.isUsed) {
+    if (gameSession.isUsed) {
       return Response.json(
         { error: 'SESSION_ALREADY_USED', message: 'Session token already used' },
         { status: 401 },
       );
     }
 
-    if (session.gameType !== gameType) {
+    if (gameSession.gameType !== gameType) {
       return Response.json(
         { error: 'GAME_TYPE_MISMATCH', message: 'Session game type mismatch' },
         { status: 400 },
       );
     }
 
-    // 3. 최소 플레이 시간 검증
+    // 5. 최소 플레이 시간 검증
     const config = GAME_SECURITY_CONFIG[gameType];
     const playTimeSeconds =
-      (Date.now() - session.startedAt.getTime()) / 1000;
+      (Date.now() - gameSession.startedAt.getTime()) / 1000;
 
     if (playTimeSeconds < config.minPlayTimeSeconds) {
       return Response.json(
@@ -148,7 +164,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. 최대 점수 검증
+    // 6. 최대 점수 검증
     if (score > config.maxScore) {
       return Response.json(
         {
@@ -159,7 +175,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Rate limit 체크
+    // 7. Rate limit 체크
     const ipAddress = getClientIp(request);
     const windowStart = new Date(
       Date.now() - RATE_LIMIT.score.windowSeconds * 1000,
@@ -178,26 +194,78 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. 트랜잭션: Score 저장 + Session 사용 처리
+    // 8. 기존 최고 점수 확인
+    const existingScore = await prisma.score.findFirst({
+      where: {
+        userId: authSession.user.id,
+        gameType,
+      },
+      orderBy: { score: 'desc' },
+    });
+
+    const newScoreValue = Math.floor(score);
+
+    // 기존 점수가 있고, 새 점수가 더 낮거나 같으면 저장하지 않음
+    if (existingScore && newScoreValue <= existingScore.score) {
+      // 세션은 사용 처리
+      await prisma.gameSession.update({
+        where: { id: gameSession.id },
+        data: { isUsed: true, usedAt: new Date() },
+      });
+
+      return Response.json(
+        {
+          error: 'SCORE_NOT_HIGHER',
+          message: `Your best score is ${existingScore.score}. New score must be higher to save.`,
+          currentBest: existingScore.score,
+        },
+        { status: 200 },
+      );
+    }
+
+    // 9. 트랜잭션: Score 저장/업데이트 + Session 사용 처리
     const country = request.headers.get('x-vercel-ip-country') || null;
 
+    if (existingScore) {
+      // 기존 점수가 있으면 업데이트
+      const [updatedScore] = await prisma.$transaction([
+        prisma.score.update({
+          where: { id: existingScore.id },
+          data: {
+            score: newScoreValue,
+            initials: user.initials,
+            country,
+            sessionId: gameSession.id,
+          },
+        }),
+        prisma.gameSession.update({
+          where: { id: gameSession.id },
+          data: { isUsed: true, usedAt: new Date() },
+        }),
+      ]);
+
+      return Response.json({ data: updatedScore, updated: true }, { status: 200 });
+    }
+
+    // 새 점수 생성
     const [newScore] = await prisma.$transaction([
       prisma.score.create({
         data: {
           gameType,
-          initials: initials.toUpperCase(),
-          score: Math.floor(score),
+          initials: user.initials,
+          score: newScoreValue,
           country,
-          sessionId: session.id,
+          sessionId: gameSession.id,
+          userId: authSession.user.id,
         },
       }),
       prisma.gameSession.update({
-        where: { id: session.id },
+        where: { id: gameSession.id },
         data: { isUsed: true, usedAt: new Date() },
       }),
     ]);
 
-    return Response.json({ data: newScore }, { status: 201 });
+    return Response.json({ data: newScore, created: true }, { status: 201 });
   } catch (error) {
     console.error('Failed to save score:', error);
     return Response.json({ error: 'Failed to save score' }, { status: 500 });

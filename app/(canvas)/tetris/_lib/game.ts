@@ -3,6 +3,7 @@ import {
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { TBoard, TTetromino, TTetrominoType, TTSpinType } from './types';
 import {
@@ -34,7 +35,7 @@ import {
 
 export type TTetrisCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 export const setupTetris = (
@@ -78,10 +79,11 @@ export const setupTetris = (
   let tSpinDisplayTimer = 0; // T-Spin 표시 타이머
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

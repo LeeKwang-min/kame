@@ -21,11 +21,12 @@ import {
   createGameOverHud,
   gamePauseHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 
 export type T2048Callbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 export const setup2048 = (
@@ -55,10 +56,11 @@ export const setup2048 = (
 
   // 게임 오버 HUD
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

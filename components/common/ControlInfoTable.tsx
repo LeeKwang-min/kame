@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils';
+
 interface IProps {
   controls: {
     key: string;
@@ -8,29 +10,37 @@ interface IProps {
 function ControlInfoTable({ controls }: IProps) {
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="rounded-xl border border-gray-700/50 overflow-hidden">
+      <div className={cn(
+        'rounded-xl overflow-hidden',
+        'bg-arcade-surface border border-arcade-border',
+      )}>
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+            <tr className="bg-arcade-cyan/20">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-arcade-cyan">
                 Key
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-arcade-cyan">
                 Action
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-400/30">
-            {controls.map((control, index) => (
+          <tbody className="divide-y divide-arcade-border">
+            {controls.map((control) => (
               <tr
                 key={control.key}
-                className="hover:bg-gray-800/30 transition-colors">
+                className="hover:bg-arcade-border/30 transition-colors">
                 <td className="px-4 py-3">
-                  <kbd className="px-2.5 py-1.5 text-sm font-mono font-semibold text-gray-200 bg-gray-700 rounded-lg border border-gray-600 shadow-[0_2px_0_0_rgba(0,0,0,0.3)]">
+                  <kbd className={cn(
+                    'px-2.5 py-1.5 text-sm font-mono font-semibold rounded-lg',
+                    'bg-arcade-bg border border-arcade-border',
+                    'text-arcade-text',
+                    'shadow-[0_2px_0_0_rgba(0,0,0,0.3)]',
+                  )}>
                     {control.key}
                   </kbd>
                 </td>
-                <td className="px-4 py-3 text-sm">{control.action}</td>
+                <td className="px-4 py-3 text-sm text-arcade-text">{control.action}</td>
               </tr>
             ))}
           </tbody>

@@ -23,15 +23,15 @@ function Slot() {
           console.error('Failed to create game session:', error);
         }
       },
-      onScoreSave: async (initials, score) => {
-        if (!sessionTokenRef.current) return;
-        await saveScore({
+      onScoreSave: async (score) => {
+        if (!sessionTokenRef.current) return { saved: false };
+        const result = await saveScore({
           gameType: 'slot',
-          initials,
           score: Math.floor(score),
           sessionToken: sessionTokenRef.current,
         });
         sessionTokenRef.current = null;
+        return result;
       },
     };
 
@@ -42,7 +42,7 @@ function Slot() {
     <div className="w-full h-full flex justify-center">
       <canvas
         ref={canvasRef}
-        className="w-[620px] h-[620px] border touch-none"
+        className="w-[620px] h-[620px] border touch-none bg-white"
       />
     </div>
   );

@@ -4,6 +4,7 @@ import {
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import {
   CANVAS_SIZE,
@@ -25,7 +26,7 @@ import { circleCircleHit } from '@/lib/utils';
 
 export type TAsteroidCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 export const setupAsteroid = (
@@ -67,10 +68,11 @@ export const setupAsteroid = (
   let sec = 0;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

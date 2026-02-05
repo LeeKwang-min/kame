@@ -4,6 +4,7 @@ import {
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import {
   BALL_RADIUS,
@@ -27,7 +28,7 @@ import { circleRectHit } from '@/lib/utils';
 
 export type TBreakoutCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 export const setupBreakOut = (
@@ -61,10 +62,11 @@ export const setupBreakOut = (
   let sec = 0;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

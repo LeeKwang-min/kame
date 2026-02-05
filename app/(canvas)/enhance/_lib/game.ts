@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { MAX_LEVEL, DESTROY_START_LEVEL, FAILURE_RATES, getTierByLevel, TIER_CONFIG } from './config';
 import { EnhanceResult, EnhanceState } from './types';
@@ -8,7 +9,7 @@ import { getResultColor, getResultText, getSuccessRate, getTierConfig, rollEnhan
 
 export type TEnhanceCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 type Button = {
@@ -43,10 +44,11 @@ export const setupEnhance = (
   let hoveredButton: Button | null = null;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

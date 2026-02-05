@@ -30,7 +30,6 @@ export type TScore = {
 
 export type TScoreCreate = {
   gameType: TGameType;
-  initials: string;
   score: number;
 };
 

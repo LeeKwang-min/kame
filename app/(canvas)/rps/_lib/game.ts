@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { CHOICES, CHOICE_COLORS, CHOICE_EMOJI, CHOICE_LABELS, LED_PATTERNS } from './config';
 import { RPSChoice, RPSState } from './types';
@@ -8,7 +9,7 @@ import { determineResult, getRandomChoice, getResultColor, getResultMessage } fr
 
 export type TRPSCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 type Button = {
@@ -48,10 +49,11 @@ export const setupRPS = (
   let showGameOverHud = false;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

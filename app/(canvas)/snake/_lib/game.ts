@@ -4,13 +4,14 @@ import {
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { CELL, DIR, INPUT_BUFFER_SIZE, STEP } from './config';
 import { Point } from './types';
 
 export type TSnakeCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 export const setupSnake = (
@@ -41,10 +42,11 @@ export const setupSnake = (
   let sec = 0;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

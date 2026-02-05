@@ -21,11 +21,12 @@ import {
   createGameOverHud,
   gamePauseHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 
 export type TKero33Callbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 // 이미지 로드 헬퍼
@@ -70,10 +71,11 @@ export const setupKero33 = (
 
   // 게임 오버 HUD
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       startGame();

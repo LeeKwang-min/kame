@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { RANK_LABELS, SUIT_COLORS, SUIT_SYMBOLS } from './config';
 import { Card, Guess, HighLowState } from './types';
@@ -8,7 +9,7 @@ import { checkGuess, createDeck, drawCard, shuffleDeck } from './utils';
 
 export type THighLowCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 type Button = {
@@ -46,10 +47,11 @@ export const setupHighLow = (
   let hoveredButton: Button | null = null;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();

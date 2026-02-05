@@ -22,15 +22,15 @@ function Kero33() {
           console.error('Failed to create game session:', error);
         }
       },
-      onScoreSave: async (initials, score) => {
-        if (!sessionTokenRef.current) return;
-        await saveScore({
+      onScoreSave: async (score) => {
+        if (!sessionTokenRef.current) return { saved: false };
+        const result = await saveScore({
           gameType: 'kero33',
-          initials,
           score: Math.floor(score),
           sessionToken: sessionTokenRef.current,
         });
         sessionTokenRef.current = null;
+        return result;
       },
     };
 
@@ -39,7 +39,7 @@ function Kero33() {
 
   return (
     <div className="w-[600px] h-[600px]">
-      <canvas ref={canvasRef} className="w-full h-full border touch-none" />
+      <canvas ref={canvasRef} className="w-full h-full border touch-none bg-white" />
     </div>
   );
 }

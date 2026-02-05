@@ -1,20 +1,22 @@
 import { TGameType } from '@/@types/scores';
-import {
-  INITIALS_KEY_COLS,
-  INITIALS_KEY_ROWS,
-  INITIALS_MOVE_DIR,
-} from './config';
-import { initialLabelAt } from './utils';
+
+export type TSaveResult = {
+  saved: boolean;
+  message?: string;
+  currentBest?: number;
+};
 
 export type TGameOverCallbacks = {
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
   onRestart: () => void;
 };
 
 export type TGameOverHudState = {
-  initials: string;
   isSubmitting: boolean;
   isSaved: boolean;
+  isSkipped: boolean;
+  isNotHigher: boolean;
+  currentBest?: number;
 };
 
 export const createGameOverHud = (
@@ -23,70 +25,43 @@ export const createGameOverHud = (
   _gameType: TGameType,
   callbacks: TGameOverCallbacks,
 ) => {
-  let initials = '';
-  let sel = { r: 0, c: 0 };
-  let focusEnd = false;
+  let selectedButton: 'save' | 'skip' = 'save';
   let isSubmitting = false;
   let isSaved = false;
-
-  const isEndEnabled = () => initials.length >= 1 && !isSubmitting && !isSaved;
-
-  const applyChoice = (label: string) => {
-    if (label === 'DEL') {
-      initials = initials.slice(0, -1);
-      return;
-    }
-    if (label === 'SPC') {
-      if (initials.length < 5) initials += ' ';
-      return;
-    }
-    if (/^[A-Z]$/.test(label)) {
-      if (initials.length < 5) initials += label;
-      return;
-    }
-  };
-
-  const initialMove = (dr: number, dc: number) => {
-    if (focusEnd) {
-      if (dr < 0) focusEnd = false;
-      return;
-    }
-
-    const nr = sel.r + dr;
-    const nc = sel.c + dc;
-
-    if (nr >= INITIALS_KEY_ROWS) {
-      focusEnd = true;
-      return;
-    }
-
-    sel.r = (nr + INITIALS_KEY_ROWS) % INITIALS_KEY_ROWS;
-    sel.c = (nc + INITIALS_KEY_COLS) % INITIALS_KEY_COLS;
-  };
-
-  const onEnter = async (score: number) => {
-    if (focusEnd) {
-      if (!isEndEnabled()) return;
-      isSubmitting = true;
-      try {
-        await callbacks.onScoreSave(initials, score);
-        isSaved = true;
-      } finally {
-        isSubmitting = false;
-      }
-      return;
-    }
-
-    const label = initialLabelAt(sel.r, sel.c);
-    applyChoice(label);
-  };
+  let isSkipped = false;
+  let isNotHigher = false;
+  let currentBest: number | undefined = undefined;
 
   const reset = () => {
-    initials = '';
-    sel = { r: 0, c: 0 };
-    focusEnd = false;
+    selectedButton = 'save';
     isSubmitting = false;
     isSaved = false;
+    isSkipped = false;
+    isNotHigher = false;
+    currentBest = undefined;
+  };
+
+  const onSelect = async (score: number) => {
+    if (isSubmitting || isSaved || isSkipped || isNotHigher) return;
+
+    if (selectedButton === 'save') {
+      isSubmitting = true;
+      try {
+        const result = await callbacks.onScoreSave(score);
+        isSubmitting = false;
+        if (result.saved) {
+          isSaved = true;
+        } else {
+          isNotHigher = true;
+          currentBest = result.currentBest;
+        }
+      } catch (error) {
+        console.error('Failed to save score:', error);
+        isSubmitting = false;
+      }
+    } else {
+      isSkipped = true;
+    }
   };
 
   const onKeyDown = (e: KeyboardEvent, score: number) => {
@@ -96,22 +71,16 @@ export const createGameOverHud = (
       return true;
     }
 
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
-      const { dr, dc } =
-        INITIALS_MOVE_DIR[e.code as keyof typeof INITIALS_MOVE_DIR];
-      initialMove(dr, dc);
+    if (isSaved || isSkipped || isNotHigher) return false;
+
+    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+      selectedButton = selectedButton === 'save' ? 'skip' : 'save';
       e.preventDefault();
       return true;
     }
 
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
-      void onEnter(score);
-      e.preventDefault();
-      return true;
-    }
-
-    if (e.code === 'Backspace') {
-      applyChoice('DEL');
+      void onSelect(score);
       e.preventDefault();
       return true;
     }
@@ -123,145 +92,110 @@ export const createGameOverHud = (
     const rect = canvas.getBoundingClientRect();
     const totalScore = Math.floor(score);
     const cx = rect.width / 2;
+    const cy = rect.height / 2;
 
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+
+    // 배경 오버레이
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(0, 0, rect.width, rect.height);
 
+    // GAME OVER 텍스트
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = 'white';
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillText('GAME OVER', cx, cy - 80);
 
-    ctx.font = '52px sans-serif';
-    ctx.fillText('GAME OVER', cx, 110);
+    // 점수
+    ctx.font = '24px sans-serif';
+    ctx.fillText(`Score: ${totalScore.toLocaleString()}`, cx, cy - 30);
 
-    ctx.font = '22px sans-serif';
-    ctx.fillText(`Score: ${totalScore}`, cx, 155);
-
-    const padded = (initials + '_____').slice(0, 5);
-    const initialsText = padded.split('').join(' ');
-
-    // 이니셜 배경 박스
-    const initialsBoxW = 180;
-    const initialsBoxH = 40;
-    const initialsBoxX = cx - initialsBoxW / 2;
-    const initialsBoxY = 180;
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.fillRect(initialsBoxX, initialsBoxY, initialsBoxW, initialsBoxH);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(initialsBoxX, initialsBoxY, initialsBoxW, initialsBoxH);
-
-    ctx.font = '24px monospace';
-    ctx.fillStyle = '#222';
-    ctx.fillText(`${initialsText}`, cx, initialsBoxY + initialsBoxH / 2);
-
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.fillText(
-      'Arrow: Move   Enter: Select   Backspace: DEL   R: Restart',
-      cx,
-      240,
-    );
-
-    const cols = INITIALS_KEY_COLS;
-    const rows = INITIALS_KEY_ROWS;
-
-    const padX = Math.min(60, rect.width * 0.08);
-    const maxGridW = rect.width - padX * 2;
-
-    const gap = 8;
-    const cellW = Math.floor(
-      Math.min(64, (maxGridW - gap * (cols - 1)) / cols),
-    );
-    const cellH = 42;
-
-    const gridW = cols * cellW + gap * (cols - 1);
-    const gridH = rows * cellH + gap * (rows - 1);
-
-    const startX = cx - gridW / 2;
-    const startY = 260;
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const label = initialLabelAt(r, c);
-        const x = startX + c * (cellW + gap);
-        const y = startY + r * (cellH + gap);
-
-        const isSelected = !focusEnd && sel.r === r && sel.c === c;
-
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.fillRect(x, y, cellW, cellH);
-
-        if (isSelected) {
-          ctx.fillStyle = 'rgba(0,0,0,0.12)';
-          ctx.fillRect(x, y, cellW, cellH);
-          ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-          ctx.lineWidth = 3;
-        } else {
-          ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-          ctx.lineWidth = 2;
-        }
-        ctx.strokeRect(x, y, cellW, cellH);
-
-        ctx.fillStyle = 'black';
-        ctx.font = label.length === 1 ? '18px monospace' : '14px monospace';
-        ctx.fillText(label, x + cellW / 2, y + cellH / 2);
-      }
-    }
-
-    const endY = startY + gridH + 18;
-    const endW = Math.min(240, gridW * 0.55);
-    const endH = 44;
-    const endX = cx - endW / 2;
-
-    const endEnabled = isEndEnabled();
-    const endSelected = focusEnd;
-
-    ctx.globalAlpha = endEnabled ? 1 : 0.35;
-
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.fillRect(endX, endY, endW, endH);
-
-    if (endSelected) {
-      ctx.fillStyle = 'rgba(0,0,0,0.12)';
-      ctx.fillRect(endX, endY, endW, endH);
-      ctx.strokeStyle = 'rgba(0,0,0,0.75)';
-      ctx.lineWidth = 3;
-    } else {
-      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-      ctx.lineWidth = 2;
-    }
-    ctx.strokeRect(endX, endY, endW, endH);
-
-    ctx.fillStyle = 'black';
-    ctx.font = '18px monospace';
-    ctx.fillText('END', cx, endY + endH / 2);
-
-    ctx.globalAlpha = 1;
-
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-
+    // 상태 메시지
     if (isSubmitting) {
-      ctx.fillText('Saving...', cx, endY + endH + 18);
+      ctx.font = '18px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillText('저장 중...', cx, cy + 20);
     } else if (isSaved) {
-      ctx.fillText('Saved! Press R to restart.', cx, endY + endH + 18);
-    } else if (!endEnabled) {
-      ctx.fillText('Enter your initials (1-5 chars).', cx, endY + endH + 18);
+      ctx.font = '18px sans-serif';
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText('저장 완료!', cx, cy + 20);
+
+      ctx.font = '16px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('R을 눌러 재시작', cx, cy + 60);
+    } else if (isNotHigher) {
+      ctx.font = '16px sans-serif';
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText('최고 기록 미갱신', cx, cy + 15);
+
+      ctx.font = '14px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText(`현재 최고: ${currentBest?.toLocaleString() ?? '-'}점`, cx, cy + 40);
+
+      ctx.font = '16px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('R을 눌러 재시작', cx, cy + 75);
+    } else if (isSkipped) {
+      ctx.font = '18px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('R을 눌러 재시작', cx, cy + 20);
+    } else {
+      // 버튼 영역
+      const buttonW = 100;
+      const buttonH = 44;
+      const buttonGap = 20;
+      const buttonsY = cy + 30;
+
+      // SAVE 버튼
+      const saveX = cx - buttonW - buttonGap / 2;
+      const isSaveSelected = selectedButton === 'save';
+
+      ctx.fillStyle = isSaveSelected ? 'rgba(74, 222, 128, 0.9)' : 'rgba(255, 255, 255, 0.2)';
+      ctx.fillRect(saveX, buttonsY, buttonW, buttonH);
+
+      if (isSaveSelected) {
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(saveX, buttonsY, buttonW, buttonH);
+      }
+
+      ctx.fillStyle = isSaveSelected ? 'black' : 'white';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText('저장', saveX + buttonW / 2, buttonsY + buttonH / 2);
+
+      // SKIP 버튼
+      const skipX = cx + buttonGap / 2;
+      const isSkipSelected = selectedButton === 'skip';
+
+      ctx.fillStyle = isSkipSelected ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.2)';
+      ctx.fillRect(skipX, buttonsY, buttonW, buttonH);
+
+      if (isSkipSelected) {
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(skipX, buttonsY, buttonW, buttonH);
+      }
+
+      ctx.fillStyle = isSkipSelected ? 'black' : 'white';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText('건너뛰기', skipX + buttonW / 2, buttonsY + buttonH / 2);
+
+      // 안내 텍스트
+      ctx.font = '14px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText('← → 선택  |  Enter 확인  |  R 재시작', cx, buttonsY + buttonH + 30);
     }
 
     ctx.restore();
   };
 
   const getState = (): TGameOverHudState => ({
-    initials,
     isSubmitting,
     isSaved,
+    isSkipped,
+    isNotHigher,
+    currentBest,
   });
 
   return {

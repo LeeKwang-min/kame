@@ -2,8 +2,16 @@ export {
   createGameOverHud,
   type TGameOverCallbacks,
   type TGameOverHudState,
+  type TSaveResult,
 } from './game/gameOverHud';
 export { gamePauseHud } from './game/gamePauseHud';
+
+// Legacy exports (이니셜 입력이 필요한 경우 사용)
+export {
+  createGameOverHud as createGameOverHudLegacy,
+  type TGameOverCallbacks as TGameOverCallbacksLegacy,
+  type TGameOverHudState as TGameOverHudStateLegacy,
+} from './game/gameOverHudLegacy';
 export {
   INITIALS_KEY_COLS,
   INITIALS_KEY_GRID,

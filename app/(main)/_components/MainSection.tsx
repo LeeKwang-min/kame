@@ -3,17 +3,17 @@ import { useState } from 'react';
 import MainMenuList from './MainMenuList';
 import MainSearchBar from './MainSearchBar';
 import MainCategorySelect from './MainCategorySelect';
-import MainRotatingText from './MainRotatingText';
+import LoginSidebar from '@/components/auth/LoginSidebar';
 
 function MainSection() {
   const [search, setSearch] = useState<string>('');
   const [category, setCategory] = useState<string>('ALL');
 
   return (
-    <div className="flex flex-col gap-10 grow items-center">
-      <MainRotatingText />
-      <div className="flex flex-col gap-4 w-full">
-        <div className="flex items-center gap-1 max-[698px]:gap-2 max-[698px]:items-start max-[698px]:flex-col-reverse">
+    <div className="flex gap-6 grow">
+      <LoginSidebar className="hidden lg:flex" />
+      <div className="flex flex-col gap-4 grow">
+        <div className="flex items-center gap-2 flex-wrap">
           <MainSearchBar search={search} setSearch={setSearch} />
           <MainCategorySelect category={category} setCategory={setCategory} />
         </div>

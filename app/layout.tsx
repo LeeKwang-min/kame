@@ -2,7 +2,11 @@ import type { Metadata } from 'next';
 import { Noto_Sans, Space_Mono } from 'next/font/google';
 import './globals.css';
 import ScreenReaderInfo from '@/components/common/ScreenReaderInfo';
+import InitialsAlert from '@/components/common/InitialsAlert';
 import TanstackQueryProvider from '@/provider/TanstackQueryProvider';
+import AuthProvider from '@/provider/AuthProvider';
+import { LocaleProvider } from '@/provider/LocaleProvider';
+import { ThemeProvider } from '@/provider/ThemeProvider';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/next';
 
@@ -74,11 +78,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={`${notoSans.className} ${notoSans.variable} ${mono.className} ${mono.variable} antialiased`}>
         <ScreenReaderInfo />
-        <TanstackQueryProvider>{children}</TanstackQueryProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LocaleProvider>
+              <TanstackQueryProvider>{children}</TanstackQueryProvider>
+              <InitialsAlert />
+            </LocaleProvider>
+          </AuthProvider>
+        </ThemeProvider>
         <Toaster position="bottom-right" />
         <Analytics />
       </body>

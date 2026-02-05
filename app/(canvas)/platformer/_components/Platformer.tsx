@@ -22,15 +22,15 @@ function Platformer() {
           console.error('Failed to create game session:', error);
         }
       },
-      onScoreSave: async (initials, score) => {
-        if (!sessionTokenRef.current) return;
-        await saveScore({
+      onScoreSave: async (score) => {
+        if (!sessionTokenRef.current) return { saved: false };
+        const result = await saveScore({
           gameType: 'platformer',
-          initials,
           score: Math.floor(score),
           sessionToken: sessionTokenRef.current,
         });
         sessionTokenRef.current = null;
+        return result;
       },
     };
 
@@ -41,7 +41,7 @@ function Platformer() {
     <div className="w-full h-full">
       <canvas
         ref={canvasRef}
-        className="w-full h-full max-w-[1200px] max-h-[800px] mx-auto border touch-none"
+        className="w-full h-full max-w-[1200px] max-h-[800px] mx-auto border touch-none bg-white"
       />
     </div>
   );

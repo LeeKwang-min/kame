@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   TGameOverCallbacks,
+  TSaveResult,
 } from '@/lib/game';
 import { BET_AMOUNTS, INITIAL_COINS, REEL_COUNT, SYMBOL_DISPLAY, SYMBOLS } from './config';
 import { ReelSymbol, SlotState } from './types';
@@ -8,7 +9,7 @@ import { calculateWin, generateReelResult, getWinMessage } from './utils';
 
 export type TSlotCallbacks = {
   onGameStart?: () => Promise<void>;
-  onScoreSave: (initials: string, score: number) => Promise<void>;
+  onScoreSave: (score: number) => Promise<TSaveResult>;
 };
 
 type Button = {
@@ -62,10 +63,11 @@ export const setupSlot = (
   let hoveredButton: Button | null = null;
 
   const gameOverCallbacks: TGameOverCallbacks = {
-    onScoreSave: async (initials, finalScore) => {
+    onScoreSave: async (finalScore) => {
       if (callbacks?.onScoreSave) {
-        await callbacks.onScoreSave(initials, finalScore);
+        return callbacks.onScoreSave(finalScore);
       }
+      return { saved: false };
     },
     onRestart: () => {
       resetGame();
