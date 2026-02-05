@@ -18,7 +18,9 @@
 
 ---
 
-**INSERT COIN TO PLAY**
+### **[🎮 PLAY NOW](https://mini-kame.vercel.app/)**
+
+*INSERT COIN TO START*
 
 </div>
 
