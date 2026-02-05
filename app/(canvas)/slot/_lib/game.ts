@@ -19,6 +19,11 @@ type Button = {
   label: string;
 };
 
+// 릴 스트립 설정 - 각 릴에 배치될 심볼 순서
+const REEL_STRIP_LENGTH = 20;
+const SYMBOL_HEIGHT = 80; // 각 심볼이 차지하는 세로 높이
+const VISIBLE_SYMBOLS = 3; // 화면에 보이는 심볼 수 (위, 중앙, 아래)
+
 export const setupSlot = (
   canvas: HTMLCanvasElement,
   callbacks?: TSlotCallbacks,
@@ -36,9 +41,18 @@ export const setupSlot = (
   };
 
   let spinProgress = 0;
-  let spinningReels: ReelSymbol[][] = [[], [], []];
-  let reelStops: number[] = [0, 0, 0];
+  // 각 릴의 심볼 스트립 (원형 배열처럼 동작)
+  let reelStrips: ReelSymbol[][] = [[], [], []];
+  // 각 릴의 현재 오프셋 (픽셀 단위)
   let reelOffsets: number[] = [0, 0, 0];
+  // 각 릴의 회전 속도
+  let reelSpeeds: number[] = [0, 0, 0];
+  // 각 릴이 멈추기 시작했는지
+  let reelStopping: boolean[] = [false, false, false];
+  // 각 릴이 멈출 목표 위치 (심볼 인덱스)
+  let reelTargetIndex: number[] = [0, 0, 0];
+  // 각 릴이 완전히 멈췄는지
+  let reelStopped: boolean[] = [false, false, false];
   let pendingResult: ReelSymbol[] | null = null;
   let globalTime = 0;
   let winAnimationTime = 0;
@@ -71,19 +85,36 @@ export const setupSlot = (
     spinProgress = 0;
     pendingResult = null;
     showWinAnimation = false;
+    initializeReelStrips();
     gameOverHud.reset();
   };
 
-  const generateSpinningReels = () => {
-    spinningReels = [];
+  // 릴 스트립 초기화 (각 릴에 심볼 배치)
+  const initializeReelStrips = () => {
+    reelStrips = [];
     for (let i = 0; i < REEL_COUNT; i++) {
-      const reel: ReelSymbol[] = [];
-      for (let j = 0; j < 30; j++) {
-        reel.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+      const strip: ReelSymbol[] = [];
+      for (let j = 0; j < REEL_STRIP_LENGTH; j++) {
+        strip.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
       }
-      spinningReels.push(reel);
+      // 현재 릴 결과를 스트립의 시작 부분에 배치
+      strip[1] = state.reels[i];
+      reelStrips.push(strip);
     }
-    reelOffsets = [0, 0, 0];
+    // 중앙 심볼(인덱스 1)이 보이도록 오프셋 설정
+    reelOffsets = [SYMBOL_HEIGHT, SYMBOL_HEIGHT, SYMBOL_HEIGHT];
+  };
+
+  // 스핀 시작 시 릴 스트립 재생성
+  const generateSpinningReels = () => {
+    for (let i = 0; i < REEL_COUNT; i++) {
+      // 기존 스트립에 랜덤 심볼 추가
+      const strip: ReelSymbol[] = [];
+      for (let j = 0; j < REEL_STRIP_LENGTH; j++) {
+        strip.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+      }
+      reelStrips[i] = strip;
+    }
   };
 
   const spin = () => {
@@ -94,11 +125,25 @@ export const setupSlot = (
     state.phase = 'spinning';
     state.lastWin = 0;
     spinProgress = 0;
-    reelStops = [0, 0, 0];
     showWinAnimation = false;
+
+    // 릴 상태 초기화
+    reelStopping = [false, false, false];
+    reelStopped = [false, false, false];
+    // 각 릴 회전 속도 설정 (왼쪽에서 오른쪽으로 점점 빠르게)
+    reelSpeeds = [25, 28, 31];
 
     generateSpinningReels();
     pendingResult = generateReelResult();
+
+    // 결과 심볼을 릴 스트립에 배치 (멈출 위치에)
+    if (pendingResult) {
+      for (let i = 0; i < REEL_COUNT; i++) {
+        // 목표 인덱스는 스트립 중간쯤 (충분히 돌고나서 멈추기 위해)
+        reelTargetIndex[i] = Math.floor(REEL_STRIP_LENGTH / 2) + i * 2;
+        reelStrips[i][reelTargetIndex[i]] = pendingResult[i];
+      }
+    }
   };
 
   const finishSpin = () => {
@@ -262,6 +307,107 @@ export const setupSlot = (
     ctx.shadowBlur = 0;
   };
 
+  // 럭키세븐 그리기 (릴용 - 큰 사이즈)
+  const drawLucky7 = (x: number, y: number, size: number, isCenter: boolean) => {
+    ctx.save();
+    ctx.translate(x, y);
+
+    const scale = size / 50;
+    ctx.scale(scale, scale);
+
+    // 외곽 글로우 효과
+    if (isCenter) {
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 20;
+    }
+
+    // 7 배경 (금색 테두리 원)
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 28);
+    gradient.addColorStop(0, '#FFD700');
+    gradient.addColorStop(0.7, '#FFA500');
+    gradient.addColorStop(1, '#FF4500');
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 26, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // 내부 원 (빨간색)
+    const innerGradient = ctx.createRadialGradient(0, -5, 0, 0, 0, 22);
+    innerGradient.addColorStop(0, '#FF2222');
+    innerGradient.addColorStop(0.5, '#CC0000');
+    innerGradient.addColorStop(1, '#880000');
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.fillStyle = innerGradient;
+    ctx.fill();
+
+    // 7 글자 (금색 그라데이션)
+    const textGradient = ctx.createLinearGradient(-12, -15, 12, 15);
+    textGradient.addColorStop(0, '#FFFF00');
+    textGradient.addColorStop(0.3, '#FFD700');
+    textGradient.addColorStop(0.6, '#FFA500');
+    textGradient.addColorStop(1, '#FFFF00');
+
+    ctx.font = 'bold 36px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = textGradient;
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText('7', 0, 2);
+
+    // 하이라이트
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.ellipse(-8, -12, 8, 5, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  };
+
+  // 미니 럭키세븐 (페이테이블용)
+  const drawMiniLucky7 = (x: number, y: number, size: number) => {
+    ctx.save();
+    ctx.translate(x, y);
+
+    const scale = size / 20;
+    ctx.scale(scale, scale);
+
+    // 배경 원
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 10);
+    gradient.addColorStop(0, '#FFD700');
+    gradient.addColorStop(1, '#FF4500');
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 9, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // 내부 원
+    ctx.beginPath();
+    ctx.arc(0, 0, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#CC0000';
+    ctx.fill();
+
+    // 7 글자
+    ctx.font = 'bold 12px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText('7', 0, 1);
+
+    ctx.restore();
+  };
+
   const renderButton = (btn: Button, isHovered: boolean, color1: string, color2: string, glowColor: string) => {
     const gradient = ctx.createLinearGradient(btn.x, btn.y, btn.x, btn.y + btn.h);
     if (isHovered) {
@@ -295,10 +441,11 @@ export const setupSlot = (
     const rect = canvas.getBoundingClientRect();
     const cx = rect.width / 2;
     const machineW = 440;
-    const machineH = 220;
+    const machineH = 240;
     const machineX = cx - machineW / 2;
-    const machineY = 100;
+    const machineY = 90;
 
+    // 외곽 프레임 (금속 느낌)
     const frameGradient = ctx.createLinearGradient(machineX - 30, machineY, machineX + machineW + 30, machineY);
     frameGradient.addColorStop(0, '#8B4513');
     frameGradient.addColorStop(0.2, '#D4A574');
@@ -322,24 +469,102 @@ export const setupSlot = (
     ctx.fill();
 
     const reelW = (machineW - 60) / 3;
-    const reelH = machineH - 40;
-    const reelY = machineY + 20;
+    const reelH = machineH - 20;
+    const reelY = machineY + 10;
+    const symbolH = SYMBOL_HEIGHT;
 
     for (let i = 0; i < REEL_COUNT; i++) {
       const reelX = machineX + 15 + i * (reelW + 15);
 
+      // 릴 배경 그라데이션 (원통형 느낌)
       const reelGradient = ctx.createLinearGradient(reelX, reelY, reelX, reelY + reelH);
-      reelGradient.addColorStop(0, '#1a1a1a');
-      reelGradient.addColorStop(0.2, '#2a2a2a');
+      reelGradient.addColorStop(0, '#0a0a0a');
+      reelGradient.addColorStop(0.15, '#2a2a2a');
       reelGradient.addColorStop(0.5, '#3a3a3a');
-      reelGradient.addColorStop(0.8, '#2a2a2a');
-      reelGradient.addColorStop(1, '#1a1a1a');
+      reelGradient.addColorStop(0.85, '#2a2a2a');
+      reelGradient.addColorStop(1, '#0a0a0a');
 
       ctx.fillStyle = reelGradient;
       ctx.beginPath();
       ctx.roundRect(reelX, reelY, reelW, reelH, 8);
       ctx.fill();
 
+      // 클리핑 영역 설정 (릴 내부만 심볼이 보이도록)
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(reelX + 2, reelY + 2, reelW - 4, reelH - 4, 6);
+      ctx.clip();
+
+      // 현재 오프셋으로 심볼들 렌더링
+      const offset = reelOffsets[i];
+      const stripLength = reelStrips[i].length;
+      const totalHeight = stripLength * symbolH;
+
+      // 현재 보이는 영역의 첫 번째 심볼 인덱스
+      const startOffset = offset % totalHeight;
+      const startIndex = Math.floor(startOffset / symbolH);
+
+      // VISIBLE_SYMBOLS + 2개의 심볼을 그려서 스크롤 시 빈 공간 없게
+      for (let j = -1; j <= VISIBLE_SYMBOLS + 1; j++) {
+        const symbolIndex = (startIndex + j + stripLength) % stripLength;
+        const symbol = reelStrips[i][symbolIndex];
+
+        // 심볼의 y 위치 계산
+        const baseY = reelY + j * symbolH - (startOffset % symbolH) + symbolH / 2;
+
+        // 릴 영역 내부인 경우만 그리기 (클리핑이 처리하지만 최적화)
+        if (baseY > reelY - symbolH && baseY < reelY + reelH + symbolH) {
+          // 중앙 심볼 강조 (페이라인)
+          const centerY = reelY + reelH / 2;
+          const distFromCenter = Math.abs(baseY - centerY);
+          const isCenter = distFromCenter < symbolH * 0.4;
+
+          // 회전 중일 때 모션 블러 효과
+          if (state.phase === 'spinning' && !reelStopped[i]) {
+            const speed = reelSpeeds[i];
+            const blurIntensity = Math.min(speed / 30, 0.6);
+            ctx.globalAlpha = 1 - blurIntensity * 0.3;
+
+            // 빠른 회전 시 잔상 효과 (7은 제외)
+            if (speed > 10 && symbol !== '7') {
+              ctx.fillStyle = 'rgba(255,255,255,0.2)';
+              ctx.font = '52px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(SYMBOL_DISPLAY[symbol], reelX + reelW / 2, baseY - 8);
+              ctx.fillText(SYMBOL_DISPLAY[symbol], reelX + reelW / 2, baseY + 8);
+            }
+          } else {
+            ctx.globalAlpha = 1;
+          }
+
+          // 심볼 그리기
+          if (symbol === '7') {
+            // 럭키세븐은 커스텀 렌더링
+            const size = isCenter ? 58 : 44;
+            drawLucky7(reelX + reelW / 2, baseY, size, isCenter);
+          } else {
+            ctx.font = isCenter ? 'bold 58px sans-serif' : '48px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = isCenter ? '#fff' : 'rgba(255,255,255,0.6)';
+
+            // 중앙 심볼에 그림자 효과
+            if (isCenter && state.phase !== 'spinning') {
+              ctx.shadowColor = '#FFD700';
+              ctx.shadowBlur = 10;
+            }
+
+            ctx.fillText(SYMBOL_DISPLAY[symbol], reelX + reelW / 2, baseY);
+            ctx.shadowBlur = 0;
+          }
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      ctx.restore();
+
+      // 릴 테두리 (빛나는 효과)
       ctx.strokeStyle = '#FFD700';
       ctx.lineWidth = 3;
       ctx.shadowColor = '#FFD700';
@@ -349,27 +574,23 @@ export const setupSlot = (
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      let symbol: ReelSymbol;
-      if (state.phase === 'spinning' && reelStops[i] === 0) {
-        const offset = reelOffsets[i];
-        const idx = Math.floor(offset) % spinningReels[i].length;
-        symbol = spinningReels[i][idx] || '7';
-        ctx.globalAlpha = 0.7;
-      } else {
-        symbol = state.reels[i];
-        ctx.globalAlpha = 1;
-      }
+      // 위아래 그라데이션 오버레이 (입체감)
+      const topGrad = ctx.createLinearGradient(reelX, reelY, reelX, reelY + 40);
+      topGrad.addColorStop(0, 'rgba(0,0,0,0.7)');
+      topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(reelX, reelY, reelW, 40);
 
-      ctx.font = '64px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#fff';
-      ctx.fillText(SYMBOL_DISPLAY[symbol], reelX + reelW / 2, reelY + reelH / 2);
-      ctx.globalAlpha = 1;
+      const botGrad = ctx.createLinearGradient(reelX, reelY + reelH - 40, reelX, reelY + reelH);
+      botGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      botGrad.addColorStop(1, 'rgba(0,0,0,0.7)');
+      ctx.fillStyle = botGrad;
+      ctx.fillRect(reelX, reelY + reelH - 40, reelW, 40);
     }
 
+    // 페이라인 (중앙 가로선)
+    const lineY = reelY + reelH / 2;
     if (showWinAnimation && state.lastWin > 0) {
-      const lineY = reelY + reelH / 2;
       const pulse = Math.sin((globalTime - winAnimationTime) * 0.01) * 0.5 + 0.5;
 
       ctx.strokeStyle = `rgba(255, 215, 0, ${0.5 + pulse * 0.5})`;
@@ -385,10 +606,29 @@ export const setupSlot = (
       ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(machineX - 5, reelY + reelH / 2);
-      ctx.lineTo(machineX + machineW + 5, reelY + reelH / 2);
+      ctx.moveTo(machineX - 5, lineY);
+      ctx.lineTo(machineX + machineW + 5, lineY);
       ctx.stroke();
     }
+
+    // 페이라인 양쪽 표시기
+    ctx.fillStyle = '#FF1493';
+    ctx.shadowColor = '#FF1493';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(machineX - 20, lineY);
+    ctx.lineTo(machineX - 5, lineY - 10);
+    ctx.lineTo(machineX - 5, lineY + 10);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(machineX + machineW + 20, lineY);
+    ctx.lineTo(machineX + machineW + 5, lineY - 10);
+    ctx.lineTo(machineX + machineW + 5, lineY + 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
 
     renderNeonText('★ LUCKY SLOTS ★', cx, machineY - 50, '#FF1493', 28);
   };
@@ -446,7 +686,7 @@ export const setupSlot = (
       const scale = 1 + Math.sin(elapsed * 0.01) * 0.1;
 
       ctx.save();
-      ctx.translate(cx, 400);
+      ctx.translate(cx, 360);
       ctx.scale(scale, scale);
 
       if (isJackpot) {
@@ -462,7 +702,7 @@ export const setupSlot = (
   const renderControls = () => {
     const rect = canvas.getBoundingClientRect();
     const cx = rect.width / 2;
-    const btnY = 480;
+    const btnY = 510;
 
     if (state.phase === 'playing') {
       // 베팅 감소 버튼
@@ -516,7 +756,7 @@ export const setupSlot = (
     // 재시작 버튼
     const restartBtn: Button = {
       x: cx - 50,
-      y: 540,
+      y: 570,
       w: 100,
       h: 35,
       action: resetGame,
@@ -537,12 +777,12 @@ export const setupSlot = (
 
   const renderPayTable = () => {
     const rect = canvas.getBoundingClientRect();
-    const startX = 30;
-    const startY = 360;
+    const startX = 20;
+    const startY = 390;
 
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.beginPath();
-    ctx.roundRect(startX - 10, startY - 25, rect.width - 40, 85, 10);
+    ctx.roundRect(startX - 10, startY - 25, rect.width - 20, 100, 10);
     ctx.fill();
 
     ctx.fillStyle = '#FFD700';
@@ -550,31 +790,49 @@ export const setupSlot = (
     ctx.textAlign = 'left';
     ctx.fillText('PAYOUTS', startX, startY - 5);
 
+    // 3열로 변경하고 2 Match를 별도 위치에 배치
     const payouts = [
-      { symbol: '7️⃣×3', payout: '100x', color: '#FF4500' },
-      { symbol: '🎰×3', payout: '50x', color: '#FFD700' },
-      { symbol: '🍒×3', payout: '25x', color: '#FF69B4' },
-      { symbol: '🔔×3', payout: '15x', color: '#FFD700' },
-      { symbol: '🍋×3', payout: '10x', color: '#FFFF00' },
-      { symbol: '🍊×3', payout: '8x', color: '#FFA500' },
-      { symbol: '🍇×3', payout: '5x', color: '#9400D3' },
+      { symbol: '7', payout: '100x', color: '#FF4500', isLucky7: true },
+      { symbol: '🎰×3', payout: '50x', color: '#FFD700', isLucky7: false },
+      { symbol: '🍒×3', payout: '25x', color: '#FF69B4', isLucky7: false },
+      { symbol: '🔔×3', payout: '15x', color: '#FFD700', isLucky7: false },
+      { symbol: '🍋×3', payout: '10x', color: '#FFFF00', isLucky7: false },
+      { symbol: '🍊×3', payout: '8x', color: '#FFA500', isLucky7: false },
+      { symbol: '🍇×3', payout: '5x', color: '#9400D3', isLucky7: false },
     ];
 
-    ctx.font = '12px sans-serif';
+    ctx.font = '13px sans-serif';
     payouts.forEach((p, i) => {
       const col = i % 4;
       const row = Math.floor(i / 4);
-      const x = startX + col * 140;
-      const y = startY + 20 + row * 22;
+      const x = startX + col * 145;
+      const y = startY + 22 + row * 26;
 
-      ctx.fillStyle = '#fff';
-      ctx.fillText(`${p.symbol} = `, x, y);
-      ctx.fillStyle = p.color;
-      ctx.fillText(p.payout, x + 55, y);
+      if (p.isLucky7) {
+        // 럭키세븐 미니 아이콘 그리기
+        drawMiniLucky7(x + 5, y - 6, 14);
+        ctx.fillStyle = '#fff';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('×3 = ', x + 22, y);
+        ctx.fillStyle = p.color;
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(p.payout, x + 55, y);
+      } else {
+        ctx.fillStyle = '#fff';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${p.symbol} = `, x, y);
+        ctx.fillStyle = p.color;
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(p.payout, x + 55, y);
+      }
     });
 
+    // 2 Match를 3번째 줄에 배치
     ctx.fillStyle = '#aaa';
-    ctx.fillText('2 Match = 2x', startX + 420, startY + 20);
+    ctx.font = '12px sans-serif';
+    ctx.fillText('2 Match = 2x', startX + 435, startY + 48);
   };
 
   const renderSlotMachine = () => {
@@ -588,8 +846,9 @@ export const setupSlot = (
   };
 
   let lastTime = 0;
-  const SPIN_DURATION = 2500;
-  const REEL_STOP_DELAYS = [800, 1500, 2200];
+  let spinStartTime = 0;
+  const REEL_STOP_DELAYS = [1000, 1600, 2200]; // 각 릴이 멈추기 시작하는 시간 (ms)
+  const DECELERATION = 0.015; // 감속률
 
   const update = (t: number) => {
     if (!lastTime) lastTime = t;
@@ -598,26 +857,69 @@ export const setupSlot = (
     globalTime = t;
 
     if (state.phase === 'spinning') {
-      spinProgress += dt / SPIN_DURATION;
+      if (spinStartTime === 0) spinStartTime = t;
+      const elapsed = t - spinStartTime;
 
       for (let i = 0; i < REEL_COUNT; i++) {
-        if (reelStops[i] === 0) {
-          const speed = 15 - i * 2;
-          reelOffsets[i] += dt * 0.03 * speed;
-        }
-      }
+        if (reelStopped[i]) continue;
 
-      for (let i = 0; i < REEL_COUNT; i++) {
-        if (reelStops[i] === 0 && spinProgress * SPIN_DURATION >= REEL_STOP_DELAYS[i]) {
-          reelStops[i] = 1;
-          if (pendingResult) {
-            state.reels[i] = pendingResult[i];
+        // 멈추기 시작하는 시점 체크
+        if (!reelStopping[i] && elapsed >= REEL_STOP_DELAYS[i]) {
+          reelStopping[i] = true;
+
+          // 목표 위치 계산 (결과 심볼이 중앙에 오도록)
+          const targetOffset = reelTargetIndex[i] * SYMBOL_HEIGHT + SYMBOL_HEIGHT;
+
+          // 현재 오프셋에서 가장 가까운 미래의 목표 위치 찾기
+          const stripLength = reelStrips[i].length;
+          const totalHeight = stripLength * SYMBOL_HEIGHT;
+          const currentOffset = reelOffsets[i] % totalHeight;
+
+          // 최소 1바퀴 이상 더 돌고 멈추도록
+          let targetWithExtraSpins = targetOffset;
+          while (targetWithExtraSpins < currentOffset + totalHeight) {
+            targetWithExtraSpins += totalHeight;
           }
+
+          reelTargetIndex[i] = targetWithExtraSpins;
+        }
+
+        if (reelStopping[i]) {
+          // 감속하면서 목표 위치로 접근
+          const targetOffset = reelTargetIndex[i];
+          const currentOffset = reelOffsets[i];
+          const distance = targetOffset - currentOffset;
+
+          if (distance > 0) {
+            // 거리에 비례한 속도로 이동 (감속 효과)
+            const speed = Math.max(2, distance * DECELERATION * (3 - i * 0.5));
+            reelOffsets[i] += Math.min(speed * dt * 0.1, distance);
+            reelSpeeds[i] = speed;
+
+            // 목표에 거의 도달했으면 스냅
+            if (distance < 1) {
+              reelOffsets[i] = targetOffset;
+              reelStopped[i] = true;
+              reelSpeeds[i] = 0;
+
+              // 결과 반영
+              if (pendingResult) {
+                state.reels[i] = pendingResult[i];
+              }
+            }
+          } else {
+            reelStopped[i] = true;
+            reelSpeeds[i] = 0;
+          }
+        } else {
+          // 일정 속도로 회전
+          reelOffsets[i] += reelSpeeds[i] * dt * 0.1;
         }
       }
 
-      if (spinProgress >= 1) {
-        spinProgress = 1;
+      // 모든 릴이 멈추면 스핀 종료
+      if (reelStopped.every(s => s)) {
+        spinStartTime = 0;
         finishSpin();
       }
     }
@@ -643,6 +945,7 @@ export const setupSlot = (
   };
 
   resize();
+  initializeReelStrips();
   raf = requestAnimationFrame(draw);
 
   window.addEventListener('keydown', onKeyDown);

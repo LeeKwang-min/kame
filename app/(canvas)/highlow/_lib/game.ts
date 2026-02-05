@@ -85,14 +85,10 @@ export const setupHighLow = (
 
   const makeGuess = (guess: Guess) => {
     if (state.phase !== 'playing' || !state.currentCard) return;
-    if (state.guess !== null) return;
 
     state.guess = guess;
-  };
 
-  const confirmGuess = () => {
-    if (state.phase !== 'playing' || !state.currentCard || !state.guess) return;
-
+    // 바로 게임 진행
     const draw = drawCard(state.deck);
     if (!draw) {
       state.deck = shuffleDeck(createDeck());
@@ -215,12 +211,6 @@ export const setupHighLow = (
       if (e.code === 'ArrowRight') {
         e.preventDefault();
         makeGuess('low');
-        return;
-      }
-
-      if ((e.code === 'Enter' || e.code === 'NumpadEnter') && state.guess) {
-        e.preventDefault();
-        confirmGuess();
         return;
       }
     }
@@ -395,7 +385,6 @@ export const setupHighLow = (
     const gap = 25;
 
     // HIGH 버튼
-    const highSelected = state.guess === 'high';
     const highBtn: Button = {
       x: cx - gap - btnW,
       y: btnY,
@@ -408,7 +397,7 @@ export const setupHighLow = (
 
     const highGradient = ctx.createLinearGradient(highBtn.x, highBtn.y, highBtn.x, highBtn.y + highBtn.h);
     const isHighHovered = hoveredButton === highBtn;
-    if (highSelected || isHighHovered) {
+    if (isHighHovered) {
       highGradient.addColorStop(0, '#4CAF50');
       highGradient.addColorStop(1, '#2E7D32');
     } else {
@@ -417,14 +406,14 @@ export const setupHighLow = (
     }
 
     ctx.fillStyle = highGradient;
-    ctx.shadowColor = highSelected || isHighHovered ? '#4CAF50' : 'transparent';
-    ctx.shadowBlur = highSelected || isHighHovered ? 20 : 0;
+    ctx.shadowColor = isHighHovered ? '#4CAF50' : 'transparent';
+    ctx.shadowBlur = isHighHovered ? 20 : 0;
     ctx.beginPath();
     ctx.roundRect(highBtn.x, highBtn.y, highBtn.w, highBtn.h, 12);
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    ctx.strokeStyle = highSelected || isHighHovered ? '#81C784' : '#4CAF50';
+    ctx.strokeStyle = isHighHovered ? '#81C784' : '#4CAF50';
     ctx.lineWidth = 3;
     ctx.stroke();
 
@@ -435,7 +424,6 @@ export const setupHighLow = (
     ctx.fillText(highBtn.label, highBtn.x + highBtn.w / 2, highBtn.y + highBtn.h / 2);
 
     // LOW 버튼
-    const lowSelected = state.guess === 'low';
     const lowBtn: Button = {
       x: cx + gap,
       y: btnY,
@@ -448,7 +436,7 @@ export const setupHighLow = (
 
     const lowGradient = ctx.createLinearGradient(lowBtn.x, lowBtn.y, lowBtn.x, lowBtn.y + lowBtn.h);
     const isLowHovered = hoveredButton === lowBtn;
-    if (lowSelected || isLowHovered) {
+    if (isLowHovered) {
       lowGradient.addColorStop(0, '#f44336');
       lowGradient.addColorStop(1, '#c62828');
     } else {
@@ -457,58 +445,19 @@ export const setupHighLow = (
     }
 
     ctx.fillStyle = lowGradient;
-    ctx.shadowColor = lowSelected || isLowHovered ? '#f44336' : 'transparent';
-    ctx.shadowBlur = lowSelected || isLowHovered ? 20 : 0;
+    ctx.shadowColor = isLowHovered ? '#f44336' : 'transparent';
+    ctx.shadowBlur = isLowHovered ? 20 : 0;
     ctx.beginPath();
     ctx.roundRect(lowBtn.x, lowBtn.y, lowBtn.w, lowBtn.h, 12);
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    ctx.strokeStyle = lowSelected || isLowHovered ? '#ef9a9a' : '#f44336';
+    ctx.strokeStyle = isLowHovered ? '#ef9a9a' : '#f44336';
     ctx.lineWidth = 3;
     ctx.stroke();
 
     ctx.fillStyle = '#fff';
     ctx.fillText(lowBtn.label, lowBtn.x + lowBtn.w / 2, lowBtn.y + lowBtn.h / 2);
-
-    // 확인 버튼
-    if (state.guess) {
-      const confirmBtn: Button = {
-        x: cx - 70,
-        y: btnY + btnH + 15,
-        w: 140,
-        h: 45,
-        action: confirmGuess,
-        label: '확인 (Enter)',
-      };
-      buttons.push(confirmBtn);
-
-      const isConfirmHovered = hoveredButton === confirmBtn;
-      const confirmGradient = ctx.createLinearGradient(confirmBtn.x, confirmBtn.y, confirmBtn.x, confirmBtn.y + confirmBtn.h);
-      if (isConfirmHovered) {
-        confirmGradient.addColorStop(0, '#FFD700');
-        confirmGradient.addColorStop(1, '#FFA000');
-      } else {
-        confirmGradient.addColorStop(0, '#FFC107');
-        confirmGradient.addColorStop(1, '#FF8F00');
-      }
-
-      ctx.fillStyle = confirmGradient;
-      ctx.shadowColor = '#FFD700';
-      ctx.shadowBlur = isConfirmHovered ? 15 : 5;
-      ctx.beginPath();
-      ctx.roundRect(confirmBtn.x, confirmBtn.y, confirmBtn.w, confirmBtn.h, 10);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.strokeStyle = '#FFF';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#000';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.fillText(confirmBtn.label, confirmBtn.x + confirmBtn.w / 2, confirmBtn.y + confirmBtn.h / 2);
-    }
   };
 
   const renderStreak = () => {

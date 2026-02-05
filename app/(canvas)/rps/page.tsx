@@ -3,16 +3,17 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
-import HighLow from './_components/HighLow';
+import RPS from './_components/RPS';
 
 const controls = [
-  { key: '←', action: 'HIGH' },
-  { key: '→', action: 'LOW' },
+  { key: '←', action: '가위' },
+  { key: '↑', action: '바위' },
+  { key: '→', action: '보' },
   { key: 'R', action: '재시작' },
 ];
 
-function HighLowPage() {
-  const { data: scores = [], isLoading } = useGetScores('highlow');
+function RPSPage() {
+  const { data: scores = [], isLoading } = useGetScores('rps');
 
   return (
     <section className="w-full h-full flex gap-6 items-start justify-center">
@@ -20,7 +21,7 @@ function HighLowPage() {
         <ControlInfoTable controls={controls} />
       </aside>
       <div className="flex-1 h-full max-w-[620px]">
-        <HighLow />
+        <RPS />
       </div>
       <aside className="shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
@@ -29,4 +30,4 @@ function HighLowPage() {
   );
 }
 
-export default HighLowPage;
+export default RPSPage;

@@ -21,6 +21,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'slot',
   'highlow',
   'roulette',
+  'rps',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
