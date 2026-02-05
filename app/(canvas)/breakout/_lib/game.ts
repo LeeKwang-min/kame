@@ -26,6 +26,7 @@ import { TBall, TBrick, TPaddle } from './types';
 import { circleRectHit } from '@/lib/utils';
 
 export type TBreakoutCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -77,8 +78,11 @@ export const setupBreakOut = (
     gameOverCallbacks,
   );
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -172,7 +176,7 @@ export const setupBreakOut = (
       if (handled) return;
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

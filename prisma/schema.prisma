@@ -7,6 +7,22 @@ datasource db {
   provider = "postgresql"
 }
 
+model GameSession {
+  id        String    @id @default(cuid())
+  gameType  String    @map("game_type")
+  token     String    @unique
+  ipAddress String    @map("ip_address")
+  startedAt DateTime  @default(now()) @map("started_at")
+  usedAt    DateTime? @map("used_at")
+  isUsed    Boolean   @default(false) @map("is_used")
+
+  scores Score[]
+
+  @@index([token])
+  @@index([ipAddress, gameType, startedAt])
+  @@map("game_sessions")
+}
+
 model Score {
   id        String   @id @default(cuid())
   gameType  String   @map("game_type")
@@ -14,6 +30,9 @@ model Score {
   score     Int
   country   String?  @db.VarChar(2)
   createdAt DateTime @default(now()) @map("created_at")
+  sessionId String?  @map("session_id")
+
+  session GameSession? @relation(fields: [sessionId], references: [id])
 
   @@index([gameType, score(sort: Desc)], name: "idx_game_score")
   @@map("scores")

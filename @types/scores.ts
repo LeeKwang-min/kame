@@ -34,6 +34,15 @@ export type TScoreCreate = {
   score: number;
 };
 
+export type TScoreCreateWithToken = TScoreCreate & {
+  sessionToken: string;
+};
+
+export type TGameSession = {
+  token: string;
+  sessionId: string;
+};
+
 export type TScoreRank = {
   rank: number;
   initials: string;

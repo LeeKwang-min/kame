@@ -20,6 +20,7 @@ import {
 } from '@/lib/game';
 
 export type TMissileCommandCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -72,8 +73,11 @@ export const setupMissileCommand = (
 
   // ==================== Game State ====================
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -141,7 +145,7 @@ export const setupMissileCommand = (
     }
 
     // 재시작 (게임 오버가 아닐 때만)
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

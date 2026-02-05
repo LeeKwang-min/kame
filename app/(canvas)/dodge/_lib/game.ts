@@ -21,6 +21,7 @@ import {
 } from './utils';
 
 export type TDodgeCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -63,8 +64,11 @@ export const setupDodge = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'dodge', gameOverCallbacks);
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -122,7 +126,7 @@ export const setupDodge = (
       if (handled) return;
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

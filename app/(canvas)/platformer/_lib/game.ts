@@ -19,6 +19,7 @@ import {
 } from '@/lib/game';
 
 export type TPlatformerCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -138,8 +139,11 @@ export const setupPlatformer = (
     return level[row][col];
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -228,7 +232,7 @@ export const setupPlatformer = (
     }
 
     // 재시작 (클리어가 아닐 때만)
-    if (e.code === 'KeyR' && !isCleared) {
+    if (e.code === 'KeyR' && !isCleared && !isPaused) {
       resetGame();
       return;
     }

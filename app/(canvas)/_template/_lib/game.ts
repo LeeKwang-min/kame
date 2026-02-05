@@ -10,6 +10,7 @@ import {
 // @types/scores.ts에 새 게임 타입을 추가해야 합니다.
 
 export type TTemplateCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -34,6 +35,7 @@ export const setupTemplate = (
   let score = 0;
   let isStarted = false;
   let isGameOver = false;
+  let isPaused = false;
 
   let lastTime = 0;
   let acc = 0; // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)
@@ -62,8 +64,11 @@ export const setupTemplate = (
 
   // ==================== Game State ====================
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     acc = 0;
@@ -112,7 +117,7 @@ export const setupTemplate = (
     }
 
     // 게임 진행 중에만 R키로 리셋 가능
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

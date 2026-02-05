@@ -1,28 +1,41 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { setup2048, T2048Callbacks } from '../_lib/game';
-import { useCreateScore } from '@/service/scores';
+import { useCreateScore, useGameSession } from '@/service/scores';
 
 function G2048() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const sessionTokenRef = useRef<string | null>(null);
   const { mutateAsync: saveScore } = useCreateScore('2048');
+  const { mutateAsync: createSession } = useGameSession('2048');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const callbacks: T2048Callbacks = {
+      onGameStart: async () => {
+        try {
+          const session = await createSession();
+          sessionTokenRef.current = session.token;
+        } catch (error) {
+          console.error('Failed to create game session:', error);
+        }
+      },
       onScoreSave: async (initials, score) => {
+        if (!sessionTokenRef.current) return;
         await saveScore({
           gameType: '2048',
           initials,
           score: Math.floor(score),
+          sessionToken: sessionTokenRef.current,
         });
+        sessionTokenRef.current = null;
       },
     };
 
     return setup2048(canvas, callbacks);
-  }, [saveScore]);
+  }, [saveScore, createSession]);
 
   return (
     <div className="w-full h-full flex justify-center items-start">

@@ -22,6 +22,7 @@ import {
 import { circleRectHit, rand } from '@/lib/utils';
 
 export type TFlappyBirdCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -64,8 +65,11 @@ export const setupFlappyBird = (
     gameOverCallbacks,
   );
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     vy = 0;
     isStarted = true;
     lastTime = 0;
@@ -123,7 +127,7 @@ export const setupFlappyBird = (
       if (handled) return;
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

@@ -7,6 +7,7 @@ import { EnhanceResult, EnhanceState } from './types';
 import { getResultColor, getResultText, getSuccessRate, getTierConfig, rollEnhance } from './utils';
 
 export type TEnhanceCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -54,7 +55,10 @@ export const setupEnhance = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'enhance', gameOverCallbacks);
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     state = {
       level: 0,
       phase: 'playing',

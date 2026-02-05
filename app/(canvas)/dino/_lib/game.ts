@@ -28,6 +28,7 @@ import {
 import { rectRectHit } from '@/lib/utils';
 
 export type TDinoCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -82,8 +83,11 @@ export const setupDino = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'dino', gameOverCallbacks);
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -194,7 +198,7 @@ export const setupDino = (
       e.preventDefault();
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
     }
   };

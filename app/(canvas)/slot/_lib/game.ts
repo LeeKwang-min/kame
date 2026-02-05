@@ -7,6 +7,7 @@ import { ReelSymbol, SlotState } from './types';
 import { calculateWin, generateReelResult, getWinMessage } from './utils';
 
 export type TSlotCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -73,7 +74,10 @@ export const setupSlot = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'slot', gameOverCallbacks);
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     state = {
       phase: 'playing',
       coins: INITIAL_COINS,

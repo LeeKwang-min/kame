@@ -24,6 +24,7 @@ import {
 } from '@/lib/game';
 
 export type T2048Callbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -68,7 +69,10 @@ export const setup2048 = (
 
   // ==================== Game State ====================
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     grid = createEmptyGrid();
     score = 0;
     gameState = 'playing';
@@ -187,7 +191,7 @@ export const setup2048 = (
     }
 
     // 재시작 (게임 오버가 아닐 때만)
-    if (e.code === 'KeyR' && gameState !== 'gameover') {
+    if (e.code === 'KeyR' && gameState !== 'gameover' && !isPaused) {
       resetGame();
       return;
     }

@@ -23,6 +23,7 @@ import {
 } from './config';
 
 export type TDoodleCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -157,8 +158,11 @@ export const setupDoodle = (
     }
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
 
@@ -232,7 +236,7 @@ export const setupDoodle = (
     }
 
     // 재시작 (게임 오버가 아닐 때만)
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

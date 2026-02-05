@@ -24,6 +24,7 @@ import {
 } from '@/lib/game';
 
 export type TKero33Callbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -115,7 +116,10 @@ export const setupKero33 = (
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
-  const startGame = () => {
+  const startGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     state = createInitialState();
     state.phase = 'playing';
     currentPattern = null;

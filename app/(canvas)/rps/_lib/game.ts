@@ -7,6 +7,7 @@ import { RPSChoice, RPSState } from './types';
 import { determineResult, getRandomChoice, getResultColor, getResultMessage } from './utils';
 
 export type TRPSCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -59,7 +60,10 @@ export const setupRPS = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'rps', gameOverCallbacks);
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     state = {
       phase: 'playing',
       playerChoice: null,

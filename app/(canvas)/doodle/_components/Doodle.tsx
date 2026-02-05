@@ -1,28 +1,41 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { setupDoodle, TDoodleCallbacks } from '../_lib/game';
-import { useCreateScore } from '@/service/scores';
+import { useCreateScore, useGameSession } from '@/service/scores';
 
 function Doodle() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const sessionTokenRef = useRef<string | null>(null);
   const { mutateAsync: saveScore } = useCreateScore('doodle');
+  const { mutateAsync: createSession } = useGameSession('doodle');
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const callbacks: TDoodleCallbacks = {
+      onGameStart: async () => {
+        try {
+          const session = await createSession();
+          sessionTokenRef.current = session.token;
+        } catch (error) {
+          console.error('Failed to create game session:', error);
+        }
+      },
       onScoreSave: async (initials, score) => {
+        if (!sessionTokenRef.current) return;
         await saveScore({
           gameType: 'doodle',
           initials,
           score: Math.floor(score),
+          sessionToken: sessionTokenRef.current,
         });
+        sessionTokenRef.current = null;
       },
     };
 
     return setupDoodle(canvas, callbacks);
-  }, [saveScore]);
+  }, [saveScore, createSession]);
 
   return (
     <div className="w-full h-full">

@@ -255,7 +255,7 @@ export const setupPong = (canvas: HTMLCanvasElement) => {
     }
 
     if (e.code === 'KeyR') {
-      if (phase !== 'menu') resetGame();
+      if (phase !== 'menu' && !isPaused) resetGame();
       return;
     }
 

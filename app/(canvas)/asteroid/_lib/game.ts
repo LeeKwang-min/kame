@@ -24,6 +24,7 @@ import { TShip, TBullet, TAsteroid } from './types';
 import { circleCircleHit } from '@/lib/utils';
 
 export type TAsteroidCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -83,8 +84,11 @@ export const setupAsteroid = (
     gameOverCallbacks,
   );
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -151,7 +155,7 @@ export const setupAsteroid = (
       if (handled) return;
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

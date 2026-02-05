@@ -10,41 +10,52 @@ export const shuffleArray = <T>(array: T[]): T[] => {
   return result;
 };
 
-// 사다리 가로선 생성
+// 사다리 가로선 생성 (1:1 매칭 보장)
 export const generateLadderLines = (
   columnCount: number,
   rowCount: number
 ): LadderLine[] => {
   const lines: LadderLine[] = [];
-  const usedPositions = new Set<string>();
 
   // 각 row에서 랜덤하게 가로선 추가
   for (let row = 1; row < rowCount; row++) {
-    // 각 row에서 1~2개의 가로선 추가
-    const lineCount = Math.random() > 0.3 ? 2 : 1;
+    // 이 row에서 사용된 column 추적 (가로선의 시작점과 끝점 모두)
+    const usedInRow = new Set<number>();
+
+    // 각 row에서 추가할 가로선 수 (최대 floor((columnCount-1)/2)개까지 가능)
+    const maxLines = Math.floor((columnCount - 1) / 2);
+    const lineCount = Math.min(Math.random() > 0.3 ? 2 : 1, maxLines);
+
+    // 사용 가능한 시작 column 목록
     const availableColumns = Array.from(
       { length: columnCount - 1 },
       (_, i) => i
     );
 
-    for (let i = 0; i < lineCount && availableColumns.length > 0; i++) {
-      const randomIdx = Math.floor(Math.random() * availableColumns.length);
-      const fromColumn = availableColumns[randomIdx];
+    // 셔플하여 랜덤하게 선택
+    for (let i = availableColumns.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [availableColumns[i], availableColumns[j]] = [availableColumns[j], availableColumns[i]];
+    }
 
-      // 같은 row에서 인접한 칸이 이미 사용되지 않았는지 확인
-      const key = `${row}-${fromColumn}`;
-      const leftKey = `${row}-${fromColumn - 1}`;
+    let addedCount = 0;
+    for (const fromColumn of availableColumns) {
+      if (addedCount >= lineCount) break;
 
-      if (!usedPositions.has(key) && !usedPositions.has(leftKey)) {
+      const toColumn = fromColumn + 1;
+
+      // 시작점과 끝점 모두 사용되지 않았는지 확인 (인접 가로선 방지)
+      if (!usedInRow.has(fromColumn) && !usedInRow.has(toColumn)) {
         lines.push({
           fromColumn,
-          toColumn: fromColumn + 1,
+          toColumn,
           row,
         });
-        usedPositions.add(key);
+        // 시작점과 끝점 모두 사용됨으로 표시
+        usedInRow.add(fromColumn);
+        usedInRow.add(toColumn);
+        addedCount++;
       }
-
-      availableColumns.splice(randomIdx, 1);
     }
   }
 

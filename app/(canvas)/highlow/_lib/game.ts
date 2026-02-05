@@ -7,6 +7,7 @@ import { Card, Guess, HighLowState } from './types';
 import { checkGuess, createDeck, drawCard, shuffleDeck } from './utils';
 
 export type THighLowCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -66,7 +67,10 @@ export const setupHighLow = (
     }
   };
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     state = {
       phase: 'playing',
       currentCard: null,

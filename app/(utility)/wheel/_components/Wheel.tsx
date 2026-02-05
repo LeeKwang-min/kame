@@ -68,6 +68,17 @@ function Wheel() {
     setRotation(0);
   }, []);
 
+  // 결과 인덱스 계산 함수
+  const calculateResultIndex = useCallback((totalRotation: number) => {
+    // 정규화된 회전 각도 (0-360)
+    const normalizedRotation = ((totalRotation % 360) + 360) % 360;
+    const anglePerItem = 360 / items.length;
+    // 화살표(12시 방향)가 가리키는 슬라이스 계산
+    // 휠이 시계방향으로 회전하면, 화살표 위치에는 반대 방향의 슬라이스가 옴
+    const offsetAngle = (360 - normalizedRotation) % 360;
+    return Math.floor(offsetAngle / anglePerItem) % items.length;
+  }, [items.length]);
+
   // 돌림판 돌리기
   const handleSpin = useCallback(() => {
     if (isAnimating) return;
@@ -85,19 +96,26 @@ function Wheel() {
 
     // 결과 계산 (3초 후)
     setTimeout(() => {
-      // 12시 방향(270도)에서 화살표가 가리키는 위치 계산
-      const normalizedRotation = totalRotation % 360;
-      const anglePerItem = 360 / items.length;
-      // 화살표는 위쪽(90도 위치)에 있고, 휠이 시계방향으로 회전
-      // 최종 각도에서 어떤 항목이 위쪽에 있는지 계산
-      const pointerAngle = (360 - normalizedRotation + 90) % 360;
-      const selectedIndex = Math.floor(pointerAngle / anglePerItem) % items.length;
-
+      const selectedIndex = calculateResultIndex(totalRotation);
       setResultIndex(selectedIndex);
       setPhase('result');
       setIsAnimating(false);
     }, 3000);
-  }, [rotation, items.length, isAnimating]);
+  }, [rotation, isAnimating, calculateResultIndex]);
+
+  // 한 번에 결과 보기
+  const handleInstantResult = useCallback(() => {
+    // 랜덤 결과 선택
+    const randomIndex = Math.floor(Math.random() * items.length);
+    // 해당 인덱스가 화살표에 오도록 회전 각도 계산
+    const anglePerItem = 360 / items.length;
+    const targetAngle = (randomIndex + 0.5) * anglePerItem; // 슬라이스 중앙
+    const finalRotation = 360 - targetAngle;
+
+    setRotation(finalRotation);
+    setResultIndex(randomIndex);
+    setPhase('result');
+  }, [items.length]);
 
   // 리셋
   const handleReset = useCallback(() => {
@@ -277,7 +295,12 @@ function Wheel() {
             <svg
               width={WHEEL_SIZE}
               height={WHEEL_SIZE}
-              className="drop-shadow-lg"
+              className="drop-shadow-lg cursor-pointer"
+              onClick={() => {
+                if (phase === 'ready' || phase === 'result') {
+                  handleSpin();
+                }
+              }}
             >
               <g
                 ref={wheelRef}

@@ -9,6 +9,7 @@ import { CELL, DIR, INPUT_BUFFER_SIZE, STEP } from './config';
 import { Point } from './types';
 
 export type TSnakeCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -91,8 +92,11 @@ export const setupSnake = (
     return selected.point;
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     acc = 0;
@@ -162,7 +166,7 @@ export const setupSnake = (
       if (handled) return;
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

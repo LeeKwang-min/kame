@@ -33,6 +33,7 @@ import {
 } from './utils';
 
 export type TTetrisCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -89,8 +90,11 @@ export const setupTetris = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'tetris', gameOverCallbacks);
 
-  const startGame = () => {
+  const startGame = async () => {
     if (isStarted) return;
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     isStarted = true;
     lastTime = 0;
     acc = 0;
@@ -165,7 +169,7 @@ export const setupTetris = (
       if (handled) return;
     }
 
-    if (e.code === 'KeyR' && !isGameOver) {
+    if (e.code === 'KeyR' && !isGameOver && !isPaused) {
       resetGame();
       return;
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -32,6 +32,11 @@ const LADDER_WIDTH = 500;
 const LADDER_HEIGHT = 400;
 const ROW_COUNT = 8;
 
+type ActiveAnimation = {
+  path: LadderPath;
+  progress: number;
+};
+
 function Ladder() {
   const [phase, setPhase] = useState<LadderPhase>('setup');
   const [participantCount, setParticipantCount] = useState(4);
@@ -40,10 +45,11 @@ function Ladder() {
   const [participants, setParticipants] = useState<string[]>([]);
   const [results, setResults] = useState<string[]>([]);
   const [ladderLines, setLadderLines] = useState<LadderLine[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [currentPath, setCurrentPath] = useState<LadderPath | null>(null);
-  const [animationProgress, setAnimationProgress] = useState(0);
   const [revealedResults, setRevealedResults] = useState<Set<number>>(new Set());
+
+  // 여러 애니메이션을 동시에 관리 (인덱스 → 애니메이션 상태)
+  const [activeAnimations, setActiveAnimations] = useState<Map<number, ActiveAnimation>>(new Map());
+  const animationRefs = useRef<Map<number, number>>(new Map());
 
   // 참가자 수 변경
   const handleCountChange = useCallback((value: string) => {
@@ -100,15 +106,14 @@ function Ladder() {
     setResults(prev => shuffleArray(prev));
     setPhase('ready');
     setRevealedResults(new Set());
-    setSelectedIndex(null);
-    setCurrentPath(null);
+    setActiveAnimations(new Map());
   }, [participantCount]);
 
   // 사다리 선택
   const handleSelectLadder = useCallback((index: number) => {
-    if (phase !== 'ready' || revealedResults.has(index)) return;
+    // 이미 reveal되었거나 애니메이션 중인 참가자는 선택 불가
+    if (phase !== 'ready' || revealedResults.has(index) || activeAnimations.has(index)) return;
 
-    setSelectedIndex(index);
     const path = calculatePath(
       index,
       ladderLines,
@@ -117,52 +122,79 @@ function Ladder() {
       LADDER_WIDTH,
       LADDER_HEIGHT
     );
-    setCurrentPath(path);
-    setAnimationProgress(0);
-    setPhase('running');
 
-    // 애니메이션
+    // 애니메이션 추가
+    setActiveAnimations(prev => {
+      const next = new Map(prev);
+      next.set(index, { path, progress: 0 });
+      return next;
+    });
+
+    // 애니메이션 시작
     const duration = 1500;
     const startTime = performance.now();
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      setAnimationProgress(progress);
+
+      setActiveAnimations(prev => {
+        const next = new Map(prev);
+        const current = next.get(index);
+        if (current) {
+          next.set(index, { ...current, progress });
+        }
+        return next;
+      });
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        const rafId = requestAnimationFrame(animate);
+        animationRefs.current.set(index, rafId);
       } else {
+        // 애니메이션 완료 - reveal에 추가하고 activeAnimations에서 제거
         setRevealedResults(prev => new Set([...prev, index]));
-        setPhase('result');
+        setActiveAnimations(prev => {
+          const next = new Map(prev);
+          next.delete(index);
+          return next;
+        });
+        animationRefs.current.delete(index);
       }
     };
 
-    requestAnimationFrame(animate);
-  }, [phase, ladderLines, participantCount, revealedResults]);
+    const rafId = requestAnimationFrame(animate);
+    animationRefs.current.set(index, rafId);
+  }, [phase, ladderLines, participantCount, revealedResults, activeAnimations]);
 
   // 리셋
   const handleReset = useCallback(() => {
+    // 진행 중인 모든 애니메이션 취소
+    animationRefs.current.forEach(rafId => cancelAnimationFrame(rafId));
+    animationRefs.current.clear();
+
     setPhase('setup');
-    setSelectedIndex(null);
-    setCurrentPath(null);
-    setAnimationProgress(0);
+    setActiveAnimations(new Map());
     setRevealedResults(new Set());
     setLadderLines([]);
   }, []);
 
-  // 다시 뽑기 (같은 사다리로)
-  const handleContinue = useCallback(() => {
-    setSelectedIndex(null);
-    setCurrentPath(null);
-    setAnimationProgress(0);
-    setPhase('ready');
-  }, []);
+  // 한 번에 확인 (모든 결과 표시)
+  const handleRevealAll = useCallback(() => {
+    // 진행 중인 모든 애니메이션 취소
+    animationRefs.current.forEach(rafId => cancelAnimationFrame(rafId));
+    animationRefs.current.clear();
 
-  // SVG 경로 문자열 생성
-  const pathD = useMemo(() => {
-    if (!currentPath) return '';
-    const points = currentPath.points;
+    const allIndices = new Set<number>();
+    for (let i = 0; i < participantCount; i++) {
+      allIndices.add(i);
+    }
+    setRevealedResults(allIndices);
+    setActiveAnimations(new Map());
+  }, [participantCount]);
+
+  // SVG 경로 문자열 생성 함수
+  const getPathD = useCallback((path: LadderPath) => {
+    const points = path.points;
     if (points.length === 0) return '';
 
     let d = `M ${points[0].x} ${points[0].y}`;
@@ -170,23 +202,25 @@ function Ladder() {
       d += ` L ${points[i].x} ${points[i].y}`;
     }
     return d;
-  }, [currentPath]);
+  }, []);
 
-  // 애니메이션된 경로 길이
-  const animatedPathLength = useMemo(() => {
-    if (!currentPath) return 0;
+  // 경로 길이 계산 함수
+  const getPathLength = useCallback((path: LadderPath) => {
     let totalLength = 0;
-    const points = currentPath.points;
+    const points = path.points;
     for (let i = 1; i < points.length; i++) {
       const dx = points[i].x - points[i - 1].x;
       const dy = points[i].y - points[i - 1].y;
       totalLength += Math.sqrt(dx * dx + dy * dy);
     }
     return totalLength;
-  }, [currentPath]);
+  }, []);
 
   const columnWidth = LADDER_WIDTH / (participantCount + 1);
   const rowHeight = LADDER_HEIGHT / (ROW_COUNT + 1);
+
+  // 현재 선택된(애니메이션 중인) 인덱스들
+  const animatingIndices = useMemo(() => new Set(activeAnimations.keys()), [activeAnimations]);
 
   return (
     <div className="w-full h-full flex gap-6 items-start justify-center">
@@ -268,11 +302,11 @@ function Ladder() {
                 사다리 생성
               </Button>
             )}
-            {(phase === 'ready' || phase === 'result') && (
+            {phase === 'ready' && (
               <>
-                {phase === 'result' && revealedResults.size < participantCount && (
-                  <Button onClick={handleContinue} className="w-full">
-                    다음 뽑기
+                {revealedResults.size < participantCount && (
+                  <Button onClick={handleRevealAll} variant="secondary" className="w-full">
+                    한 번에 확인
                   </Button>
                 )}
                 <Button onClick={handleReset} variant="outline" className="w-full">
@@ -324,24 +358,29 @@ function Ladder() {
           <>
             {/* 참가자 버튼 */}
             <div className="flex gap-2 justify-center" style={{ width: LADDER_WIDTH }}>
-              {participants.map((name, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSelectLadder(i)}
-                  disabled={phase !== 'ready' || revealedResults.has(i)}
-                  className="flex-1 py-2 px-1 text-sm font-bold rounded-lg transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: revealedResults.has(i)
-                      ? LADDER_COLORS[i % LADDER_COLORS.length] + '80'
-                      : selectedIndex === i
-                      ? LADDER_COLORS[i % LADDER_COLORS.length]
-                      : LADDER_COLORS[i % LADDER_COLORS.length] + '40',
-                    color: revealedResults.has(i) || selectedIndex === i ? '#fff' : '#000',
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
+              {participants.map((name, i) => {
+                const isRevealed = revealedResults.has(i);
+                const isAnimating = animatingIndices.has(i);
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleSelectLadder(i)}
+                    disabled={isRevealed || isAnimating}
+                    className="flex-1 py-2 px-1 text-sm font-bold rounded-lg transition-all disabled:opacity-50"
+                    style={{
+                      backgroundColor: isRevealed
+                        ? LADDER_COLORS[i % LADDER_COLORS.length] + '80'
+                        : isAnimating
+                        ? LADDER_COLORS[i % LADDER_COLORS.length]
+                        : LADDER_COLORS[i % LADDER_COLORS.length] + '40',
+                      color: isRevealed || isAnimating ? '#fff' : '#000',
+                    }}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
             </div>
 
             {/* SVG 사다리 */}
@@ -376,19 +415,25 @@ function Ladder() {
                 />
               ))}
 
-              {/* 애니메이션 경로 */}
-              {currentPath && selectedIndex !== null && (
-                <path
-                  d={pathD}
-                  fill="none"
-                  stroke={LADDER_COLORS[selectedIndex % LADDER_COLORS.length]}
-                  strokeWidth={4}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray={animatedPathLength}
-                  strokeDashoffset={animatedPathLength * (1 - animationProgress)}
-                />
-              )}
+              {/* 여러 애니메이션 경로 동시 렌더링 */}
+              {Array.from(activeAnimations.entries()).map(([index, { path, progress }]) => {
+                const pathD = getPathD(path);
+                const pathLength = getPathLength(path);
+
+                return (
+                  <path
+                    key={`anim-${index}`}
+                    d={pathD}
+                    fill="none"
+                    stroke={LADDER_COLORS[index % LADDER_COLORS.length]}
+                    strokeWidth={4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray={pathLength}
+                    strokeDashoffset={pathLength * (1 - progress)}
+                  />
+                );
+              })}
             </svg>
 
             {/* 결과 표시 */}
@@ -407,7 +452,15 @@ function Ladder() {
                   return path.endIndex === i;
                 });
                 const isRevealed = revealedEntry !== undefined;
-                const isCurrentTarget = currentPath?.endIndex === i && animationProgress === 1;
+
+                // 현재 애니메이션 중인 경로가 이 결과를 가리키는지 확인
+                let animatingEntry: number | undefined;
+                activeAnimations.forEach((anim, startIdx) => {
+                  if (anim.path.endIndex === i && anim.progress === 1) {
+                    animatingEntry = startIdx;
+                  }
+                });
+                const isCurrentTarget = animatingEntry !== undefined;
 
                 return (
                   <div
@@ -415,7 +468,7 @@ function Ladder() {
                     className="flex-1 py-2 px-1 text-sm font-bold rounded-lg text-center transition-all"
                     style={{
                       backgroundColor: isRevealed || isCurrentTarget
-                        ? LADDER_COLORS[revealedEntry ?? selectedIndex ?? 0]
+                        ? LADDER_COLORS[(revealedEntry ?? animatingEntry ?? 0) % LADDER_COLORS.length]
                         : '#333',
                       color: '#fff',
                       opacity: isRevealed || isCurrentTarget ? 1 : 0.3,

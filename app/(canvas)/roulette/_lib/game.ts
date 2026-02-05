@@ -14,6 +14,7 @@ import { Bet, BetType, RouletteState } from './types';
 import { calculateTotalWin, getNumberColor, getWheelIndex, spinWheel } from './utils';
 
 export type TRouletteCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -69,7 +70,10 @@ export const setupRoulette = (
 
   const gameOverHud = createGameOverHud(canvas, ctx, 'roulette', gameOverCallbacks);
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
     state = {
       phase: 'betting',
       chips: INITIAL_CHIPS,

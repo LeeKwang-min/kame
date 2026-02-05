@@ -26,6 +26,7 @@ import {
 } from '@/lib/game';
 
 export type TSpaceInvadersCallbacks = {
+  onGameStart?: () => Promise<void>;
   onScoreSave: (initials: string, score: number) => Promise<void>;
 };
 
@@ -105,8 +106,12 @@ export const setupSpaceInvaders = (
 
   // ==================== Game State ====================
 
-  const startGame = () => {
+  const startGame = async () => {
     if (gameState !== 'ready') return;
+
+    if (callbacks?.onGameStart) {
+      await callbacks.onGameStart();
+    }
 
     // 플레이어 초기 위치 (하단 중앙)
     player = {
@@ -212,7 +217,7 @@ export const setupSpaceInvaders = (
     }
 
     // 재시작 (게임 오버가 아닐 때만)
-    if (e.code === 'KeyR' && gameState !== 'gameover') {
+    if (e.code === 'KeyR' && gameState !== 'gameover' && !isPaused) {
       resetGame();
       return;
     }
