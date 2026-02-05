@@ -6,15 +6,21 @@ import { useGetMenus } from '@/service/menus';
 import {
   Binary,
   BookText,
+  Clover,
+  Dice5,
   Film,
   Gamepad2,
   Lock,
   UserRoundSearch,
   Webhook,
+  Wrench,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export const CATEGORY_ICON = {
+  Game: <Dice5 size={18} />,
+  'Good Luck': <Clover size={18} />,
+  Utility: <Wrench size={18} />,
   Fun: <Gamepad2 size={18} />,
   Content: <BookText size={18} />,
   Development: <Binary size={18} />,

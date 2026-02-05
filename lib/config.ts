@@ -1,44 +1,5 @@
 export const MENU_LIST = [
-  {
-    name: {
-      kor: '강화 시뮬레이터',
-      eng: 'Enhance Simulator',
-    },
-    href: '/enhance',
-    category: 'Good Luck',
-  },
-  {
-    name: {
-      kor: '슬롯머신',
-      eng: 'Slot Machine',
-    },
-    href: '/slot',
-    category: 'Good Luck',
-  },
-  {
-    name: {
-      kor: '하이로우',
-      eng: 'High Low',
-    },
-    href: '/highlow',
-    category: 'Good Luck',
-  },
-  {
-    name: {
-      kor: '룰렛',
-      eng: 'Roulette',
-    },
-    href: '/roulette',
-    category: 'Good Luck',
-  },
-  {
-    name: {
-      kor: '가위바위보',
-      eng: 'Rock Paper Scissors',
-    },
-    href: '/rps',
-    category: 'Good Luck',
-  },
+  // Game
   {
     name: {
       kor: '테트리스',
@@ -151,4 +112,62 @@ export const MENU_LIST = [
   //   href: '/platformer',
   //   category: 'Game',
   // },
+  // Good Luck
+  {
+    name: {
+      kor: '강화 시뮬레이터',
+      eng: 'Enhance Simulator',
+    },
+    href: '/enhance',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '슬롯머신',
+      eng: 'Slot Machine',
+    },
+    href: '/slot',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '하이로우',
+      eng: 'High Low',
+    },
+    href: '/highlow',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '룰렛',
+      eng: 'Roulette',
+    },
+    href: '/roulette',
+    category: 'Good Luck',
+  },
+  {
+    name: {
+      kor: '가위바위보',
+      eng: 'Rock Paper Scissors',
+    },
+    href: '/rps',
+    category: 'Good Luck',
+  },
+  // Utility
+  {
+    name: {
+      kor: '사다리 타기',
+      eng: 'Ladder Game',
+    },
+    href: '/ladder',
+    category: 'Utility',
+  },
+  {
+    name: {
+      kor: '돌림판',
+      eng: 'Spinning Wheel',
+    },
+    href: '/wheel',
+    category: 'Utility',
+  },
 ];

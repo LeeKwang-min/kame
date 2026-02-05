@@ -21,6 +21,9 @@ function MainCategorySelect({ category, setCategory }: IProps) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">All</SelectItem>
+        <SelectItem value="Game">Game</SelectItem>
+        <SelectItem value="Good Luck">Good Luck</SelectItem>
+        <SelectItem value="Utility">Utility</SelectItem>
         <SelectItem value="About">About</SelectItem>
         <SelectItem value="Development">Development</SelectItem>
         <SelectItem value="Content">Content</SelectItem>
