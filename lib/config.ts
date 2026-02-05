@@ -18,6 +18,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '팩맨',
+      eng: 'Pac-Man',
+    },
+    href: '/pacman',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '키어로33',
       eng: 'Kero33',
     },

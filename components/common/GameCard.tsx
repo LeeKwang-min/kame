@@ -22,6 +22,7 @@ import {
   Grid3X3,
   Lock,
   Sparkles,
+  Cookie,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -31,6 +32,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/tetris': Grid3X3,
   '/snake': Bug,
   '/kero33': Sparkles,
+  '/pacman': Cookie,
   '/2048': Gamepad2,
   '/dodge': Target,
   '/flappybird': Bird,
