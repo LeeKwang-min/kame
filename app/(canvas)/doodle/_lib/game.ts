@@ -26,6 +26,7 @@ import {
 export type TDoodleCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupDoodle = (
@@ -79,7 +80,9 @@ export const setupDoodle = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'doodle', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'doodle', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   // ==================== Game State ====================
 

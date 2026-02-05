@@ -10,6 +10,7 @@ import { calculateWin, generateReelResult, getWinMessage } from './utils';
 export type TSlotCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 type Button = {
@@ -74,7 +75,9 @@ export const setupSlot = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'slot', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'slot', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const resetGame = async () => {
     if (callbacks?.onGameStart) {

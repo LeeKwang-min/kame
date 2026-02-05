@@ -17,6 +17,7 @@ import { calculateTotalWin, getNumberColor, getWheelIndex, spinWheel } from './u
 export type TRouletteCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 type Button = {
@@ -70,7 +71,9 @@ export const setupRoulette = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'roulette', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'roulette', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const resetGame = async () => {
     if (callbacks?.onGameStart) {

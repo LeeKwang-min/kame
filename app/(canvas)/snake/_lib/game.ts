@@ -12,6 +12,7 @@ import { Point } from './types';
 export type TSnakeCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupSnake = (
@@ -53,7 +54,9 @@ export const setupSnake = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'snake', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'snake', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const spawnFood = (): Point => {
     const rect = canvas.getBoundingClientRect();

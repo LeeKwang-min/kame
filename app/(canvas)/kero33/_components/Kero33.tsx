@@ -1,13 +1,16 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { setupKero33, TKero33Callbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
 
 function Kero33() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
+  const { data: session } = useSession();
   const { mutateAsync: saveScore } = useCreateScore('kero33');
   const { mutateAsync: createSession } = useGameSession('kero33');
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,8 +19,8 @@ function Kero33() {
     const callbacks: TKero33Callbacks = {
       onGameStart: async () => {
         try {
-          const session = await createSession();
-          sessionTokenRef.current = session.token;
+          const gameSession = await createSession();
+          sessionTokenRef.current = gameSession.token;
         } catch (error) {
           console.error('Failed to create game session:', error);
         }
@@ -32,10 +35,11 @@ function Kero33() {
         sessionTokenRef.current = null;
         return result;
       },
+      isLoggedIn,
     };
 
     return setupKero33(canvas, callbacks);
-  }, [saveScore, createSession]);
+  }, [saveScore, createSession, isLoggedIn]);
 
   return (
     <div className="w-[600px] h-[600px]">

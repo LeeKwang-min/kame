@@ -36,6 +36,7 @@ import {
 export type TTetrisCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupTetris = (
@@ -90,7 +91,9 @@ export const setupTetris = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'tetris', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'tetris', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const startGame = async () => {
     if (isStarted) return;

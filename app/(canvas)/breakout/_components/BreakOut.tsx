@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { setupBreakOut, TBreakoutCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
 
 function BreakOut() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
+  const { data: session } = useSession();
   const { mutateAsync: saveScore } = useCreateScore('breakout');
   const { mutateAsync: createSession } = useGameSession('breakout');
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,8 +20,8 @@ function BreakOut() {
     const callbacks: TBreakoutCallbacks = {
       onGameStart: async () => {
         try {
-          const session = await createSession();
-          sessionTokenRef.current = session.token;
+          const gameSession = await createSession();
+          sessionTokenRef.current = gameSession.token;
         } catch (error) {
           console.error('Failed to create game session:', error);
         }
@@ -33,10 +36,11 @@ function BreakOut() {
         sessionTokenRef.current = null;
         return result;
       },
+      isLoggedIn,
     };
 
     return setupBreakOut(canvas, callbacks);
-  }, [saveScore, createSession]);
+  }, [saveScore, createSession, isLoggedIn]);
 
   return (
     <div className="w-full h-full">

@@ -29,6 +29,7 @@ import { circleRectHit } from '@/lib/utils';
 export type TBreakoutCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupBreakOut = (
@@ -78,6 +79,7 @@ export const setupBreakOut = (
     ctx,
     'breakout',
     gameOverCallbacks,
+    { isLoggedIn: callbacks?.isLoggedIn ?? false },
   );
 
   const startGame = async () => {

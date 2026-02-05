@@ -22,6 +22,7 @@ import {
 export type TPlatformerCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupPlatformer = (
@@ -114,7 +115,9 @@ export const setupPlatformer = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'platformer', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'platformer', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   // ==================== Game State ====================
 

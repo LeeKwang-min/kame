@@ -1,13 +1,16 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { setupDoodle, TDoodleCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
 
 function Doodle() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
+  const { data: session } = useSession();
   const { mutateAsync: saveScore } = useCreateScore('doodle');
   const { mutateAsync: createSession } = useGameSession('doodle');
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,8 +19,8 @@ function Doodle() {
     const callbacks: TDoodleCallbacks = {
       onGameStart: async () => {
         try {
-          const session = await createSession();
-          sessionTokenRef.current = session.token;
+          const gameSession = await createSession();
+          sessionTokenRef.current = gameSession.token;
         } catch (error) {
           console.error('Failed to create game session:', error);
         }
@@ -32,10 +35,11 @@ function Doodle() {
         sessionTokenRef.current = null;
         return result;
       },
+      isLoggedIn,
     };
 
     return setupDoodle(canvas, callbacks);
-  }, [saveScore, createSession]);
+  }, [saveScore, createSession, isLoggedIn]);
 
   return (
     <div className="w-full h-full">

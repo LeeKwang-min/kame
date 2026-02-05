@@ -24,6 +24,7 @@ import {
 export type TDodgeCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupDodge = (
@@ -64,7 +65,9 @@ export const setupDodge = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'dodge', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'dodge', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const startGame = async () => {
     if (isStarted) return;

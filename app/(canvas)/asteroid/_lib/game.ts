@@ -84,6 +84,7 @@ export const setupAsteroid = (
     ctx,
     'asteroid',
     gameOverCallbacks,
+    { isLoggedIn: callbacks?.isLoggedIn ?? false },
   );
 
   const startGame = async () => {

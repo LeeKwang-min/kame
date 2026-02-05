@@ -1,13 +1,16 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { setup2048, T2048Callbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
 
 function G2048() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
+  const { data: session } = useSession();
   const { mutateAsync: saveScore } = useCreateScore('2048');
   const { mutateAsync: createSession } = useGameSession('2048');
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,8 +19,8 @@ function G2048() {
     const callbacks: T2048Callbacks = {
       onGameStart: async () => {
         try {
-          const session = await createSession();
-          sessionTokenRef.current = session.token;
+          const gameSession = await createSession();
+          sessionTokenRef.current = gameSession.token;
         } catch (error) {
           console.error('Failed to create game session:', error);
         }
@@ -32,10 +35,11 @@ function G2048() {
         sessionTokenRef.current = null;
         return result;
       },
+      isLoggedIn,
     };
 
     return setup2048(canvas, callbacks);
-  }, [saveScore, createSession]);
+  }, [saveScore, createSession, isLoggedIn]);
 
   return (
     <div className="w-full h-full flex justify-center items-start">

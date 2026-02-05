@@ -23,6 +23,7 @@ import {
 export type TMissileCommandCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupMissileCommand = (
@@ -71,7 +72,9 @@ export const setupMissileCommand = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'missilecommand', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'missilecommand', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   // ==================== Game State ====================
 

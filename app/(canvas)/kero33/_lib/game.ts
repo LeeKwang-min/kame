@@ -27,6 +27,7 @@ import {
 export type TKero33Callbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 // 이미지 로드 헬퍼
@@ -82,7 +83,9 @@ export const setupKero33 = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'kero33', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'kero33', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   // 베이스 경로 (Next.js public 폴더 기준)
   const basePath = '/kero33';

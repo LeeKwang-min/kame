@@ -10,6 +10,7 @@ import { checkGuess, createDeck, drawCard, shuffleDeck } from './utils';
 export type THighLowCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 type Button = {
@@ -58,7 +59,9 @@ export const setupHighLow = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'highlow', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'highlow', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const initDeck = () => {
     state.deck = shuffleDeck(createDeck());

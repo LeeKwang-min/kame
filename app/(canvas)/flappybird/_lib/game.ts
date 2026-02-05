@@ -25,6 +25,7 @@ import { circleRectHit, rand } from '@/lib/utils';
 export type TFlappyBirdCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupFlappyBird = (
@@ -65,6 +66,7 @@ export const setupFlappyBird = (
     ctx,
     'flappybird',
     gameOverCallbacks,
+    { isLoggedIn: callbacks?.isLoggedIn ?? false },
   );
 
   const startGame = async () => {

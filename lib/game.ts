@@ -2,6 +2,7 @@ export {
   createGameOverHud,
   type TGameOverCallbacks,
   type TGameOverHudState,
+  type TGameOverOptions,
   type TSaveResult,
 } from './game/gameOverHud';
 export { gamePauseHud } from './game/gamePauseHud';

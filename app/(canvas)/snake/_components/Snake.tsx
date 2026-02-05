@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { setupSnake, TSnakeCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
 
 function Snake() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
+  const { data: session } = useSession();
   const { mutateAsync: saveScore } = useCreateScore('snake');
   const { mutateAsync: createSession } = useGameSession('snake');
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,8 +20,8 @@ function Snake() {
     const callbacks: TSnakeCallbacks = {
       onGameStart: async () => {
         try {
-          const session = await createSession();
-          sessionTokenRef.current = session.token;
+          const gameSession = await createSession();
+          sessionTokenRef.current = gameSession.token;
         } catch (error) {
           console.error('Failed to create game session:', error);
         }
@@ -33,10 +36,11 @@ function Snake() {
         sessionTokenRef.current = null;
         return result;
       },
+      isLoggedIn,
     };
 
     return setupSnake(canvas, callbacks);
-  }, [saveScore, createSession]);
+  }, [saveScore, createSession, isLoggedIn]);
 
   return (
     <div className="w-full h-full flex justify-center">

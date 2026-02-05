@@ -10,6 +10,7 @@ import { determineResult, getRandomChoice, getResultColor, getResultMessage } fr
 export type TRPSCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 type Button = {
@@ -60,7 +61,9 @@ export const setupRPS = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'rps', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'rps', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const resetGame = async () => {
     if (callbacks?.onGameStart) {

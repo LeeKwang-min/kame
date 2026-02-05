@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { setupRPS, TRPSCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
 
 function RPS() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
+  const { data: session } = useSession();
   const { mutateAsync: saveScore } = useCreateScore('rps');
   const { mutateAsync: createSession } = useGameSession('rps');
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,8 +20,8 @@ function RPS() {
     const callbacks: TRPSCallbacks = {
       onGameStart: async () => {
         try {
-          const session = await createSession();
-          sessionTokenRef.current = session.token;
+          const gameSession = await createSession();
+          sessionTokenRef.current = gameSession.token;
         } catch (error) {
           console.error('Failed to create game session:', error);
         }
@@ -33,10 +36,11 @@ function RPS() {
         sessionTokenRef.current = null;
         return result;
       },
+      isLoggedIn,
     };
 
     return setupRPS(canvas, callbacks);
-  }, [saveScore, createSession]);
+  }, [saveScore, createSession, isLoggedIn]);
 
   return (
     <div className="w-full h-full flex justify-center">

@@ -31,6 +31,7 @@ import { rectRectHit } from '@/lib/utils';
 export type TDinoCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupDino = (
@@ -83,7 +84,9 @@ export const setupDino = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'dino', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'dino', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const startGame = async () => {
     if (isStarted) return;

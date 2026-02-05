@@ -19,13 +19,23 @@ export type TGameOverHudState = {
   currentBest?: number;
 };
 
+export type TGameOverOptions = {
+  isLoggedIn?: boolean;
+};
+
 export const createGameOverHud = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   _gameType: TGameType,
   callbacks: TGameOverCallbacks,
+  options?: TGameOverOptions,
 ) => {
   let selectedButton: 'save' | 'skip' = 'save';
+  let isLoggedIn = options?.isLoggedIn ?? false;
+
+  const setLoggedIn = (value: boolean) => {
+    isLoggedIn = value;
+  };
   let isSubmitting = false;
   let isSaved = false;
   let isSkipped = false;
@@ -71,7 +81,7 @@ export const createGameOverHud = (
       return true;
     }
 
-    if (isSaved || isSkipped || isNotHigher) return false;
+    if (isSaved || isSkipped || isNotHigher || !isLoggedIn) return false;
 
     if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
       selectedButton = selectedButton === 'save' ? 'skip' : 'save';
@@ -136,11 +146,11 @@ export const createGameOverHud = (
       ctx.font = '16px sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.fillText('R을 눌러 재시작', cx, cy + 75);
-    } else if (isSkipped) {
+    } else if (isSkipped || !isLoggedIn) {
       ctx.font = '18px sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.fillText('R을 눌러 재시작', cx, cy + 20);
-    } else {
+    } else if (isLoggedIn) {
       // 버튼 영역
       const buttonW = 100;
       const buttonH = 44;
@@ -203,5 +213,6 @@ export const createGameOverHud = (
     render,
     onKeyDown,
     getState,
+    setLoggedIn,
   };
 };

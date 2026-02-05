@@ -29,6 +29,7 @@ import {
 export type TSpaceInvadersCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setupSpaceInvaders = (
@@ -104,7 +105,9 @@ export const setupSpaceInvaders = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'spaceinvaders', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'spaceinvaders', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   // ==================== Game State ====================
 

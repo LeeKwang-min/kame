@@ -10,6 +10,7 @@ import { getResultColor, getResultText, getSuccessRate, getTierConfig, rollEnhan
 export type TEnhanceCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 type Button = {
@@ -55,7 +56,9 @@ export const setupEnhance = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'enhance', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, 'enhance', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   const resetGame = async () => {
     if (callbacks?.onGameStart) {

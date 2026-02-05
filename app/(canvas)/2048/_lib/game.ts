@@ -27,6 +27,7 @@ import {
 export type T2048Callbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
+  isLoggedIn?: boolean;
 };
 
 export const setup2048 = (
@@ -67,7 +68,9 @@ export const setup2048 = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, '2048', gameOverCallbacks);
+  const gameOverHud = createGameOverHud(canvas, ctx, '2048', gameOverCallbacks, {
+    isLoggedIn: callbacks?.isLoggedIn ?? false,
+  });
 
   // ==================== Game State ====================
 
