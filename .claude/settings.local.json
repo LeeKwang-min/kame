@@ -9,7 +9,18 @@
       "Bash(npm install:*)",
       "Bash(yarn build)",
       "Bash(sips:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(xargs -I {} bash -c \"echo ''=== {} ==='' && head -50 {}\")",
+      "Bash(yarn add:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)"
     ]
   }
 }
