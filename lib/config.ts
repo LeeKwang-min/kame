@@ -50,6 +50,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '무한의 계단',
+      eng: 'Infinite Stairs',
+    },
+    href: '/stairs',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },
@@ -118,14 +126,6 @@ export const MENU_LIST = [
       eng: 'Missile Command',
     },
     href: '/missilecommand',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '무한의 계단',
-      eng: 'Infinite Stairs',
-    },
-    href: '/stairs',
     category: 'Game',
   },
   // {
