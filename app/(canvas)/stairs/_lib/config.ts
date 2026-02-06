@@ -32,7 +32,7 @@ export const TIME_BONUS_BASE = 0.5; // 기본 시간 보너스 (계단 올라갈
 export const TIME_DECAY_BASE = 1.0; // 기본 시간 감소 속도 (초당)
 export const TIME_DECAY_INCREMENT = 0.005; // 점수당 시간 감소 속도 증가량
 export const TIME_BONUS_DECAY = 0.005; // 점수당 시간 보너스 감소량
-export const MIN_TIME_BONUS = 0.2; // 최소 시간 보너스
+export const MIN_TIME_BONUS = 0.3; // 최소 시간 보너스
 export const WRONG_DIRECTION_PENALTY = 1.0; // 잘못된 방향 입력 시 시간 페널티 (초)
 
 // ==================== Progress Bar 설정 ====================
@@ -41,4 +41,4 @@ export const PROGRESS_BAR_MARGIN = 15; // 화면 가장자리로부터의 여백
 export const PROGRESS_BAR_HEIGHT_RATIO = 0.7; // 화면 높이 대비 바 높이 비율
 
 // ==================== 점수 설정 ====================
-export const SCORE_PER_STAIR = 100;
+export const SCORE_PER_STAIR = 1;
