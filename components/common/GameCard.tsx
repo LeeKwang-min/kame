@@ -23,6 +23,7 @@ import {
   Lock,
   Sparkles,
   Cookie,
+  Ham,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -34,6 +35,8 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/kero33': Sparkles,
   '/pacman': Cookie,
   '/2048': Gamepad2,
+  '/burger': Ham,
+  '/stairs': Footprints,
   '/dodge': Target,
   '/flappybird': Bird,
   '/breakout': LayoutGrid,
