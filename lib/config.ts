@@ -58,6 +58,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '길건너 친구들',
+      eng: 'Crossy Road',
+    },
+    href: '/crossyroad',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

@@ -12,7 +12,7 @@ export const gamePauseHud = (
   const cx = rect.width / 2;
   const cy = rect.height / 2;
   const resumeKey = options?.resumeKey || 'S';
-  const showRestartHint = options?.showRestartHint ?? true;
+  const showRestartHint = options?.showRestartHint ?? false;
 
   ctx.save();
 

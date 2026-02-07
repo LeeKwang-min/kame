@@ -20,7 +20,8 @@ export type TGameType =
   | 'rps'
   | 'pacman'
   | 'burger'
-  | 'stairs';
+  | 'stairs'
+  | 'crossyroad';
 
 export type TScore = {
   id: string;
