@@ -18,10 +18,10 @@ function CrossyRoadPage() {
 
   return (
     <section className="w-full h-full flex gap-6 items-start justify-center">
-      <aside className="shrink-0 w-64">
+      <aside className="shrink-0 w-72">
         <ControlInfoTable controls={controls} />
       </aside>
-      <div className="flex-1 h-[600px] max-w-[624px]">
+      <div className="flex-1 h-[700px] max-w-[624px]">
         <CrossyRoad />
       </div>
       <aside className="shrink-0 w-64">

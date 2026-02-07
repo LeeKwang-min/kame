@@ -5,6 +5,7 @@ import {
   CANVAS_WIDTH,
   GRASS_OBSTACLE_CHANCE,
   GRASS_MIN_PASSABLE,
+  GRASS_MIN_SHARED_PASSABLE,
   CAR_MIN_SPEED,
   CAR_MAX_SPEED,
   CAR_SPAWN_MIN,
@@ -69,7 +70,7 @@ const pickRandom = <T>(arr: T[]): T => {
 
 // ==================== 지형 생성 ====================
 
-export const createGrassRow = (index: number): TRow => {
+export const createGrassRow = (index: number, prevRow?: TRow): TRow => {
   const obstacles: TObstacle[] = [];
   const occupied = new Set<number>();
 
@@ -84,13 +85,31 @@ export const createGrassRow = (index: number): TRow => {
   }
 
   // Ensure minimum passable cells
-  const passable = GRID_COLS - occupied.size;
-  if (passable < GRASS_MIN_PASSABLE) {
-    const toRemove = GRASS_MIN_PASSABLE - passable;
+  while (GRID_COLS - occupied.size < GRASS_MIN_PASSABLE && occupied.size > 0) {
     const obstacleCols = [...occupied];
-    for (let i = 0; i < toRemove; i++) {
-      const removeIdx = randInt(0, obstacleCols.length - 1);
-      const removeCol = obstacleCols.splice(removeIdx, 1)[0];
+    const removeCol = obstacleCols[randInt(0, obstacleCols.length - 1)];
+    occupied.delete(removeCol);
+    const idx = obstacles.findIndex((o) => o.col === removeCol);
+    if (idx !== -1) obstacles.splice(idx, 1);
+  }
+
+  // Ensure connectivity with previous row (shared passable columns)
+  if (prevRow && prevRow.type === 'grass') {
+    const prevOccupied = new Set(prevRow.obstacles.map((o) => o.col));
+    const getSharedPassable = () => {
+      let count = 0;
+      for (let col = 0; col < GRID_COLS; col++) {
+        if (!occupied.has(col) && !prevOccupied.has(col)) count++;
+      }
+      return count;
+    };
+
+    while (getSharedPassable() < GRASS_MIN_SHARED_PASSABLE && occupied.size > 0) {
+      // Find columns that are passable in prev row but blocked here
+      const candidates = [...occupied].filter((col) => !prevOccupied.has(col));
+      if (candidates.length === 0) break;
+      const removeCol = candidates[randInt(0, candidates.length - 1)];
+      occupied.delete(removeCol);
       const idx = obstacles.findIndex((o) => o.col === removeCol);
       if (idx !== -1) obstacles.splice(idx, 1);
     }
@@ -223,10 +242,10 @@ export const selectNextRowType = (difficulty: number, prevTypes: TRowType[]): TR
   return 'grass';
 };
 
-export const createRow = (index: number, type: TRowType, difficulty: number): TRow => {
+export const createRow = (index: number, type: TRowType, difficulty: number, prevRow?: TRow): TRow => {
   switch (type) {
     case 'grass':
-      return createGrassRow(index);
+      return createGrassRow(index, prevRow);
     case 'road':
       return createRoadRow(index, difficulty);
     case 'railway':

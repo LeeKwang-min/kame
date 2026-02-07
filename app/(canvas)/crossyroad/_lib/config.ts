@@ -2,7 +2,7 @@
 export const CELL_SIZE = 48;
 export const GRID_COLS = 13;
 export const CANVAS_WIDTH = CELL_SIZE * GRID_COLS; // 624
-export const CANVAS_HEIGHT = 600;
+export const CANVAS_HEIGHT = 700;
 
 // ==================== 플레이어 설정 ====================
 export const HOP_DURATION = 0.12; // seconds
@@ -22,12 +22,13 @@ export const INITIAL_SAFE_ROWS = 5;
 // ==================== 도로 설정 ====================
 export const CAR_MIN_SPEED = 60;
 export const CAR_MAX_SPEED = 180;
-export const CAR_SPAWN_MIN = 1.0; // seconds
-export const CAR_SPAWN_MAX = 3.0;
+export const CAR_SPAWN_MIN = 1.5; // seconds
+export const CAR_SPAWN_MAX = 3.5;
 export const CAR_WIDTH = 40;
 export const CAR_HEIGHT = 36;
 export const TRUCK_WIDTH = 72;
 export const TRUCK_HEIGHT = 36;
+export const VEHICLE_MIN_GAP = 80; // px minimum gap between vehicles
 
 // ==================== 철길 설정 ====================
 export const TRAIN_SPEED = 800;
@@ -40,16 +41,17 @@ export const TRAIN_COOLDOWN_MAX = 7;
 // ==================== 강 설정 ====================
 export const LOG_MIN_SPEED = 40;
 export const LOG_MAX_SPEED = 100;
-export const LOG_SPAWN_MIN = 1.5;
-export const LOG_SPAWN_MAX = 3.5;
+export const LOG_SPAWN_MIN = 2.5;
+export const LOG_SPAWN_MAX = 5.0;
 export const LOG_WIDTH = 96;
 export const LOG_HEIGHT = 36;
 export const LILYPAD_WIDTH = 44;
 export const LILYPAD_HEIGHT = 36;
 
 // ==================== 잔디 장애물 설정 ====================
-export const GRASS_OBSTACLE_CHANCE = 0.3; // per cell
-export const GRASS_MIN_PASSABLE = 3; // minimum passable cells per row
+export const GRASS_OBSTACLE_CHANCE = 0.18; // per cell
+export const GRASS_MIN_PASSABLE = 6; // minimum passable cells per row
+export const GRASS_MIN_SHARED_PASSABLE = 2; // minimum shared passable cols with prev row
 
 // ==================== 난이도 설정 ====================
 export const DIFFICULTY_SCALE = 0.015; // per score point
@@ -61,5 +63,12 @@ export const TRAIN_WARNING_SHAKE = 3; // px
 export const PARTICLE_GRAVITY = 300; // px/s²
 
 // ==================== 차량 색상 ====================
-export const CAR_COLORS = ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#e67e22', '#9b59b6'];
+export const CAR_COLORS = [
+  '#e74c3c',
+  '#3498db',
+  '#f1c40f',
+  '#2ecc71',
+  '#e67e22',
+  '#9b59b6',
+];
 export const TRUCK_COLORS = ['#c0392b', '#2980b9', '#27ae60', '#d35400'];

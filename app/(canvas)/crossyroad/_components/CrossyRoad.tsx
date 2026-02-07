@@ -43,7 +43,7 @@ function CrossyRoad() {
 
   return (
     <div className="w-full h-full">
-      <canvas ref={canvasRef} className="w-full h-[600px] border touch-none bg-white" />
+      <canvas ref={canvasRef} className="w-full h-[700px] border touch-none bg-white" />
     </div>
   );
 }

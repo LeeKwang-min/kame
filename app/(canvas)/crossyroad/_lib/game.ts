@@ -29,6 +29,7 @@ import {
   DEATH_ANIM_DURATION,
   TRAIN_WARNING_SHAKE,
   PARTICLE_GRAVITY,
+  VEHICLE_MIN_GAP,
 } from './config';
 import {
   getPlayfieldOffsetX,
@@ -151,7 +152,8 @@ export const setupCrossyRoad = (
 
       rowTypes.push(type);
       const difficulty = getDifficulty(score);
-      const row = createRow(highestRowGenerated, type, difficulty);
+      const prevRow = rows.length > 0 ? rows[rows.length - 1] : undefined;
+      const row = createRow(highestRowGenerated, type, difficulty, prevRow);
       rows.push(row);
     }
   };
@@ -694,8 +696,28 @@ export const setupCrossyRoad = (
     row.spawnTimer -= dt;
     if (row.spawnTimer <= 0) {
       row.spawnTimer = row.spawnInterval;
-      const vehicle = spawnVehicle(row, playfieldWidth, offsetX);
-      if (vehicle) row.entities.push(vehicle);
+
+      // Check minimum gap with nearest vehicle at spawn edge
+      let canSpawn = true;
+      if (row.entities.length > 0) {
+        const spawnEdge =
+          row.direction === 'right' ? offsetX : offsetX + playfieldWidth;
+
+        for (const e of row.entities) {
+          const entityEdge =
+            row.direction === 'right' ? e.x + e.width : e.x;
+          const gap = Math.abs(entityEdge - spawnEdge);
+          if (gap < VEHICLE_MIN_GAP + e.width) {
+            canSpawn = false;
+            break;
+          }
+        }
+      }
+
+      if (canSpawn) {
+        const vehicle = spawnVehicle(row, playfieldWidth, offsetX);
+        if (vehicle) row.entities.push(vehicle);
+      }
     }
   };
 
