@@ -22,9 +22,14 @@ export const generateLadderLines = (
     // 이 row에서 사용된 column 추적 (가로선의 시작점과 끝점 모두)
     const usedInRow = new Set<number>();
 
-    // 각 row에서 추가할 가로선 수 (최대 floor((columnCount-1)/2)개까지 가능)
-    const maxLines = Math.floor((columnCount - 1) / 2);
-    const lineCount = Math.min(Math.random() > 0.3 ? 2 : 1, maxLines);
+    // 각 row에서 추가할 가로선 수 (최대 ceil((columnCount-1)/2)개까지 가능)
+    const maxLines = Math.ceil((columnCount - 1) / 2);
+    const lineCount = Math.min(
+      columnCount <= 2
+        ? (Math.random() < 0.6 ? 1 : 0)
+        : (Math.random() > 0.3 ? 2 : 1),
+      maxLines,
+    );
 
     // 사용 가능한 시작 column 목록
     const availableColumns = Array.from(
