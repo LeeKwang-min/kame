@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -51,6 +52,7 @@ export const setupDodge = (
   let spawnAcc = 0;
   let isGameOver = false;
   let isStarted = false;
+  let isLoading = false;
   let isPaused = false;
 
   const gameOverCallbacks: TGameOverCallbacks = {
@@ -70,10 +72,12 @@ export const setupDodge = (
   });
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -286,7 +290,11 @@ export const setupDodge = (
 
   const drawHud = () => {
     if (!isStarted) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

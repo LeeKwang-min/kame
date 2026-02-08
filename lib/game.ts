@@ -21,6 +21,36 @@ export {
 } from './game/config';
 export { initialLabelAt } from './game/utils';
 
+export const gameLoadingHud = (
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+) => {
+  const rect = canvas.getBoundingClientRect();
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillRect(0, 0, rect.width, rect.height);
+
+  // 회전 스피너
+  const angle = ((performance.now() / 600) * Math.PI * 2) % (Math.PI * 2);
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy - 10, 20, angle, angle + Math.PI * 1.5);
+  ctx.stroke();
+
+  // Loading 텍스트
+  ctx.fillStyle = 'white';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Loading...', cx, cy + 30);
+  ctx.restore();
+};
+
 export const gameStartHud = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,

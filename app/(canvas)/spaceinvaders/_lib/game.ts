@@ -20,6 +20,7 @@ import { createEnemies, getEnemyBounds, getShootingEnemy } from './utils';
 import { rectRectHit } from '@/lib/utils';
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -50,6 +51,7 @@ export const setupSpaceInvaders = (
 
   // 게임 상태
   let gameState: TGameState = 'ready';
+  let isLoading = false;
   let isPaused = false;
   let score = 0;
   let lives = 3;
@@ -112,11 +114,13 @@ export const setupSpaceInvaders = (
   // ==================== Game State ====================
 
   const startGame = async () => {
-    if (gameState !== 'ready') return;
+    if (gameState !== 'ready' || isLoading) return;
+    isLoading = true;
 
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
 
     // 플레이어 초기 위치 (하단 중앙)
     player = {
@@ -690,24 +694,28 @@ export const setupSpaceInvaders = (
     ctx.fillStyle = COLORS.text;
 
     if (gameState === 'ready') {
-      // 시작 화면 배경
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(CANVAS_WIDTH / 2 - 150, CANVAS_HEIGHT / 2 - 60, 300, 120);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        // 시작 화면 배경
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(CANVAS_WIDTH / 2 - 150, CANVAS_HEIGHT / 2 - 60, 300, 120);
 
-      ctx.fillStyle = '#00ff00';
-      ctx.fillText('SPACE INVADERS', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20);
-      ctx.font = '18px monospace';
-      ctx.fillStyle = COLORS.text;
-      ctx.fillText(
-        '← → : Move   SPACE : Shoot',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 15,
-      );
-      ctx.fillText(
-        'Press S to Start',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 40,
-      );
+        ctx.fillStyle = '#00ff00';
+        ctx.fillText('SPACE INVADERS', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20);
+        ctx.font = '18px monospace';
+        ctx.fillStyle = COLORS.text;
+        ctx.fillText(
+          '← → : Move   SPACE : Shoot',
+          CANVAS_WIDTH / 2,
+          CANVAS_HEIGHT / 2 + 15,
+        );
+        ctx.fillText(
+          'Press S to Start',
+          CANVAS_WIDTH / 2,
+          CANVAS_HEIGHT / 2 + 40,
+        );
+      }
     } else if (gameState === 'gameover') {
       gameOverHud.render(score);
     } else if (isPaused) {

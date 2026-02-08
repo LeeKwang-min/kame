@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gameLoadingHud,
   gameStartHud,
   gamePauseHud,
   TGameOverCallbacks,
@@ -45,6 +46,7 @@ export const setupBurger = (
   if (!ctx) return;
 
   let state: GameState = { ...initialState };
+  let isLoading = false;
   let fallingAnimations: FallingAnimation[] = [];
   let displayIngredients: Ingredient[] = [...INGREDIENTS];
   let globalTime = 0;
@@ -94,10 +96,12 @@ export const setupBurger = (
   };
 
   const startGame = async () => {
-    if (state.phase !== 'start') return;
+    if (state.phase !== 'start' || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     state = {
       ...initialState,
       phase: 'playing',
@@ -921,7 +925,11 @@ export const setupBurger = (
       bgGradient.addColorStop(1, '#16213e');
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, rect.width, rect.height);
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

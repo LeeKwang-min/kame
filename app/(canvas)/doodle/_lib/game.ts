@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -61,6 +62,7 @@ export const setupDoodle = (
   let score = 0;
   let highestY = 0; // 도달한 최고 높이 (점수 계산용)
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isPaused = false;
 
@@ -164,10 +166,12 @@ export const setupDoodle = (
   };
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
 
@@ -512,7 +516,11 @@ export const setupDoodle = (
 
   const drawHud = () => {
     if (!isStarted && !isGameOver) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

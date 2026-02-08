@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -55,6 +56,7 @@ export const setupBreakOut = (
 
   let score = 0;
   let isStarted = false;
+  let isLoading = false;
   let isShoot = false;
   let isGameOver = false;
   let isPaused = false;
@@ -83,10 +85,12 @@ export const setupBreakOut = (
   );
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -385,7 +389,11 @@ export const setupBreakOut = (
 
   const drawHud = () => {
     if (!isStarted) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

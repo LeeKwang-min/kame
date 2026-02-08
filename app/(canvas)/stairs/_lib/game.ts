@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -78,6 +79,7 @@ export const setupStairs = (
   let stairs: TStair[] = [];
   let score = 0;
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isPaused = false;
   let lastTime = 0;
@@ -183,10 +185,12 @@ export const setupStairs = (
   };
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
   };
@@ -699,7 +703,11 @@ export const setupStairs = (
 
   const drawHud = () => {
     if (!isStarted && !isGameOver) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -62,6 +63,7 @@ export const setupAsteroid = (
 
   let score = 0;
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isPaused = false;
 
@@ -89,10 +91,12 @@ export const setupAsteroid = (
   );
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -516,7 +520,11 @@ export const setupAsteroid = (
 
   const drawHud = () => {
     if (!isStarted) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

@@ -13,6 +13,7 @@ import {
 } from './config';
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -92,6 +93,7 @@ export const setupPlatformer = (
 
   // 게임 상태
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isCleared = false; // 클리어 여부
   let isPaused = false;
@@ -145,10 +147,12 @@ export const setupPlatformer = (
   };
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -518,6 +522,11 @@ export const setupPlatformer = (
   // 시작 화면
   const renderStart = () => {
     if (isStarted || isGameOver || isCleared) return;
+
+    if (isLoading) {
+      gameLoadingHud(canvas, ctx);
+      return;
+    }
 
     const rect = canvas.getBoundingClientRect();
     const titleSize = Math.max(18, tileSize * 0.6);

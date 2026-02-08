@@ -1,5 +1,6 @@
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -62,6 +63,7 @@ export const setupDino = (
   let score = 0;
   let gameSpeed = INITIAL_SPEED;
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isPaused = false;
 
@@ -89,10 +91,12 @@ export const setupDino = (
   });
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -531,7 +535,11 @@ export const setupDino = (
 
   const drawHud = () => {
     if (!isStarted && !isGameOver) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

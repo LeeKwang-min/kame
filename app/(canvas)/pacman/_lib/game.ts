@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -170,12 +171,15 @@ export const setupPacman = (
   };
 
   state = initGameState();
+  let isLoading = false;
 
   const startGame = async () => {
-    if (state.isStarted) return;
+    if (state.isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     state.isStarted = true;
     lastTime = 0;
     acc = 0;
@@ -863,7 +867,11 @@ export const setupPacman = (
   // HUD 드로잉
   const drawHud = () => {
     if (!state.isStarted) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

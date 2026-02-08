@@ -14,6 +14,7 @@ import {
 import { createCities, getRandomAliveCity, circleCircleHit } from './utils';
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -45,6 +46,7 @@ export const setupMissileCommand = (
 
   let score = 0;
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isPaused = false;
 
@@ -79,10 +81,12 @@ export const setupMissileCommand = (
   // ==================== Game State ====================
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     isStarted = true;
     lastTime = 0;
     sec = 0;
@@ -665,32 +669,36 @@ export const setupMissileCommand = (
 
     // 시작 화면
     if (!isStarted && !isGameOver) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(CANVAS_WIDTH / 2 - 180, CANVAS_HEIGHT / 2 - 80, 360, 160);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(CANVAS_WIDTH / 2 - 180, CANVAS_HEIGHT / 2 - 80, 360, 160);
 
-      ctx.fillStyle = '#ff4444';
-      ctx.font = '36px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('MISSILE COMMAND', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
+        ctx.fillStyle = '#ff4444';
+        ctx.font = '36px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('MISSILE COMMAND', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '16px monospace';
-      ctx.fillText(
-        'Click to fire interceptors',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 10,
-      );
-      ctx.fillText(
-        'Protect your cities!',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 35,
-      );
-      ctx.fillStyle = '#00ff00';
-      ctx.fillText(
-        'Press S to Start',
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT / 2 + 60,
-      );
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px monospace';
+        ctx.fillText(
+          'Click to fire interceptors',
+          CANVAS_WIDTH / 2,
+          CANVAS_HEIGHT / 2 + 10,
+        );
+        ctx.fillText(
+          'Protect your cities!',
+          CANVAS_WIDTH / 2,
+          CANVAS_HEIGHT / 2 + 35,
+        );
+        ctx.fillStyle = '#00ff00';
+        ctx.fillText(
+          'Press S to Start',
+          CANVAS_WIDTH / 2,
+          CANVAS_HEIGHT / 2 + 60,
+        );
+      }
     }
 
     // 게임 오버 화면

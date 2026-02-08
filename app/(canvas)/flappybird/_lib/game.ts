@@ -1,6 +1,7 @@
 import {
   createGameOverHud,
   gameHud,
+  gameLoadingHud,
   gamePauseHud,
   gameStartHud,
   TGameOverCallbacks,
@@ -43,6 +44,7 @@ export const setupFlappyBird = (
 
   let score = 0;
   let isStarted = false;
+  let isLoading = false;
   let isGameOver = false;
   let isPaused = false;
 
@@ -70,10 +72,12 @@ export const setupFlappyBird = (
   );
 
   const startGame = async () => {
-    if (isStarted) return;
+    if (isStarted || isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     vy = 0;
     isStarted = true;
     lastTime = 0;
@@ -277,7 +281,11 @@ export const setupFlappyBird = (
 
   const drawHud = () => {
     if (!isStarted) {
-      gameStartHud(canvas, ctx);
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        gameStartHud(canvas, ctx);
+      }
       return;
     }
 

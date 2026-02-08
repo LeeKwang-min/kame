@@ -19,6 +19,7 @@ import {
 } from './utils';
 import {
   createGameOverHud,
+  gameLoadingHud,
   gamePauseHud,
   TGameOverCallbacks,
   TSaveResult,
@@ -61,6 +62,7 @@ export const setupKero33 = (
   let imagesLoaded = false;
   let currentDirection: keyof typeof PLAYER_DIR | null = null; // 현재 누르고 있는 방향키
   let isPaused = false;
+  let isLoading = false;
 
   // 이미지 캐시
   const images: GameImages = {
@@ -122,9 +124,12 @@ export const setupKero33 = (
   };
 
   const startGame = async () => {
+    if (isLoading) return;
+    isLoading = true;
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
+    isLoading = false;
     state = createInitialState();
     state.phase = 'playing';
     currentPattern = null;
@@ -641,7 +646,11 @@ export const setupKero33 = (
     drawUI();
 
     if (state.phase === 'ready') {
-      drawOverlay('KERO33', 'Press S to start');
+      if (isLoading) {
+        gameLoadingHud(canvas, ctx);
+      } else {
+        drawOverlay('KERO33', 'Press S to start');
+      }
     } else if (state.phase === 'gameover') {
       gameOverHud.render(state.score);
     } else if (isPaused) {
