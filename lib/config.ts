@@ -74,6 +74,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '후르츠 닌자',
+      eng: 'Fruit Ninja',
+    },
+    href: '/fruitninja',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

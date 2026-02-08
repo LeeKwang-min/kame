@@ -24,6 +24,9 @@ import {
   Sparkles,
   Cookie,
   Ham,
+  TreePine,
+  Layers,
+  Sword,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -52,6 +55,9 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/highlow': ArrowUpDown,
   '/roulette': CircleDot,
   '/rps': Hand,
+  '/crossyroad': TreePine,
+  '/towerblocks': Layers,
+  '/fruitninja': Sword,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

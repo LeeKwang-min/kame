@@ -22,7 +22,8 @@ export type TGameType =
   | 'burger'
   | 'stairs'
   | 'crossyroad'
-  | 'towerblocks';
+  | 'towerblocks'
+  | 'fruitninja';
 
 export type TScore = {
   id: string;

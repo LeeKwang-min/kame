@@ -28,6 +28,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'stairs',
   'crossyroad',
   'towerblocks',
+  'fruitninja',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
