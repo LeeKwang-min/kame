@@ -21,7 +21,8 @@ export type TGameType =
   | 'pacman'
   | 'burger'
   | 'stairs'
-  | 'crossyroad';
+  | 'crossyroad'
+  | 'towerblocks';
 
 export type TScore = {
   id: string;

@@ -28,6 +28,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'burger',
   'stairs',
   'crossyroad',
+  'towerblocks',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

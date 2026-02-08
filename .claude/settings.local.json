@@ -20,7 +20,8 @@
       "Bash(yarn add:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(head:*)"
     ]
   }
 }

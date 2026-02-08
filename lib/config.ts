@@ -66,6 +66,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '타워 블록',
+      eng: 'Tower Blocks',
+    },
+    href: '/towerblocks',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },
