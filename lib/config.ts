@@ -82,6 +82,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '에임 트레이너',
+      eng: 'Aim Trainer',
+    },
+    href: '/aimtrainer',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

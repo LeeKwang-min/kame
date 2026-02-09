@@ -23,7 +23,8 @@ export type TGameType =
   | 'stairs'
   | 'crossyroad'
   | 'towerblocks'
-  | 'fruitninja';
+  | 'fruitninja'
+  | 'aimtrainer';
 
 export type TScore = {
   id: string;

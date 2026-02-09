@@ -1227,20 +1227,20 @@ export const setupFruitNinja = (
       if (handled) return;
     }
 
-    switch (e.key.toLowerCase()) {
-      case 's':
+    switch (e.code) {
+      case 'KeyS':
         if (!isStarted && !isGameOver) {
           startGame();
         } else if (isPaused) {
           isPaused = false;
         }
         break;
-      case 'p':
+      case 'KeyP':
         if (isStarted && !isGameOver) {
           isPaused = !isPaused;
         }
         break;
-      case 'r':
+      case 'KeyR':
         if (!isGameOver) {
           resetGame();
         }

@@ -38,7 +38,7 @@ export const setupTemplate = (
   let isStarted = false;
   let isLoading = false;
   let isGameOver = false;
-  let isPaused = false;
+  const isPaused = false;
 
   let lastTime = 0;
   let acc = 0; // tick용 누적 시간 (snake 같은 고정 스텝 게임에서 사용)

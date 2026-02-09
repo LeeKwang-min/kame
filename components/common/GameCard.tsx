@@ -27,6 +27,7 @@ import {
   TreePine,
   Layers,
   Sword,
+  Crosshair,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -58,6 +59,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/crossyroad': TreePine,
   '/towerblocks': Layers,
   '/fruitninja': Sword,
+  '/aimtrainer': Crosshair,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

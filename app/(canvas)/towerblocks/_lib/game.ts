@@ -702,26 +702,26 @@ export const setupTowerBlocks = (
       if (handled) return;
     }
 
-    switch (e.key.toLowerCase()) {
-      case 's':
+    switch (e.code) {
+      case 'KeyS':
         if (!isStarted && !isGameOver) {
           startGame();
         } else if (isPaused) {
           isPaused = false;
         }
         break;
-      case 'p':
+      case 'KeyP':
         if (isStarted && !isGameOver) {
           isPaused = !isPaused;
         }
         break;
-      case 'r':
+      case 'KeyR':
         if (!isGameOver) {
           resetGame();
         }
         break;
-      case ' ':
-      case 'arrowdown':
+      case 'Space':
+      case 'ArrowDown':
         e.preventDefault();
         dropBlock();
         break;

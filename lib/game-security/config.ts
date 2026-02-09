@@ -25,6 +25,7 @@ export const GAME_SECURITY_CONFIG: Record<
   crossyroad: { maxScore: 10000, minPlayTimeSeconds: 5 },
   towerblocks: { maxScore: 5000, minPlayTimeSeconds: 5 },
   fruitninja: { maxScore: 10000, minPlayTimeSeconds: 5 },
+  aimtrainer: { maxScore: 20000, minPlayTimeSeconds: 10 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },
