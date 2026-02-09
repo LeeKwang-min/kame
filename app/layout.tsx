@@ -26,50 +26,57 @@ const notoSans = Noto_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL('https://kame.vercel.app'),
   title: {
-    default: 'Kame',
+    default: 'Kame - 무료 웹 게임 모음',
     template: '%s | Kame',
   },
-  description: '여러가지 웹 게임 모음 사이트',
+  description:
+    'Kame에서 테트리스, 스네이크, 플래피버드 등 30개 이상의 무료 웹 게임을 즐겨보세요. 회원가입 없이 PC와 모바일에서 바로 플레이할 수 있습니다.',
   keywords: [
     'Kame',
-    '웹 게임 모음',
     '웹 게임',
-    '게임',
-    '게임 모음',
-    '게임 사이트',
-    '게임 사이트 모음',
+    '무료 게임',
+    '브라우저 게임',
+    '온라인 게임',
+    '아케이드 게임',
+    '테트리스',
+    '스네이크 게임',
+    '플래피버드',
+    '미니게임',
+    '캐주얼 게임',
+    'free web games',
+    'browser games',
+    'arcade games',
   ],
-  // openGraph: {
-  //   type: "website",
-  //   title: "Kame",
-  //   description:
-  //     "Kools is a collection of tools for developers and designers. made by Kwangmin",
-  //   url: "https://kame.vercel.app",
-  //   siteName: "Kame",
-  //   images: [
-  //     {
-  //       url: "/image/logo.png",
-  //       width: 1200,
-  //       height: 630,
-  //       alt: "Kools",
-  //     },
-  //   ],
-  // },
-  // robots: {
-  //   index: true,
-  //   follow: true,
-  //   googleBot: {
-  //     index: true,
-  //     follow: true,
-  //     "max-image-preview": "large",
-  //   },
-  // },
-  // verification: {
-  //   google: "",
-  // },
-  // other: {
-  //   "naver-site-verification": "",
-  // },
+  openGraph: {
+    type: 'website',
+    title: 'Kame - 무료 웹 게임 모음',
+    description: '30개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요!',
+    url: 'https://kame.vercel.app',
+    siteName: 'Kame',
+    locale: 'ko_KR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kame - 무료 웹 게임 모음',
+    description: '30개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요!',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  verification: {
+    google: '', // Google Search Console 인증 코드
+  },
+  other: {
+    'naver-site-verification': '', // 네이버 서치어드바이저 인증 코드
+  },
 };
 
 export default function RootLayout({
