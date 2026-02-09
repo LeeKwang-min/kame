@@ -106,6 +106,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '버블 슈터',
+      eng: 'Bubble Shooter',
+    },
+    href: '/bubbleshooter',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },
