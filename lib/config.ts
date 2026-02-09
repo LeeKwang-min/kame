@@ -98,6 +98,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '카드 짝 맞추기',
+      eng: 'Match Pairs',
+    },
+    href: '/matchpairs',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

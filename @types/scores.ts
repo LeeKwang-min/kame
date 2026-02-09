@@ -25,7 +25,8 @@ export type TGameType =
   | 'towerblocks'
   | 'fruitninja'
   | 'aimtrainer'
-  | 'simon';
+  | 'simon'
+  | 'matchpairs';
 
 export type TScore = {
   id: string;

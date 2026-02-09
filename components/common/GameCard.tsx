@@ -29,6 +29,7 @@ import {
   Sword,
   Crosshair,
   Brain,
+  Grid2X2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -62,6 +63,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/fruitninja': Sword,
   '/aimtrainer': Crosshair,
   '/simon': Brain,
+  '/matchpairs': Grid2X2,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
