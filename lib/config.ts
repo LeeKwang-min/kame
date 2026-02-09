@@ -90,6 +90,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '사이먼',
+      eng: 'Simon',
+    },
+    href: '/simon',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

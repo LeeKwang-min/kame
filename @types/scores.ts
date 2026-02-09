@@ -24,7 +24,8 @@ export type TGameType =
   | 'crossyroad'
   | 'towerblocks'
   | 'fruitninja'
-  | 'aimtrainer';
+  | 'aimtrainer'
+  | 'simon';
 
 export type TScore = {
   id: string;
