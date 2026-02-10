@@ -210,6 +210,14 @@ export const MENU_LIST = [
     href: '/matchpairs',
     category: 'Puzzle',
   },
+  {
+    name: {
+      kor: '미로 탈출',
+      eng: 'Maze Escape',
+    },
+    href: '/maze',
+    category: 'Puzzle',
+  },
   // Reflex
   {
     name: {

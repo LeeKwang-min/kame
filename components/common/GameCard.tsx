@@ -36,6 +36,7 @@ import {
   PanelTop,
   TableProperties,
   Link2,
+  Compass,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -78,6 +79,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/nonogram': TableProperties,
   '/numberchain': Link2,
   '/minesweeper': Bomb,
+  '/maze': Compass,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

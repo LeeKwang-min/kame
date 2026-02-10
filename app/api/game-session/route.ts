@@ -40,6 +40,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'nonogram',
   'numberchain',
   'minesweeper',
+  'maze',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
