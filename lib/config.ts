@@ -122,6 +122,46 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '컬러 플러드',
+      eng: 'Color Flood',
+    },
+    href: '/colorflood',
+    category: 'Game',
+  },
+  {
+    name: {
+      kor: '라이츠 아웃',
+      eng: 'Lights Out',
+    },
+    href: '/lightsout',
+    category: 'Game',
+  },
+  {
+    name: {
+      kor: '슬라이딩 퍼즐',
+      eng: 'Sliding Puzzle',
+    },
+    href: '/slidingpuzzle',
+    category: 'Game',
+  },
+  {
+    name: {
+      kor: '노노그램',
+      eng: 'Nonogram',
+    },
+    href: '/nonogram',
+    category: 'Game',
+  },
+  {
+    name: {
+      kor: '넘버 체인',
+      eng: 'Number Chain',
+    },
+    href: '/numberchain',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

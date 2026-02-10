@@ -30,6 +30,11 @@ export const GAME_SECURITY_CONFIG: Record<
   matchpairs: { maxScore: 50000, minPlayTimeSeconds: 10 },
   bubbleshooter: { maxScore: 50000, minPlayTimeSeconds: 10 },
   typingfall: { maxScore: 100000, minPlayTimeSeconds: 10 },
+  colorflood: { maxScore: 50000, minPlayTimeSeconds: 10 },
+  lightsout: { maxScore: 50000, minPlayTimeSeconds: 10 },
+  slidingpuzzle: { maxScore: 50000, minPlayTimeSeconds: 10 },
+  nonogram: { maxScore: 100000, minPlayTimeSeconds: 15 },
+  numberchain: { maxScore: 100000, minPlayTimeSeconds: 15 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

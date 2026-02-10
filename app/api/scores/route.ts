@@ -35,6 +35,11 @@ const VALID_GAME_TYPES: TGameType[] = [
   'matchpairs',
   'bubbleshooter',
   'typingfall',
+  'colorflood',
+  'lightsout',
+  'slidingpuzzle',
+  'nonogram',
+  'numberchain',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

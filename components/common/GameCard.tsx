@@ -31,6 +31,11 @@ import {
   Brain,
   Grid2X2,
   Keyboard,
+  Paintbrush,
+  Lightbulb,
+  PanelTop,
+  TableProperties,
+  Link2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -67,6 +72,11 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/matchpairs': Grid2X2,
   '/bubbleshooter': CircleDot,
   '/typingfall': Keyboard,
+  '/colorflood': Paintbrush,
+  '/lightsout': Lightbulb,
+  '/slidingpuzzle': PanelTop,
+  '/nonogram': TableProperties,
+  '/numberchain': Link2,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

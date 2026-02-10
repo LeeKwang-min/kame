@@ -1,0 +1,12 @@
+export const CANVAS_WIDTH = 600;
+export const CANVAS_HEIGHT = 700;
+export const GRID_SIZE = 14;
+export const CELL_SIZE = 36;
+export const GRID_OFFSET_X = (CANVAS_WIDTH - GRID_SIZE * CELL_SIZE) / 2;
+export const GRID_OFFSET_Y = 60;
+export const MAX_MOVES = 25;
+export const NUM_COLORS = 6;
+export const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22'];
+export const PALETTE_Y = GRID_OFFSET_Y + GRID_SIZE * CELL_SIZE + 30;
+export const PALETTE_SIZE = 50;
+export const PALETTE_GAP = 15;

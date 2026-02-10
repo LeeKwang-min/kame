@@ -28,7 +28,12 @@ export type TGameType =
   | 'simon'
   | 'matchpairs'
   | 'bubbleshooter'
-  | 'typingfall';
+  | 'typingfall'
+  | 'colorflood'
+  | 'lightsout'
+  | 'slidingpuzzle'
+  | 'nonogram'
+  | 'numberchain';
 
 export type TScore = {
   id: string;
