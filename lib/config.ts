@@ -1,12 +1,12 @@
 export const MENU_LIST = [
-  // Game
+  // Arcade
   {
     name: {
       kor: '테트리스',
       eng: 'Tetris',
     },
     href: '/tetris',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
@@ -14,7 +14,7 @@ export const MENU_LIST = [
       eng: 'Snake Game',
     },
     href: '/snake',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
@@ -22,7 +22,7 @@ export const MENU_LIST = [
       eng: 'Pac-Man',
     },
     href: '/pacman',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
@@ -30,151 +30,7 @@ export const MENU_LIST = [
       eng: 'Kero33',
     },
     href: '/kero33',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '2048',
-      eng: '2048',
-    },
-    href: '/2048',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '햄버거 쌓기',
-      eng: 'Burger Stack',
-    },
-    href: '/burger',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '무한의 계단',
-      eng: 'Infinite Stairs',
-    },
-    href: '/stairs',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '길건너 친구들',
-      eng: 'Crossy Road',
-    },
-    href: '/crossyroad',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '타워 블록',
-      eng: 'Tower Blocks',
-    },
-    href: '/towerblocks',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '후르츠 닌자',
-      eng: 'Fruit Ninja',
-    },
-    href: '/fruitninja',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '에임 트레이너',
-      eng: 'Aim Trainer',
-    },
-    href: '/aimtrainer',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '사이먼',
-      eng: 'Simon',
-    },
-    href: '/simon',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '카드 짝 맞추기',
-      eng: 'Match Pairs',
-    },
-    href: '/matchpairs',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '버블 슈터',
-      eng: 'Bubble Shooter',
-    },
-    href: '/bubbleshooter',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '타이핑 폴',
-      eng: 'Typing Fall',
-    },
-    href: '/typingfall',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '컬러 플러드',
-      eng: 'Color Flood',
-    },
-    href: '/colorflood',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '라이츠 아웃',
-      eng: 'Lights Out',
-    },
-    href: '/lightsout',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '슬라이딩 퍼즐',
-      eng: 'Sliding Puzzle',
-    },
-    href: '/slidingpuzzle',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '노노그램',
-      eng: 'Nonogram',
-    },
-    href: '/nonogram',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '넘버 체인',
-      eng: 'Number Chain',
-    },
-    href: '/numberchain',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '닷지',
-      eng: 'Dodge',
-    },
-    href: '/dodge',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '플래피 버드',
-      eng: 'Flappy Bird',
-    },
-    href: '/flappybird',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
@@ -182,15 +38,7 @@ export const MENU_LIST = [
       eng: 'Breakout',
     },
     href: '/breakout',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '소행성',
-      eng: 'Asteroid',
-    },
-    href: '/asteroid',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
@@ -198,23 +46,15 @@ export const MENU_LIST = [
       eng: 'Pong',
     },
     href: '/pong',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
-      kor: '공룡 달리기',
-      eng: 'Dino',
+      kor: '소행성',
+      eng: 'Asteroid',
     },
-    href: '/dino',
-    category: 'Game',
-  },
-  {
-    name: {
-      kor: '두들 점프',
-      eng: 'Doodle Jump',
-    },
-    href: '/doodle',
-    category: 'Game',
+    href: '/asteroid',
+    category: 'Arcade',
   },
   {
     name: {
@@ -222,7 +62,7 @@ export const MENU_LIST = [
       eng: 'Space Invaders',
     },
     href: '/spaceinvaders',
-    category: 'Game',
+    category: 'Arcade',
   },
   {
     name: {
@@ -230,7 +70,170 @@ export const MENU_LIST = [
       eng: 'Missile Command',
     },
     href: '/missilecommand',
-    category: 'Game',
+    category: 'Arcade',
+  },
+  {
+    name: {
+      kor: '버블 슈터',
+      eng: 'Bubble Shooter',
+    },
+    href: '/bubbleshooter',
+    category: 'Arcade',
+  },
+  // Action
+  {
+    name: {
+      kor: '닷지',
+      eng: 'Dodge',
+    },
+    href: '/dodge',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '플래피 버드',
+      eng: 'Flappy Bird',
+    },
+    href: '/flappybird',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '공룡 달리기',
+      eng: 'Dino',
+    },
+    href: '/dino',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '두들 점프',
+      eng: 'Doodle Jump',
+    },
+    href: '/doodle',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '길건너 친구들',
+      eng: 'Crossy Road',
+    },
+    href: '/crossyroad',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '무한의 계단',
+      eng: 'Infinite Stairs',
+    },
+    href: '/stairs',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '햄버거 쌓기',
+      eng: 'Burger Stack',
+    },
+    href: '/burger',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '타워 블록',
+      eng: 'Tower Blocks',
+    },
+    href: '/towerblocks',
+    category: 'Action',
+  },
+  // Puzzle
+  {
+    name: {
+      kor: '2048',
+      eng: '2048',
+    },
+    href: '/2048',
+    category: 'Puzzle',
+  },
+  {
+    name: {
+      kor: '컬러 플러드',
+      eng: 'Color Flood',
+    },
+    href: '/colorflood',
+    category: 'Puzzle',
+  },
+  {
+    name: {
+      kor: '라이츠 아웃',
+      eng: 'Lights Out',
+    },
+    href: '/lightsout',
+    category: 'Puzzle',
+  },
+  {
+    name: {
+      kor: '슬라이딩 퍼즐',
+      eng: 'Sliding Puzzle',
+    },
+    href: '/slidingpuzzle',
+    category: 'Puzzle',
+  },
+  {
+    name: {
+      kor: '노노그램',
+      eng: 'Nonogram',
+    },
+    href: '/nonogram',
+    category: 'Puzzle',
+  },
+  {
+    name: {
+      kor: '넘버 체인',
+      eng: 'Number Chain',
+    },
+    href: '/numberchain',
+    category: 'Puzzle',
+  },
+  {
+    name: {
+      kor: '카드 짝 맞추기',
+      eng: 'Match Pairs',
+    },
+    href: '/matchpairs',
+    category: 'Puzzle',
+  },
+  // Reflex
+  {
+    name: {
+      kor: '에임 트레이너',
+      eng: 'Aim Trainer',
+    },
+    href: '/aimtrainer',
+    category: 'Reflex',
+  },
+  {
+    name: {
+      kor: '후르츠 닌자',
+      eng: 'Fruit Ninja',
+    },
+    href: '/fruitninja',
+    category: 'Reflex',
+  },
+  {
+    name: {
+      kor: '타이핑 폴',
+      eng: 'Typing Fall',
+    },
+    href: '/typingfall',
+    category: 'Reflex',
+  },
+  {
+    name: {
+      kor: '사이먼',
+      eng: 'Simon',
+    },
+    href: '/simon',
+    category: 'Reflex',
   },
   // {
   //   name: {
@@ -238,7 +241,7 @@ export const MENU_LIST = [
   //     eng: 'Platformer',
   //   },
   //   href: '/platformer',
-  //   category: 'Game',
+  //   category: 'Action',
   // },
   // Good Luck
   {

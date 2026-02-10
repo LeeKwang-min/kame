@@ -63,7 +63,10 @@ export type Locale = {
   };
   category: {
     all: string;
-    game: string;
+    arcade: string;
+    action: string;
+    puzzle: string;
+    reflex: string;
     goodLuck: string;
     utility: string;
   };
@@ -134,7 +137,10 @@ export const ko: Locale = {
   },
   category: {
     all: '전체',
-    game: '게임',
+    arcade: '아케이드',
+    action: '액션',
+    puzzle: '퍼즐',
+    reflex: '반응',
     goodLuck: '행운',
     utility: '유틸리티',
   },

@@ -36,7 +36,10 @@ function MainCategorySelect({ category, setCategory }: IProps) {
           'text-arcade-text',
         )}>
         <SelectItem value="ALL">{t.category.all}</SelectItem>
-        <SelectItem value="Game">{t.category.game}</SelectItem>
+        <SelectItem value="Arcade">{t.category.arcade}</SelectItem>
+        <SelectItem value="Action">{t.category.action}</SelectItem>
+        <SelectItem value="Puzzle">{t.category.puzzle}</SelectItem>
+        <SelectItem value="Reflex">{t.category.reflex}</SelectItem>
         <SelectItem value="Good Luck">{t.category.goodLuck}</SelectItem>
         <SelectItem value="Utility">{t.category.utility}</SelectItem>
       </SelectContent>

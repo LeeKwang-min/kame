@@ -65,7 +65,10 @@ export const en: Locale = {
   },
   category: {
     all: 'All',
-    game: 'Game',
+    arcade: 'Arcade',
+    action: 'Action',
+    puzzle: 'Puzzle',
+    reflex: 'Reflex',
     goodLuck: 'Good Luck',
     utility: 'Utility',
   },

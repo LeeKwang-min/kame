@@ -9,15 +9,20 @@ import {
   Dice5,
   Film,
   Gamepad2,
+  Puzzle,
   UserRoundSearch,
   Webhook,
   Wrench,
+  Zap,
 } from 'lucide-react';
 import GameCard from '@/components/common/GameCard';
 import { cn } from '@/lib/utils';
 
 export const CATEGORY_ICON = {
-  Game: <Dice5 size={18} className="text-arcade-cyan" />,
+  Arcade: <Dice5 size={18} className="text-arcade-cyan" />,
+  Action: <Gamepad2 size={18} className="text-arcade-yellow" />,
+  Puzzle: <Puzzle size={18} className="text-arcade-magenta" />,
+  Reflex: <Zap size={18} className="text-arcade-cyan" />,
   'Good Luck': <Clover size={18} className="text-arcade-yellow" />,
   Utility: <Wrench size={18} className="text-arcade-magenta" />,
   Fun: <Gamepad2 size={18} className="text-arcade-cyan" />,
