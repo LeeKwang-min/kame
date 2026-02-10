@@ -77,6 +77,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/slidingpuzzle': PanelTop,
   '/nonogram': TableProperties,
   '/numberchain': Link2,
+  '/minesweeper': Bomb,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

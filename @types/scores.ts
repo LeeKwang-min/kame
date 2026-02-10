@@ -33,7 +33,8 @@ export type TGameType =
   | 'lightsout'
   | 'slidingpuzzle'
   | 'nonogram'
-  | 'numberchain';
+  | 'numberchain'
+  | 'minesweeper';
 
 export type TScore = {
   id: string;

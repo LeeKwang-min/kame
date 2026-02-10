@@ -196,6 +196,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '지뢰 찾기',
+      eng: 'Minesweeper',
+    },
+    href: '/minesweeper',
+    category: 'Puzzle',
+  },
+  {
+    name: {
       kor: '카드 짝 맞추기',
       eng: 'Match Pairs',
     },
