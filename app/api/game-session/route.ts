@@ -32,6 +32,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'aimtrainer',
   'simon',
   'matchpairs',
+  'bubbleshooter',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

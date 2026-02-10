@@ -64,6 +64,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/aimtrainer': Crosshair,
   '/simon': Brain,
   '/matchpairs': Grid2X2,
+  '/bubbleshooter': CircleDot,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
