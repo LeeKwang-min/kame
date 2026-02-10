@@ -29,6 +29,7 @@ export const GAME_SECURITY_CONFIG: Record<
   simon: { maxScore: 100000, minPlayTimeSeconds: 10 },
   matchpairs: { maxScore: 50000, minPlayTimeSeconds: 10 },
   bubbleshooter: { maxScore: 50000, minPlayTimeSeconds: 10 },
+  typingfall: { maxScore: 100000, minPlayTimeSeconds: 10 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

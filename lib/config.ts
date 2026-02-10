@@ -114,6 +114,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '타이핑 폴',
+      eng: 'Typing Fall',
+    },
+    href: '/typingfall',
+    category: 'Game',
+  },
+  {
+    name: {
       kor: '닷지',
       eng: 'Dodge',
     },

@@ -27,7 +27,8 @@ export type TGameType =
   | 'aimtrainer'
   | 'simon'
   | 'matchpairs'
-  | 'bubbleshooter';
+  | 'bubbleshooter'
+  | 'typingfall';
 
 export type TScore = {
   id: string;

@@ -33,6 +33,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'simon',
   'matchpairs',
   'bubbleshooter',
+  'typingfall',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
