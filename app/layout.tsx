@@ -72,10 +72,10 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: '', // Google Search Console 인증 코드
+    google: '9oM1xvolPm8iYB1TtZJN0qd4KnZ6zON12JxnxHVsZnQ', // Google Search Console 인증 코드
   },
   other: {
-    'naver-site-verification': '', // 네이버 서치어드바이저 인증 코드
+    'naver-site-verification': '5b8437f0f4be0489bc5a5933ddc308a4f2967fb2', // 네이버 서치어드바이저 인증 코드
   },
 };
 
