@@ -218,6 +218,14 @@ export const MENU_LIST = [
     href: '/maze',
     category: 'Puzzle',
   },
+  {
+    name: {
+      kor: '랜덤 디펜스',
+      eng: 'Random Defense',
+    },
+    href: '/randomdefense',
+    category: 'Arcade',
+  },
   // Reflex
   {
     name: {

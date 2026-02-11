@@ -35,7 +35,8 @@ export type TGameType =
   | 'nonogram'
   | 'numberchain'
   | 'minesweeper'
-  | 'maze';
+  | 'maze'
+  | 'randomdefense';
 
 export type TScore = {
   id: string;
