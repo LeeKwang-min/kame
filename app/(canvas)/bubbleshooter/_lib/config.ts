@@ -8,7 +8,7 @@ export const BUBBLE_DIAMETER = BUBBLE_RADIUS * 2;
 export const BUBBLE_SPEED = 600;
 
 // Grid
-export const GRID_COLS = 14;
+export const GRID_COLS = 15;
 export const INITIAL_ROWS = 7;
 export const ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3); // ~27.7px (hex row spacing)
 export const GRID_LEFT = BUBBLE_RADIUS; // first bubble center x offset

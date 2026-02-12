@@ -39,6 +39,7 @@ import {
   hexToWorld,
   worldToHex,
   getMaxCol,
+  getNeighborOffsets,
   bfsSameColor,
   bfsFromCeiling,
 } from './utils';
@@ -74,6 +75,7 @@ export const setupBubbleShooter = (
   let comboCount = 0;
   let missCount = 0;
   let ceilingOffset = 0; // how many rows the ceiling has descended
+  let gridParity = 0; // tracks parity offset for hex grid after ceiling descends
 
   let currentColor = '';
   let nextColor = '';
@@ -132,7 +134,7 @@ export const setupBubbleShooter = (
   const initGrid = () => {
     grid.clear();
     for (let row = 0; row < INITIAL_ROWS; row++) {
-      const maxCol = getMaxCol(row);
+      const maxCol = getMaxCol(row, gridParity);
       for (let col = 0; col <= maxCol; col++) {
         const key = `${row},${col}`;
         grid.set(key, randomColor());
@@ -142,7 +144,7 @@ export const setupBubbleShooter = (
 
   // --- Get world position with ceiling offset ---
   const getWorldPos = (row: number, col: number) => {
-    const pos = hexToWorld(row, col);
+    const pos = hexToWorld(row, col, gridParity);
     pos.y += ceilingOffset * BUBBLE_RADIUS * Math.sqrt(3);
     return pos;
   };
@@ -151,7 +153,7 @@ export const setupBubbleShooter = (
   const snapToGrid = (wx: number, wy: number): { row: number; col: number } => {
     // Adjust for ceiling offset
     const adjustedY = wy - ceilingOffset * BUBBLE_RADIUS * Math.sqrt(3);
-    const result = worldToHex(wx, adjustedY);
+    const result = worldToHex(wx, adjustedY, gridParity);
     return result;
   };
 
@@ -193,7 +195,7 @@ export const setupBubbleShooter = (
     if (!color) return;
 
     // BFS same color
-    const matched = bfsSameColor(row, col, color, grid);
+    const matched = bfsSameColor(row, col, color, grid, gridParity);
 
     if (matched.length >= 3) {
       // Pop matched bubbles
@@ -246,7 +248,7 @@ export const setupBubbleShooter = (
       });
 
       // Check for orphaned bubbles
-      const connected = bfsFromCeiling(grid);
+      const connected = bfsFromCeiling(grid, gridParity);
       const orphaned: string[] = [];
       for (const [gk] of grid) {
         if (!connected.has(gk)) {
@@ -293,6 +295,7 @@ export const setupBubbleShooter = (
           life: 2,
         });
         // Respawn grid
+        gridParity = 0;
         initGrid();
         ceilingOffset = 0;
         missCount = 0;
@@ -323,8 +326,11 @@ export const setupBubbleShooter = (
       newGrid.set(`${r + 1},${c}`, color);
     }
 
-    // Add new row at row 0
-    const maxCol = getMaxCol(0);
+    // Increment gridParity so effective parity of shifted rows is preserved
+    gridParity++;
+
+    // Add new row at row 0 with correct parity
+    const maxCol = getMaxCol(0, gridParity);
     for (let col = 0; col <= maxCol; col++) {
       newGrid.set(`0,${col}`, randomColor());
     }
@@ -369,6 +375,7 @@ export const setupBubbleShooter = (
     comboCount = 0;
     missCount = 0;
     ceilingOffset = 0;
+    gridParity = 0;
     currentColor = '';
     nextColor = '';
     aimAngle = Math.PI / 2;
@@ -394,6 +401,7 @@ export const setupBubbleShooter = (
     comboCount = 0;
     missCount = 0;
     ceilingOffset = 0;
+    gridParity = 0;
     shootingBubble = null;
     droppingBubbles = [];
     poppingBubbles = [];
@@ -438,8 +446,10 @@ export const setupBubbleShooter = (
       // Ceiling collision
       if (shootingBubble.y - BUBBLE_RADIUS <= 0) {
         shootingBubble.y = BUBBLE_RADIUS;
-        const { row, col } = snapToGrid(shootingBubble.x, shootingBubble.y);
-        landBubble(row, col, shootingBubble.color);
+        const sx = shootingBubble.x;
+        const sy = shootingBubble.y;
+        const { row, col } = snapToGrid(sx, sy);
+        landBubble(row, col, shootingBubble.color, sx, sy);
         shootingBubble = null;
         return;
       }
@@ -454,9 +464,11 @@ export const setupBubbleShooter = (
           shootingBubble.y - pos.y,
         );
         if (dist < BUBBLE_RADIUS * 2 - 2) {
-          // Snap to nearest empty hex
-          const { row, col } = snapToGrid(shootingBubble.x, shootingBubble.y);
-          landBubble(row, col, shootingBubble.color);
+          // Snap to nearest empty hex (pass shoot position for distance-aware placement)
+          const sx = shootingBubble.x;
+          const sy = shootingBubble.y;
+          const { row, col } = snapToGrid(sx, sy);
+          landBubble(row, col, shootingBubble.color, sx, sy);
           shootingBubble = null;
           collided = true;
           break;
@@ -523,9 +535,15 @@ export const setupBubbleShooter = (
   };
 
   // --- Land bubble on grid ---
-  const landBubble = (row: number, col: number, color: string) => {
+  const landBubble = (
+    row: number,
+    col: number,
+    color: string,
+    shootX?: number,
+    shootY?: number,
+  ) => {
     // Clamp col
-    const maxCol = getMaxCol(row);
+    const maxCol = getMaxCol(row, gridParity);
     const clampedCol = Math.max(0, Math.min(col, maxCol));
 
     // If cell is occupied, find nearest empty
@@ -534,8 +552,8 @@ export const setupBubbleShooter = (
     const targetKey = `${targetRow},${targetCol}`;
 
     if (grid.has(targetKey)) {
-      // Try to find an empty neighbor
-      const found = findNearestEmpty(row, clampedCol);
+      // Try to find an empty neighbor (distance-aware if shoot position provided)
+      const found = findNearestEmpty(row, clampedCol, shootX, shootY);
       if (found) {
         targetRow = found.row;
         targetCol = found.col;
@@ -560,38 +578,61 @@ export const setupBubbleShooter = (
     processMatch(targetRow, targetCol);
   };
 
-  // --- Find nearest empty hex cell ---
+  // --- Find nearest empty hex cell (distance-aware) ---
   const findNearestEmpty = (
     row: number,
     col: number,
+    shootX?: number,
+    shootY?: number,
   ): { row: number; col: number } | null => {
-    // BFS to find nearest empty cell
+    // BFS level-by-level; collect all empty cells at same BFS depth
+    // and pick the one closest to the shooting bubble's world position
     const visited = new Set<string>();
-    const queue: [number, number][] = [[row, col]];
+    let currentLevel: [number, number][] = [[row, col]];
     visited.add(`${row},${col}`);
 
-    while (queue.length > 0) {
-      const [r, c] = queue.shift()!;
+    while (currentLevel.length > 0) {
+      const emptyCells: { row: number; col: number }[] = [];
+      const nextLevel: [number, number][] = [];
 
-      // Check neighbors
-      const offsets =
-        r % 2 === 0
-          ? [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]]
-          : [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]];
+      for (const [r, c] of currentLevel) {
+        const offsets = getNeighborOffsets(r, gridParity);
 
-      for (const [dr, dc] of offsets) {
-        const nr = r + dr;
-        const nc = c + dc;
-        const nk = `${nr},${nc}`;
-        if (nr < 0 || nc < 0 || nc > getMaxCol(nr)) continue;
-        if (visited.has(nk)) continue;
-        visited.add(nk);
+        for (const [dr, dc] of offsets) {
+          const nr = r + dr;
+          const nc = c + dc;
+          const nk = `${nr},${nc}`;
+          if (nr < 0 || nc < 0 || nc > getMaxCol(nr, gridParity)) continue;
+          if (visited.has(nk)) continue;
+          visited.add(nk);
 
-        if (!grid.has(nk)) {
-          return { row: nr, col: nc };
+          if (!grid.has(nk)) {
+            emptyCells.push({ row: nr, col: nc });
+          } else {
+            nextLevel.push([nr, nc]);
+          }
         }
-        queue.push([nr, nc]);
       }
+
+      if (emptyCells.length > 0) {
+        if (shootX !== undefined && shootY !== undefined && emptyCells.length > 1) {
+          // Pick the cell whose world position is closest to shoot position
+          let best = emptyCells[0];
+          let bestDist = Infinity;
+          for (const cell of emptyCells) {
+            const pos = getWorldPos(cell.row, cell.col);
+            const dist = Math.hypot(shootX - pos.x, shootY - pos.y);
+            if (dist < bestDist) {
+              bestDist = dist;
+              best = cell;
+            }
+          }
+          return best;
+        }
+        return emptyCells[0];
+      }
+
+      currentLevel = nextLevel;
     }
     return null;
   };
@@ -601,10 +642,7 @@ export const setupBubbleShooter = (
     const landedKey = `${row},${col}`;
     wobbleMap.set(landedKey, { phase: 0, amplitude: 3 });
 
-    const offsets =
-      row % 2 === 0
-        ? [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]]
-        : [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]];
+    const offsets = getNeighborOffsets(row, gridParity);
 
     for (const [dr, dc] of offsets) {
       const nr = row + dr;
