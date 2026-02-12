@@ -17,6 +17,8 @@ import {
   GRID_OFFSET_Y,
   INITIAL_GOLD,
   WAVE_PREP_TIME,
+  WAVE_PREP_TIME_ON_CLEAR,
+  FORCE_WAVE_BONUS_RATIO,
   ENEMY_SPAWN_INTERVAL,
   WAVE_BASE_REWARD,
   WAVE_REWARD_INCREMENT,
@@ -28,6 +30,7 @@ import {
   TPlacedUnit,
   TEnemy,
   TProjectile,
+  TGroundZone,
   TParticle,
   TFloatingText,
   TScreenShake,
@@ -58,7 +61,9 @@ import {
   applySlowAuras,
   applyDebuffAuras,
   moveProjectile,
+  updateGroundZones,
   resetProjectileIdCounter,
+  resetGroundZoneIdCounter,
 } from './combat';
 import {
   spawnSummonParticles,
@@ -67,6 +72,7 @@ import {
   spawnBossEntryParticles,
   spawnGoldText,
   spawnWaveText,
+  spawnRushBonusText,
   triggerScreenShake,
   getShakeOffset,
   updateScreenShake,
@@ -79,6 +85,9 @@ import {
   drawStage,
   drawGrid,
   drawUnit,
+  drawMergeHighlight,
+  drawGroundZone,
+  drawSlowField,
   drawEnemy,
   drawProjectile,
   drawParticles,
@@ -125,6 +134,7 @@ export function setupRandomDefense(
   let units: TPlacedUnit[] = [];
   let enemies: TEnemy[] = [];
   let projectiles: TProjectile[] = [];
+  let groundZones: TGroundZone[] = [];
   let particles: TParticle[] = [];
   let floatingTexts: TFloatingText[] = [];
   const screenShake: TScreenShake = { timer: 0, intensity: 0 };
@@ -354,15 +364,23 @@ export function setupRandomDefense(
 
     // Unit attacks
     applyBuffAuras(units);
-    const newProjectiles = processUnitAttacks(units, enemies, dt);
-    if (newProjectiles.length > 0) {
+    const attackResult = processUnitAttacks(units, enemies, dt);
+    if (attackResult.projectiles.length > 0) {
       const now = performance.now() / 1000;
       if (now - lastShootSoundTime >= 0.1) {
         sounds.playShoot();
         lastShootSoundTime = now;
       }
     }
-    projectiles.push(...newProjectiles);
+    projectiles.push(...attackResult.projectiles);
+    groundZones.push(...attackResult.groundZones);
+
+    // Update ground zones (DoT + slow)
+    const groundZoneKills = updateGroundZones(groundZones, enemies, dt);
+    for (const killId of groundZoneKills) {
+      const killed = enemies.find((e) => e.id === killId);
+      if (killed) handleEnemyKill(killed);
+    }
 
     // Move projectiles
     for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -397,6 +415,11 @@ export function setupRandomDefense(
 
     // Remove dead enemies
     enemies = enemies.filter((e) => e.hp > 0);
+
+    // Early wave start when all enemies cleared
+    if (waveState.phase === 'prep' && enemies.length === 0 && waveState.wave > 0) {
+      waveState.prepTimer = Math.min(waveState.prepTimer, WAVE_PREP_TIME_ON_CLEAR);
+    }
 
     // Effects
     updateParticles(particles, dt);
@@ -434,10 +457,41 @@ export function setupRandomDefense(
     drawStage(ctx);
     drawGrid(ctx);
 
+    const now = performance.now();
+
+    // Slow field auras (under units)
+    for (const unit of units) {
+      if (unit.def.archetype === 'slow') {
+        drawSlowField(ctx, unit, now);
+      }
+    }
+
+    // Ground zones (under units, over grid)
+    for (const zone of groundZones) {
+      drawGroundZone(ctx, zone, now);
+    }
+
+    // Merge highlight detection
+    let mergeableIds: Set<number> | null = null;
+    if (dragState) {
+      const draggedUnit = units.find((u) => u.id === dragState!.unitId);
+      if (draggedUnit && draggedUnit.def.tier < 6) {
+        mergeableIds = new Set(
+          units
+            .filter((u) => u.id !== draggedUnit.id && u.def.id === draggedUnit.def.id)
+            .map((u) => u.id),
+        );
+      }
+    }
+
     // Units (skip dragging unit)
     for (const unit of units) {
       if (dragState && unit.id === dragState.unitId) continue;
       drawUnit(ctx, unit, unit.id === selectedUnitId);
+      // Merge highlight
+      if (mergeableIds && mergeableIds.has(unit.id)) {
+        drawMergeHighlight(ctx, unit, now);
+      }
     }
 
     // Enemies
@@ -459,7 +513,7 @@ export function setupRandomDefense(
 
     // Right panel (no shake)
     ctx.restore();
-    drawPanel(ctx, gold, summonCount, units.find((u) => u.id === selectedUnitId) ?? null, units.length, waveState, enemies.length);
+    drawPanel(ctx, gold, summonCount, units.find((u) => u.id === selectedUnitId) ?? null, units.length, waveState, enemies.length, sounds.getMasterVolume());
 
     // Drag ghost (no shake)
     drawDragGhost(ctx, dragState, units);
@@ -486,6 +540,7 @@ export function setupRandomDefense(
     units = [];
     enemies = [];
     projectiles = [];
+    groundZones = [];
     particles = [];
     floatingTexts = [];
     screenShake.timer = 0;
@@ -503,6 +558,7 @@ export function setupRandomDefense(
     resetUnitIdCounter();
     resetEnemyIdCounter();
     resetProjectileIdCounter();
+    resetGroundZoneIdCounter();
     gameOverHud.reset();
   }
 
@@ -575,6 +631,37 @@ export function setupRandomDefense(
       case 'Backspace':
         if (selectedUnitId !== null) {
           sellUnit(selectedUnitId);
+        }
+        break;
+      case 'KeyF':
+        e.preventDefault();
+        if (state === 'playing' && waveState.phase === 'prep' && waveState.wave > 0) {
+          const remainingRatio = waveState.prepTimer / WAVE_PREP_TIME;
+          const bonusGold = Math.floor(
+            (WAVE_BASE_REWARD + (waveState.wave + 1) * WAVE_REWARD_INCREMENT) * remainingRatio * FORCE_WAVE_BONUS_RATIO,
+          );
+          if (bonusGold > 0) {
+            gold += bonusGold;
+            floatingTexts.push(spawnRushBonusText(MAP_WIDTH / 2, 60, bonusGold));
+            sounds.playGold();
+          }
+          waveState.prepTimer = 0; // triggers startNextWave() in next update
+        }
+        break;
+      case 'Minus':
+        e.preventDefault();
+        sounds.setMasterVolume(sounds.getMasterVolume() - 0.1);
+        break;
+      case 'Equal':
+        e.preventDefault();
+        sounds.setMasterVolume(sounds.getMasterVolume() + 0.1);
+        break;
+      case 'KeyM':
+        e.preventDefault();
+        if (sounds.getMasterVolume() > 0) {
+          sounds.setMasterVolume(0);
+        } else {
+          sounds.setMasterVolume(1.0);
         }
         break;
     }
@@ -653,7 +740,21 @@ export function setupRandomDefense(
       // Try merge
       const merged = tryMerge(draggedUnit, targetUnit);
       if (!merged) {
-        // Can't merge, snap back
+        // Can't merge → swap positions
+        const origCol = dragState!.originCol;
+        const origRow = dragState!.originRow;
+
+        targetUnit.gridCol = origCol;
+        targetUnit.gridRow = origRow;
+        targetUnit.x = GRID_OFFSET_X + origCol * CELL_SIZE + CELL_SIZE / 2;
+        targetUnit.y = GRID_OFFSET_Y + origRow * CELL_SIZE + CELL_SIZE / 2;
+
+        draggedUnit.gridCol = grid.col;
+        draggedUnit.gridRow = grid.row;
+        draggedUnit.x = GRID_OFFSET_X + grid.col * CELL_SIZE + CELL_SIZE / 2;
+        draggedUnit.y = GRID_OFFSET_Y + grid.row * CELL_SIZE + CELL_SIZE / 2;
+
+        applyBuffAuras(units);
       }
     } else if (
       grid.col !== dragState.originCol ||

@@ -74,6 +74,20 @@ export type TProjectile = {
   splashDamage?: number;
 };
 
+// ─── Ground Zone (slow archetype area effect) ───
+export type TGroundZone = {
+  id: number;
+  x: number;
+  y: number;
+  radius: number;
+  damage: number; // DPS
+  slowAmount: number;
+  duration: number;
+  remainingLife: number;
+  color: string;
+  ownerId: number;
+};
+
 // ─── Particle ───
 export type TParticle = {
   x: number;

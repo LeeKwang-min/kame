@@ -47,23 +47,23 @@ function makeUnitDefs(): TUnitDef[] {
 
       // Archetype-specific stats
       if (arch === 'splash') {
-        def.splashRadius = 60 + tier * 10;
+        def.splashRadius = 45 + tier * 8; // nerfed radius
         def.damage = Math.round(baseDmg * 0.7); // lower single target
       }
       if (arch === 'slow') {
         def.slowAmount = 0.25 + tier * 0.05;
         def.slowRadius = 100 + tier * 15;
-        def.damage = Math.round(baseDmg * 0.5);
+        def.damage = Math.round(baseDmg * 0.08);
       }
       if (arch === 'buffer') {
         def.buffRadius = 100 + tier * 15;
         def.buffMultiplier = 1.15 + tier * 0.10;
-        def.damage = Math.round(baseDmg * 0.3);
+        def.damage = Math.round(baseDmg * 0.5);
       }
       if (arch === 'debuffer') {
         def.debuffAmount = 0.1 + tier * 0.05;
         def.debuffRadius = 100 + tier * 15;
-        def.damage = Math.round(baseDmg * 0.6);
+        def.damage = Math.round(baseDmg * 0.8);
       }
 
       defs.push(def);
@@ -75,7 +75,7 @@ function makeUnitDefs(): TUnitDef[] {
 
 function getArchDamageMult(arch: TArchetype): number {
   switch (arch) {
-    case 'shooter': return 1.0;
+    case 'shooter': return 0.5; // rapid-fire: lower per-hit, higher DPS via speed
     case 'splash': return 0.7;
     case 'slow': return 0.5;
     case 'buffer': return 0.3;
@@ -85,9 +85,9 @@ function getArchDamageMult(arch: TArchetype): number {
 
 function getArchSpeedMult(arch: TArchetype): number {
   switch (arch) {
-    case 'shooter': return 1.4;
+    case 'shooter': return 3.0; // rapid-fire machine gunner
     case 'splash': return 0.7;
-    case 'slow': return 0.9;
+    case 'slow': return 0.5; // ground zone placer (slower = less zone stacking)
     case 'buffer': return 0.6;
     case 'debuffer': return 0.8;
   }

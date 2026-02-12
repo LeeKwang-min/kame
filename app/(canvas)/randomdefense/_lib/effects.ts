@@ -160,6 +160,18 @@ export function spawnWaveText(wave: number, canvasWidth: number): TFloatingText 
   };
 }
 
+export function spawnRushBonusText(x: number, y: number, amount: number): TFloatingText {
+  return {
+    x,
+    y: y - 20,
+    text: `RUSH +${amount}G`,
+    color: '#06b6d4', // cyan
+    alpha: 1,
+    life: 1.5,
+    fontSize: 18,
+  };
+}
+
 // ─── Screen Shake ───
 
 export function triggerScreenShake(

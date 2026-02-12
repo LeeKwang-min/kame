@@ -76,9 +76,9 @@ export const ENEMY_SPAWN_INTERVAL = 0.25;
 export const BOSS_WAVE_INTERVAL = 5;
 
 // ─── Enemy HP Scaling ───
-export const HP_BASE = 30;
-export const HP_SCALE_FACTOR = 0.12;
-export const HP_SCALE_EXPONENT = 1.25;
+export const HP_BASE = 54;
+export const HP_SCALE_FACTOR = 0.28;
+export const HP_SCALE_EXPONENT = 2.0;
 export const ENEMY_SPEED_BASE = 50;
 
 export const ENEMY_TYPE_MULT: Record<string, { hp: number; speed: number; gold: number }> = {
@@ -118,6 +118,17 @@ export const TIER_BORDER_COLORS: string[] = [
   '#d97706',
   '#dc2626',
 ];
+
+// ─── Wave Force Call ───
+export const WAVE_PREP_TIME_ON_CLEAR = 3; // seconds after all enemies cleared
+export const FORCE_WAVE_BONUS_RATIO = 0.5; // remaining time ratio * this = bonus gold ratio
+
+// ─── Ground Zone (slow archetype) ───
+export const GROUND_ZONE_BASE_DURATION = 3.0;
+export const GROUND_ZONE_DURATION_PER_TIER = 0.5;
+
+// ─── Splash Balance ───
+export const SPLASH_MAX_TARGETS = 8;
 
 // ─── Archetype Symbols ───
 export const ARCHETYPE_SYMBOLS: Record<string, string> = {

@@ -15,10 +15,28 @@ export type TSoundSystem = {
   playWaveStart: () => void;
   playGameOver: () => void;
   playGold: () => void;
+  setMasterVolume: (volume: number) => void;
+  getMasterVolume: () => number;
 };
 
 export function createSoundSystem(): TSoundSystem {
   const audioCtx = new AudioContext();
+  const masterGain = audioCtx.createGain();
+  masterGain.connect(audioCtx.destination);
+  masterGain.gain.value = 1.0;
+  let masterVolume = 1.0;
+  let prevVolume = 1.0; // for mute toggle
+
+  function setMasterVolume(volume: number) {
+    const clamped = Math.max(0, Math.min(1, volume));
+    if (clamped > 0) prevVolume = clamped;
+    masterVolume = clamped;
+    masterGain.gain.setValueAtTime(masterVolume, audioCtx.currentTime);
+  }
+
+  function getMasterVolume(): number {
+    return masterVolume;
+  }
 
   function resume() {
     if (audioCtx.state === 'suspended') {
@@ -43,7 +61,7 @@ export function createSoundSystem(): TSoundSystem {
     const gainNode = audioCtx.createGain();
 
     osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+    gainNode.connect(masterGain);
 
     osc.type = type;
     const startTime = audioCtx.currentTime + startDelay;
@@ -142,5 +160,7 @@ export function createSoundSystem(): TSoundSystem {
     playWaveStart,
     playGameOver,
     playGold,
+    setMasterVolume,
+    getMasterVolume,
   };
 }

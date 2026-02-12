@@ -27,9 +27,10 @@ import {
   TFloatingText,
   TDragState,
   TWaveState,
+  TGroundZone,
 } from './types';
 import { getSummonCost, getSellValue } from './units';
-import { drawSprite } from './sprites';
+import { drawSprite, WEAPON_COLORS } from './sprites';
 
 // ─── Pre-computed path center rectangle ───
 
@@ -264,18 +265,6 @@ export function drawUnit(
     ctx.stroke();
   }
 
-  // Slow aura range
-  if (def.archetype === 'slow' && def.slowRadius) {
-    const auraRadius = def.slowRadius * unit.buffMultiplier;
-    ctx.beginPath();
-    ctx.arc(x, y, auraRadius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(96, 165, 250, 0.05)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(96, 165, 250, 0.15)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-
   // Debuffer aura range
   if (def.archetype === 'debuffer' && def.debuffRadius) {
     const auraRadius = def.debuffRadius * unit.buffMultiplier;
@@ -288,16 +277,17 @@ export function drawUnit(
     ctx.stroke();
   }
 
-  // Buff glow
+  // Buff glow (base ring + pulse)
   if (unit.buffMultiplier > 1) {
+    const glowPulse = 0.15 + 0.1 * Math.sin(performance.now() * 0.005);
     ctx.beginPath();
-    ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+    ctx.arc(x, y + radius * 0.3, radius + 6, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 215, 0, ${glowPulse})`;
     ctx.fill();
   }
 
-  // Idle bobbing
-  const bobOffset = Math.sin(performance.now() * 0.004 + unit.id * 2.1) * 1.5;
+  // Pulse animation (tower breathing effect, replaces bobbing)
+  const pulse = 1.0 + Math.sin(performance.now() * 0.003 + unit.id * 2.1) * 0.02;
 
   // Pixel art sprite with tier glow / attack flash
   const flashActive = unit.attackFlash > 0;
@@ -305,32 +295,41 @@ export function drawUnit(
   ctx.shadowColor = flashActive ? '#ffffff' : TIER_BORDER_COLORS[def.tier - 1];
   ctx.shadowBlur = flashActive ? 15 : def.tier >= 5 ? 12 : def.tier >= 3 ? 8 : 4;
 
-  // Direction flip based on facing angle
-  const facingLeft = Math.abs(unit.angle) > Math.PI / 2;
-  if (facingLeft) {
-    ctx.translate(x, 0);
-    ctx.scale(-1, 1);
-    ctx.translate(-x, 0);
-  }
-
-  drawSprite(ctx, x, y + bobOffset, def.archetype, def.color, radius * 2);
+  drawSprite(ctx, x, y, def.archetype, def.color, radius * 2 * pulse);
   ctx.restore();
 
-  // Tier dots
-  for (let i = 0; i < def.tier; i++) {
-    const dotAngle = -Math.PI / 2 + (i / Math.max(1, def.tier - 1)) * Math.PI - (def.tier > 1 ? Math.PI / 2 : 0);
-    const dotX = x + Math.cos(dotAngle) * (radius + 8);
-    const dotY = y + Math.sin(dotAngle) * (radius + 8);
+  // Target direction indicator dot (replaces sprite flip)
+  if (unit.targetId !== null) {
+    const indicatorDist = radius + 3;
+    const ix = x + Math.cos(unit.angle) * indicatorDist;
+    const iy = y + Math.sin(unit.angle) * indicatorDist;
     ctx.beginPath();
-    ctx.arc(dotX, dotY, 2, 0, Math.PI * 2);
-    ctx.fillStyle = TIER_COLORS[def.tier - 1];
+    ctx.arc(ix, iy, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = WEAPON_COLORS[def.archetype];
     ctx.fill();
+  }
+
+  // Tier bars (replaces tier dots)
+  const barY = y + radius + 4;
+  const barWidth = 3;
+  const totalWidth = def.tier * barWidth + (def.tier - 1) * 1;
+  const startX = x - totalWidth / 2;
+  for (let i = 0; i < def.tier; i++) {
+    ctx.fillStyle = TIER_COLORS[def.tier - 1];
+    ctx.fillRect(startX + i * (barWidth + 1), barY, barWidth, 2);
   }
 
   ctx.globalAlpha = 1;
 
   // Selected range indicator
   if (isSelected) {
+    // Cell-sized bright border
+    const halfCell = CELL_SIZE / 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - halfCell + 2, y - halfCell + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+
+    // Range circle
     ctx.beginPath();
     ctx.arc(x, y, def.range, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255,255,255,0.25)';
@@ -342,6 +341,149 @@ export function drawUnit(
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
     ctx.fill();
   }
+
+  ctx.restore();
+}
+
+// ─── Merge Highlight ───
+
+export function drawMergeHighlight(
+  ctx: CanvasRenderingContext2D,
+  unit: TPlacedUnit,
+  time: number,
+): void {
+  const { x, y } = unit;
+  const pulse = 0.5 + 0.5 * Math.sin(time * 0.006);
+  const hlRadius = CELL_SIZE * 0.45;
+
+  ctx.save();
+  // Outer glow ring
+  ctx.beginPath();
+  ctx.arc(x, y, hlRadius + 3 + pulse * 3, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(34, 197, 94, ${0.4 + pulse * 0.4})`;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Inner fill
+  ctx.beginPath();
+  ctx.arc(x, y, hlRadius, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(34, 197, 94, ${0.08 + pulse * 0.08})`;
+  ctx.fill();
+
+  // Corner brackets
+  ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 + pulse * 0.3})`;
+  ctx.lineWidth = 2;
+  const half = CELL_SIZE / 2 - 2;
+  const len = 8;
+  ctx.beginPath();
+  ctx.moveTo(x - half, y - half + len);
+  ctx.lineTo(x - half, y - half);
+  ctx.lineTo(x - half + len, y - half);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + half - len, y - half);
+  ctx.lineTo(x + half, y - half);
+  ctx.lineTo(x + half, y - half + len);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x - half, y + half - len);
+  ctx.lineTo(x - half, y + half);
+  ctx.lineTo(x - half + len, y + half);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + half - len, y + half);
+  ctx.lineTo(x + half, y + half);
+  ctx.lineTo(x + half, y + half - len);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ─── Ground Zone (frost floor) ───
+
+export function drawGroundZone(ctx: CanvasRenderingContext2D, zone: TGroundZone, time: number): void {
+  const alphaFactor = Math.min(1, zone.remainingLife / zone.duration);
+  const { x, y, radius } = zone;
+
+  ctx.save();
+
+  // Gradient fill
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+  grad.addColorStop(0, `rgba(96, 165, 250, ${0.15 * alphaFactor})`);
+  grad.addColorStop(0.6, `rgba(147, 197, 253, ${0.08 * alphaFactor})`);
+  grad.addColorStop(1, 'rgba(96, 165, 250, 0)');
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Rotating dashed border
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(time * 0.0004);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 2, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(147, 197, 253, ${0.25 * alphaFactor})`;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 7]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Frost crystal particles (deterministic)
+  const crystalCount = 6;
+  for (let i = 0; i < crystalCount; i++) {
+    const seed = zone.id * 1000 + i;
+    const orbitR = radius * 0.3 + ((seed * 7 + 13) % 100) / 100 * radius * 0.5;
+    const speed = 0.0003 + ((seed * 3 + 7) % 50) / 50 * 0.0005;
+    const angle = time * speed + seed * 2.4;
+    const cx = x + Math.cos(angle) * orbitR;
+    const cy = y + Math.sin(angle) * orbitR;
+    const sparkle = (0.3 + 0.3 * Math.sin(time * 0.003 + seed)) * alphaFactor;
+
+    ctx.fillStyle = `rgba(200, 220, 255, ${sparkle})`;
+    ctx.beginPath();
+    const s = 1.5 + (seed % 3);
+    ctx.moveTo(cx, cy - s);
+    ctx.lineTo(cx + s * 0.7, cy);
+    ctx.lineTo(cx, cy + s);
+    ctx.lineTo(cx - s * 0.7, cy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ─── Slow Field Aura ───
+
+export function drawSlowField(ctx: CanvasRenderingContext2D, unit: TPlacedUnit, time: number): void {
+  const { x, y, def } = unit;
+  if (def.archetype !== 'slow' || !def.slowRadius) return;
+  const auraRadius = def.slowRadius * unit.buffMultiplier;
+
+  ctx.save();
+
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, auraRadius);
+  grad.addColorStop(0, 'rgba(96, 165, 250, 0.08)');
+  grad.addColorStop(0.5, 'rgba(147, 197, 253, 0.04)');
+  grad.addColorStop(1, 'rgba(96, 165, 250, 0.0)');
+  ctx.beginPath();
+  ctx.arc(x, y, auraRadius, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(time * 0.0004);
+  ctx.beginPath();
+  ctx.arc(0, 0, auraRadius - 2, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(147, 197, 253, 0.2)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 7]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
 
   ctx.restore();
 }
@@ -531,6 +673,7 @@ export function drawPanel(
   unitCount: number,
   waveState: TWaveState,
   enemyCount: number,
+  volume?: number,
 ): void {
   const px = PANEL_X + 15;
   let py = 20;
@@ -597,6 +740,12 @@ export function drawPanel(
   ctx.fillStyle = '#94a3b8';
   if (waveState.phase === 'prep') {
     ctx.fillText(`Next wave in: ${Math.ceil(waveState.prepTimer)}s`, px, py);
+    py += 18;
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('[F] 다음 웨이브 강제 호출', px, py);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px sans-serif';
   } else if (waveState.phase === 'spawning') {
     ctx.fillText(`Spawning... (${waveState.spawnIndex}/${ENEMIES_PER_WAVE})`, px, py);
   }
@@ -676,6 +825,18 @@ export function drawPanel(
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Click a unit to select', PANEL_X + PANEL_WIDTH / 2, py + 10);
+  }
+
+  // Volume display at panel bottom
+  if (volume !== undefined) {
+    ctx.fillStyle = '#64748b';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(
+      `Vol: ${Math.round(volume * 100)}% [-/+/M]`,
+      PANEL_X + PANEL_WIDTH / 2,
+      CANVAS_HEIGHT - 15,
+    );
   }
 
   ctx.restore();

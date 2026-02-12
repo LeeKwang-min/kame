@@ -1,5 +1,10 @@
-import { PROJECTILE_SPEED } from './config';
-import { TPlacedUnit, TEnemy, TProjectile } from './types';
+import {
+  PROJECTILE_SPEED,
+  GROUND_ZONE_BASE_DURATION,
+  GROUND_ZONE_DURATION_PER_TIER,
+  SPLASH_MAX_TARGETS,
+} from './config';
+import { TPlacedUnit, TEnemy, TProjectile, TGroundZone } from './types';
 
 let nextProjectileId = 1;
 
@@ -46,16 +51,77 @@ export function createProjectile(
     y: unit.y,
     targetId: target.id,
     damage: unit.def.damage * unit.buffMultiplier,
-    speed: PROJECTILE_SPEED,
+    speed: unit.def.archetype === 'shooter' ? PROJECTILE_SPEED * 1.25 : PROJECTILE_SPEED,
     color: unit.def.color,
   };
 
   // Archetype-specific effects
   if (unit.def.archetype === 'splash' && unit.def.splashRadius) {
     proj.splashRadius = unit.def.splashRadius;
-    proj.splashDamage = proj.damage * 0.75;
+    proj.splashDamage = proj.damage * 0.5; // nerfed from 0.75
   }
   return proj;
+}
+
+// ─── Create Ground Zone (slow archetype) ───
+
+let nextGroundZoneId = 1;
+
+export function resetGroundZoneIdCounter(): void {
+  nextGroundZoneId = 1;
+}
+
+export function createGroundZone(
+  unit: TPlacedUnit,
+  target: TEnemy,
+): TGroundZone {
+  const duration = GROUND_ZONE_BASE_DURATION + unit.def.tier * GROUND_ZONE_DURATION_PER_TIER;
+  return {
+    id: nextGroundZoneId++,
+    x: target.x,
+    y: target.y,
+    radius: unit.def.slowRadius ?? 80,
+    damage: unit.def.damage * unit.buffMultiplier,
+    slowAmount: unit.def.slowAmount ?? 0.3,
+    duration,
+    remainingLife: duration,
+    color: unit.def.color,
+    ownerId: unit.id,
+  };
+}
+
+// ─── Update Ground Zones (DoT + Slow) ───
+
+export function updateGroundZones(
+  zones: TGroundZone[],
+  enemies: TEnemy[],
+  dt: number,
+): number[] {
+  const killedIds: number[] = [];
+  for (let i = zones.length - 1; i >= 0; i--) {
+    const zone = zones[i];
+    zone.remainingLife -= dt;
+    if (zone.remainingLife <= 0) {
+      zones.splice(i, 1);
+      continue;
+    }
+    for (const enemy of enemies) {
+      if (enemy.hp <= 0) continue;
+      const dx = enemy.x - zone.x;
+      const dy = enemy.y - zone.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= zone.radius) {
+        const prevHp = enemy.hp;
+        applyDamage(enemy, zone.damage * dt);
+        if (prevHp > 0 && enemy.hp <= 0) killedIds.push(enemy.id);
+        // Apply slow
+        if (zone.slowAmount > enemy.slowAmount) {
+          enemy.slowAmount = zone.slowAmount;
+        }
+        enemy.slowTimer = 0.5;
+      }
+    }
+  }
+  return killedIds;
 }
 
 // ─── Move Projectile → returns true if hit ───
@@ -105,16 +171,20 @@ export function applySplashDamage(
   damage: number,
   enemies: TEnemy[],
   excludeId: number,
+  maxTargets: number = SPLASH_MAX_TARGETS,
 ): number[] {
   const killedIds: number[] = [];
+  let hitCount = 0;
 
   for (const enemy of enemies) {
+    if (hitCount >= maxTargets) break;
     if (enemy.id === excludeId || enemy.hp <= 0) continue;
     const dx = enemy.x - origin.x;
     const dy = enemy.y - origin.y;
     if (Math.sqrt(dx * dx + dy * dy) <= radius) {
       const killed = applyDamage(enemy, damage);
       if (killed) killedIds.push(enemy.id);
+      hitCount++;
     }
   }
 
@@ -179,7 +249,7 @@ export function applySlowAuras(units: TPlacedUnit[], enemies: TEnemy[]): void {
     if (unit.def.archetype !== 'slow' || !unit.def.slowRadius) continue;
 
     const radius = unit.def.slowRadius * unit.buffMultiplier;
-    const amount = unit.def.slowAmount ?? 0;
+    const amount = (unit.def.slowAmount ?? 0) * 0.5; // passive aura is weaker (ground zones are primary)
 
     for (const enemy of enemies) {
       if (enemy.hp <= 0) continue;
@@ -220,8 +290,9 @@ export function processUnitAttacks(
   units: TPlacedUnit[],
   enemies: TEnemy[],
   dt: number,
-): TProjectile[] {
+): { projectiles: TProjectile[]; groundZones: TGroundZone[] } {
   const newProjectiles: TProjectile[] = [];
+  const newGroundZones: TGroundZone[] = [];
 
   for (const unit of units) {
     if (unit.attackFlash > 0) {
@@ -238,8 +309,13 @@ export function processUnitAttacks(
         unit.targetId = target.id;
         unit.attackFlash = 0.15;
 
-        newProjectiles.push(createProjectile(unit, target));
-        unit.attackTimer = 1 / (unit.def.attackSpeed * (unit.def.archetype === 'buffer' ? 1 : 1));
+        // Slow archetype creates ground zones instead of projectiles
+        if (unit.def.archetype === 'slow') {
+          newGroundZones.push(createGroundZone(unit, target));
+        } else {
+          newProjectiles.push(createProjectile(unit, target));
+        }
+        unit.attackTimer = 1 / unit.def.attackSpeed;
       } else {
         unit.attackTimer = 0.1; // retry soon
         unit.targetId = null;
@@ -247,5 +323,5 @@ export function processUnitAttacks(
     }
   }
 
-  return newProjectiles;
+  return { projectiles: newProjectiles, groundZones: newGroundZones };
 }
