@@ -50,7 +50,7 @@ export const COLORS = {
 
 // ─── Enemy Definitions ───
 export const ENEMY_DEFS: Record<TEnemyType, TEnemyDef> = {
-  bat: { type: 'bat', hp: 1, speed: 60, damage: 1, exp: 1, radius: 8, color: '#8844aa' },
+  bat: { type: 'bat', hp: 1, speed: 60, damage: 1, exp: 1, radius: 12, color: '#8844aa' },
   zombie: { type: 'zombie', hp: 3, speed: 50, damage: 1, exp: 2, radius: 10, color: '#44aa44' },
   skeleton: {
     type: 'skeleton',
