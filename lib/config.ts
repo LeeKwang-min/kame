@@ -153,6 +153,14 @@ export const MENU_LIST = [
     href: '/kustom',
     category: 'Action',
   },
+  {
+    name: {
+      kor: '서바이버스',
+      eng: 'Survivors',
+    },
+    href: '/survivors',
+    category: 'Action',
+  },
   // Puzzle
   {
     name: {

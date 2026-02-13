@@ -39,7 +39,8 @@ export type TGameType =
   | 'randomdefense'
   | 'puyopuyo'
   | 'jewelcrush'
-  | 'kustom';
+  | 'kustom'
+  | 'survivors';
 
 export type TScore = {
   id: string;

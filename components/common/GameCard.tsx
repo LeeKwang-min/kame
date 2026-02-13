@@ -88,6 +88,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/puyopuyo': Grip,
   '/jewelcrush': Gem,
   '/kustom': Swords,
+  '/survivors': Shield,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
