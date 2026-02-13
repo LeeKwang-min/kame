@@ -26,7 +26,9 @@ export function createPlayer(): TPlayer {
     animTimer: 0,
     isInvincible: false,
     invincibleTimer: 0,
-    weapons: [],
+    weapons: [
+      { id: 'magic_wand', level: 1, cooldownTimer: 0, isEvolved: false },
+    ],
     passives: [],
     exp: 0,
     level: 1,
