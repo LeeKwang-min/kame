@@ -31,6 +31,9 @@ import './patterns/spiral';
 import './patterns/bullet-wall';
 import './patterns/ground-spike';
 import './patterns/falling-rocks';
+import './patterns/cage-walls';
+import './patterns/poison-zone';
+import './patterns/sweeping-laser';
 
 export type TBoss = {
   x: number;
