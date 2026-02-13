@@ -35,6 +35,8 @@ const laserBeam: TPattern = {
         isActive: false,
       }],
       areas: [],
+      walls: [],
+      zones: [],
       custom: {},
     };
   },

@@ -6,7 +6,7 @@ import {
   GRASS_TILE_RENDER_SIZE,
   SHURIKEN_RENDER_SIZE,
 } from './config';
-import { TProjectile } from './types';
+import { TProjectile, TWall, TZone } from './types';
 import { getAssets } from './assets';
 
 let grassPattern: CanvasPattern | null = null;
@@ -79,4 +79,68 @@ export function renderTimeHud(ctx: CanvasRenderingContext2D, elapsedTime: number
   ctx.shadowBlur = 4;
   ctx.fillText(`${Math.floor(elapsedTime)}s`, CANVAS_WIDTH - 20, 20);
   ctx.restore();
+}
+
+export function renderWalls(ctx: CanvasRenderingContext2D, walls: TWall[]): void {
+  for (const wall of walls) {
+    ctx.save();
+    if (wall.warningTimer > 0) {
+      const progress = 1 - wall.warningTimer / (wall.warningTimer + wall.activeTimer || 1);
+      ctx.fillStyle = `rgba(180, 80, 40, ${0.15 + progress * 0.25})`;
+      ctx.strokeStyle = `rgba(200, 100, 50, ${0.4 + progress * 0.4})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+      ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);
+    } else if (wall.isActive) {
+      ctx.fillStyle = 'rgba(140, 70, 30, 0.85)';
+      ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+      ctx.strokeStyle = 'rgba(200, 120, 60, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);
+      ctx.strokeStyle = 'rgba(100, 50, 20, 0.4)';
+      ctx.lineWidth = 1;
+      for (let ly = wall.y + 8; ly < wall.y + wall.height; ly += 12) {
+        ctx.beginPath();
+        ctx.moveTo(wall.x + 2, ly);
+        ctx.lineTo(wall.x + wall.width - 2, ly);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+}
+
+export function renderZones(ctx: CanvasRenderingContext2D, zones: TZone[]): void {
+  for (const zone of zones) {
+    ctx.save();
+    if (zone.warningTimer > 0) {
+      const maxWarning = zone.warningTimer + zone.activeTimer || 1;
+      const progress = 1 - zone.warningTimer / maxWarning;
+      if (zone.type === 'slow') {
+        ctx.fillStyle = `rgba(80, 0, 180, ${0.1 + progress * 0.2})`;
+        ctx.strokeStyle = `rgba(120, 40, 220, ${0.3 + progress * 0.5})`;
+      } else {
+        ctx.fillStyle = `rgba(255, 30, 30, ${0.1 + progress * 0.25})`;
+        ctx.strokeStyle = `rgba(255, 50, 50, ${0.3 + progress * 0.5})`;
+      }
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+      ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+    } else if (zone.isActive) {
+      const fade = zone.activeTimer > 0 ? Math.min(1, zone.activeTimer / 0.3) : 1;
+      if (zone.type === 'slow') {
+        ctx.fillStyle = `rgba(100, 20, 200, ${0.3 * fade})`;
+        ctx.strokeStyle = `rgba(140, 60, 240, ${0.6 * fade})`;
+      } else {
+        ctx.fillStyle = `rgba(255, 20, 20, ${0.5 * fade})`;
+        ctx.strokeStyle = `rgba(255, 60, 60, ${0.8 * fade})`;
+      }
+      ctx.lineWidth = 2;
+      ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+      ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+    }
+    ctx.restore();
+  }
 }

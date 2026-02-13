@@ -57,6 +57,31 @@ export type TAreaHazard = {
   isActive: boolean;
 };
 
+export type TZoneType = 'damage' | 'slow';
+
+export type TWall = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  vx: number;
+  vy: number;
+  warningTimer: number;
+  activeTimer: number;
+  isActive: boolean;
+};
+
+export type TZone = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  warningTimer: number;
+  activeTimer: number;
+  isActive: boolean;
+  type: TZoneType;
+};
+
 export type TPatternTier = 'basic' | 'mid' | 'advanced';
 
 export type TPatternState = {
@@ -65,6 +90,8 @@ export type TPatternState = {
   projectiles: TProjectile[];
   lasers: TLaser[];
   areas: TAreaHazard[];
+  walls: TWall[];
+  zones: TZone[];
   custom: Record<string, unknown>;
 };
 

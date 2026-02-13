@@ -28,6 +28,8 @@ const inOut: TPattern = {
         activeTimer: 0,
         isActive: false,
       }],
+      walls: [],
+      zones: [],
       custom: { isInner },
     };
   },

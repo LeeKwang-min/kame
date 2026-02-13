@@ -55,6 +55,8 @@ const bulletWall: TPattern = {
       projectiles,
       lasers: [],
       areas: [],
+      walls: [],
+      zones: [],
       custom: { gaps, fromLeft },
     };
   },

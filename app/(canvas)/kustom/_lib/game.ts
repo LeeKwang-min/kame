@@ -8,7 +8,7 @@ import {
 } from '@/lib/game';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './config';
 import { TGameState } from './types';
-import { createPlayer, updatePlayer, startDash, hitPlayer, renderPlayer, renderHP, renderDashCooldown, checkProjectileCollision, checkLaserCollision, checkAreaCollision } from './player';
+import { createPlayer, updatePlayer, startDash, hitPlayer, renderPlayer, renderHP, renderDashCooldown, checkProjectileCollision, checkLaserCollision, checkAreaCollision, checkWallCollision, isPlayerInZone } from './player';
 import { createBoss, updateBoss, renderBoss, renderPatterns, checkBossCollision } from './boss';
 import { renderBackground, renderTimeHud } from './renderer';
 import { loadAssets } from './assets';
@@ -84,8 +84,18 @@ export function setupKustom(
   function update(dt: number): void {
     elapsedTime += dt;
 
+    // Check slow zones
+    let speedMultiplier = 1.0;
+    for (const ap of boss.activePatterns) {
+      if (!ap.pattern) continue;
+      if (isPlayerInZone(player, ap.state.zones, 'slow')) {
+        speedMultiplier = 0.5;
+        break;
+      }
+    }
+
     // Update player
-    updatePlayer(player, dt, keys);
+    updatePlayer(player, dt, keys, speedMultiplier);
 
     // Update boss
     updateBoss(boss, dt, elapsedTime, { x: player.x, y: player.y });
@@ -124,6 +134,16 @@ export function setupKustom(
             wasHit = true;
           }
         }
+      }
+
+      // Wall collision
+      if (!wasHit && checkWallCollision(player, s.walls)) {
+        wasHit = true;
+      }
+
+      // Damage zone collision
+      if (!wasHit && isPlayerInZone(player, s.zones, 'damage')) {
+        wasHit = true;
       }
     }
 

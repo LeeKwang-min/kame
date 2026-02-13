@@ -19,6 +19,7 @@ import {
 import { TPatternState, TVector2 } from './types';
 import { pickRandomPattern } from './patterns/registry';
 import { getAssets } from './assets';
+import { renderWalls, renderZones } from './renderer';
 
 // Import all patterns to trigger registration
 import './patterns/aimed-shot';
@@ -174,6 +175,8 @@ export function renderBoss(boss: TBoss, ctx: CanvasRenderingContext2D): void {
 export function renderPatterns(boss: TBoss, ctx: CanvasRenderingContext2D): void {
   for (const ap of boss.activePatterns) {
     if (ap.pattern) {
+      renderWalls(ctx, ap.state.walls);
+      renderZones(ctx, ap.state.zones);
       ap.pattern.render(ap.state, ctx);
     }
   }

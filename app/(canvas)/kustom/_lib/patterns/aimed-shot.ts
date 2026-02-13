@@ -28,6 +28,8 @@ const aimedShot: TPattern = {
       projectiles: [],
       lasers: [],
       areas: [],
+      walls: [],
+      zones: [],
       custom: {
         dirX,
         dirY,

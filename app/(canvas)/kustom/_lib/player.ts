@@ -16,7 +16,7 @@ import {
   PLAYER_RENDER_SIZE,
   PLAYER_ANIM_SPEED,
 } from './config';
-import { TPlayer, TProjectile, TLaser, TAreaHazard, TDirection } from './types';
+import { TPlayer, TProjectile, TLaser, TAreaHazard, TWall, TZone, TZoneType, TDirection } from './types';
 import { getAssets } from './assets';
 
 const DIR_ROW: Record<TDirection, number> = { down: 0, left: 1, right: 2, up: 3 };
@@ -44,6 +44,7 @@ export function updatePlayer(
   player: TPlayer,
   dt: number,
   keys: Set<string>,
+  speedMultiplier: number = 1.0,
 ): void {
   if (player.dashCooldown > 0) {
     player.dashCooldown -= dt;
@@ -88,7 +89,7 @@ export function updatePlayer(
     dy /= len;
   }
 
-  let speed = PLAYER_SPEED;
+  let speed = PLAYER_SPEED * speedMultiplier;
   if (player.isDashing) {
     dx = player.dashDirX;
     dy = player.dashDirY;
@@ -211,6 +212,41 @@ export function checkAreaCollision(player: TPlayer, areas: TAreaHazard[], isInne
       if (dist > area.radius - PLAYER_RADIUS) return true;
     } else {
       if (dist < area.radius + PLAYER_RADIUS) return true;
+    }
+  }
+  return false;
+}
+
+export function checkWallCollision(player: TPlayer, walls: TWall[]): boolean {
+  if (player.isInvincible) return false;
+
+  for (const wall of walls) {
+    if (!wall.isActive) continue;
+
+    const closestX = Math.max(wall.x, Math.min(player.x, wall.x + wall.width));
+    const closestY = Math.max(wall.y, Math.min(player.y, wall.y + wall.height));
+    const dx = player.x - closestX;
+    const dy = player.y - closestY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < PLAYER_RADIUS) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function isPlayerInZone(player: TPlayer, zones: TZone[], zoneType: TZoneType): boolean {
+  for (const zone of zones) {
+    if (!zone.isActive || zone.type !== zoneType) continue;
+
+    if (
+      player.x >= zone.x &&
+      player.x <= zone.x + zone.width &&
+      player.y >= zone.y &&
+      player.y <= zone.y + zone.height
+    ) {
+      return true;
     }
   }
   return false;

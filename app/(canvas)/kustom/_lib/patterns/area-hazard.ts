@@ -43,6 +43,8 @@ const areaHazard: TPattern = {
       projectiles: [],
       lasers: [],
       areas,
+      walls: [],
+      zones: [],
       custom: {},
     };
   },

@@ -35,6 +35,8 @@ const radialBurst: TPattern = {
       projectiles,
       lasers: [],
       areas: [],
+      walls: [],
+      zones: [],
       custom: {},
     };
   },

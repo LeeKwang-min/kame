@@ -21,6 +21,8 @@ const spiral: TPattern = {
       projectiles: [],
       lasers: [],
       areas: [],
+      walls: [],
+      zones: [],
       custom: {
         bossX: bossPos.x,
         bossY: bossPos.y,
