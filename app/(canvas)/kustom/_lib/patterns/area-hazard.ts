@@ -77,10 +77,10 @@ const areaHazard: TPattern = {
         ctx.save();
         ctx.beginPath();
         ctx.arc(area.x, area.y, area.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 140, 0, ${0.1 + progress * 0.2})`;
+        ctx.fillStyle = `rgba(255, 30, 30, ${0.15 + progress * 0.35})`;
         ctx.fill();
-        ctx.strokeStyle = `rgba(255, 140, 0, ${0.3 + progress * 0.5})`;
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = `rgba(255, 40, 40, ${0.5 + progress * 0.5})`;
+        ctx.lineWidth = 3;
         ctx.stroke();
         ctx.restore();
       } else if (area.isActive) {
@@ -88,10 +88,10 @@ const areaHazard: TPattern = {
         ctx.save();
         ctx.beginPath();
         ctx.arc(area.x, area.y, area.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 100, 0, ${0.6 * fade})`;
+        ctx.fillStyle = `rgba(255, 20, 20, ${0.7 * fade})`;
         ctx.fill();
-        ctx.strokeStyle = `rgba(255, 200, 0, ${0.8 * fade})`;
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = `rgba(255, 60, 60, ${0.9 * fade})`;
+        ctx.lineWidth = 4;
         ctx.stroke();
         ctx.restore();
       }

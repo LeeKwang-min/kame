@@ -1,6 +1,7 @@
 import { TPattern, TPatternState, TVector2 } from '../types';
 import { BULLET_RADIUS, CANVAS_WIDTH, CANVAS_HEIGHT } from '../config';
 import { registerPattern } from './registry';
+import { renderProjectiles } from '../renderer';
 
 const BULLET_SPEED = 180;
 const ROTATION_SPEED = 3.0;
@@ -65,12 +66,7 @@ const spiral: TPattern = {
   },
 
   render(state: TPatternState, ctx: CanvasRenderingContext2D): void {
-    for (const p of state.projectiles) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.fill();
-    }
+    renderProjectiles(ctx, state.projectiles, state.elapsed);
   },
 
   isFinished(state: TPatternState): boolean {

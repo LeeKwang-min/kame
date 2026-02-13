@@ -147,7 +147,7 @@ export const MENU_LIST = [
   },
   {
     name: {
-      kor: '커스텀',
+      kor: '쿠스텀',
       eng: 'Kustom',
     },
     href: '/kustom',

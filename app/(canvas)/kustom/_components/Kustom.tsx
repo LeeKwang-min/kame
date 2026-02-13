@@ -46,7 +46,7 @@ function Kustom() {
     <div className="w-full h-full flex justify-center">
       <canvas
         ref={canvasRef}
-        className="w-[800px] h-[600px] border border-white/20 rounded-2xl shadow-lg"
+        className="w-[1080px] h-[600px] border border-white/20 rounded-2xl shadow-lg"
       />
     </div>
   );

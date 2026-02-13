@@ -18,15 +18,13 @@ function KustomPage() {
 
   return (
     <section className="w-full h-full flex gap-6 items-start justify-center">
-      <aside className="shrink-0 w-72">
+      <aside className="shrink-0 w-72 flex flex-col gap-6">
         <ControlInfoTable controls={controls} />
-      </aside>
-      <div className="flex-1 h-full max-w-[800px]">
-        <Kustom />
-      </div>
-      <aside className="shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
       </aside>
+      <div className="flex-1 h-full max-w-[1080px]">
+        <Kustom />
+      </div>
     </section>
   );
 }

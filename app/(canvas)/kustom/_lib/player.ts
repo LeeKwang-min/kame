@@ -1,7 +1,6 @@
 import {
   PLAYER_RADIUS,
   PLAYER_SPEED,
-  PLAYER_COLOR,
   PLAYER_MAX_HP,
   DASH_SPEED_MULTIPLIER,
   DASH_DURATION,
@@ -13,8 +12,14 @@ import {
   HP_HEART_GAP,
   HP_HEART_X,
   HP_HEART_Y,
+  PLAYER_SPRITE_SIZE,
+  PLAYER_RENDER_SIZE,
+  PLAYER_ANIM_SPEED,
 } from './config';
-import { TPlayer, TProjectile, TLaser, TAreaHazard } from './types';
+import { TPlayer, TProjectile, TLaser, TAreaHazard, TDirection } from './types';
+import { getAssets } from './assets';
+
+const DIR_ROW: Record<TDirection, number> = { down: 0, left: 1, right: 2, up: 3 };
 
 export function createPlayer(): TPlayer {
   return {
@@ -29,6 +34,9 @@ export function createPlayer(): TPlayer {
     dashDirX: 0,
     dashDirY: 0,
     trails: [],
+    direction: 'up',
+    animFrame: 0,
+    animTimer: 0,
   };
 }
 
@@ -63,6 +71,17 @@ export function updatePlayer(
   if (keys.has('ArrowUp')) dy -= 1;
   if (keys.has('ArrowDown')) dy += 1;
 
+  const isMoving = dx !== 0 || dy !== 0;
+
+  // Update direction based on movement
+  if (isMoving && !player.isDashing) {
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      player.direction = dx < 0 ? 'left' : 'right';
+    } else {
+      player.direction = dy < 0 ? 'up' : 'down';
+    }
+  }
+
   if (dx !== 0 && dy !== 0) {
     const len = Math.sqrt(dx * dx + dy * dy);
     dx /= len;
@@ -81,6 +100,18 @@ export function updatePlayer(
 
   player.x = Math.max(PLAYER_RADIUS, Math.min(CANVAS_WIDTH - PLAYER_RADIUS, player.x));
   player.y = Math.max(PLAYER_RADIUS, Math.min(CANVAS_HEIGHT - PLAYER_RADIUS, player.y));
+
+  // Animation
+  if (isMoving || player.isDashing) {
+    player.animTimer += dt;
+    if (player.animTimer >= 1 / PLAYER_ANIM_SPEED) {
+      player.animTimer -= 1 / PLAYER_ANIM_SPEED;
+      player.animFrame = (player.animFrame + 1) % 4;
+    }
+  } else {
+    player.animFrame = 0;
+    player.animTimer = 0;
+  }
 
   if (player.isDashing) {
     player.trails.push({ x: player.x, y: player.y, alpha: 0.6 });
@@ -186,29 +217,56 @@ export function checkAreaCollision(player: TPlayer, areas: TAreaHazard[], isInne
 }
 
 export function renderPlayer(player: TPlayer, ctx: CanvasRenderingContext2D): void {
+  const assets = getAssets();
+
+  // Trails
   for (const trail of player.trails) {
-    ctx.beginPath();
-    ctx.arc(trail.x, trail.y, PLAYER_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0, 212, 255, ${trail.alpha * 0.4})`;
-    ctx.fill();
+    ctx.save();
+    ctx.globalAlpha = trail.alpha * 0.4;
+    if (assets) {
+      const row = DIR_ROW[player.direction];
+      const srcX = player.animFrame * PLAYER_SPRITE_SIZE;
+      const srcY = row * PLAYER_SPRITE_SIZE;
+      const half = PLAYER_RENDER_SIZE / 2;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(
+        assets.playerWalk,
+        srcX, srcY, PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE,
+        trail.x - half, trail.y - half, PLAYER_RENDER_SIZE, PLAYER_RENDER_SIZE,
+      );
+    } else {
+      ctx.beginPath();
+      ctx.arc(trail.x, trail.y, PLAYER_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 212, 255, 1)';
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
+  // Player sprite
   ctx.save();
   if (player.isInvincible && !player.isDashing) {
     const blink = Math.floor(performance.now() / 80) % 2 === 0;
     ctx.globalAlpha = blink ? 0.3 : 0.8;
   }
 
-  ctx.beginPath();
-  ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
-  ctx.fillStyle = player.isDashing ? '#66eeff' : PLAYER_COLOR;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(player.x - 3, player.y - 3, PLAYER_RADIUS * 0.4, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fill();
-
+  if (assets) {
+    const row = DIR_ROW[player.direction];
+    const srcX = player.animFrame * PLAYER_SPRITE_SIZE;
+    const srcY = row * PLAYER_SPRITE_SIZE;
+    const half = PLAYER_RENDER_SIZE / 2;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(
+      assets.playerWalk,
+      srcX, srcY, PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE,
+      player.x - half, player.y - half, PLAYER_RENDER_SIZE, PLAYER_RENDER_SIZE,
+    );
+  } else {
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = '#00d4ff';
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -248,7 +306,7 @@ export function renderDashCooldown(player: TPlayer, ctx: CanvasRenderingContext2
   const barWidth = 30;
   const barHeight = 4;
   const x = player.x - barWidth / 2;
-  const y = player.y + PLAYER_RADIUS + 8;
+  const y = player.y + PLAYER_RENDER_SIZE / 2 + 4;
 
   if (player.dashCooldown > 0) {
     const progress = 1 - player.dashCooldown / DASH_COOLDOWN;

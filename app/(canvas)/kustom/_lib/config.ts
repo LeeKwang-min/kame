@@ -1,5 +1,5 @@
 // Canvas
-export const CANVAS_WIDTH = 800;
+export const CANVAS_WIDTH = 1080;
 export const CANVAS_HEIGHT = 600;
 
 // Player
@@ -18,6 +18,7 @@ export const BOSS_Y = 80;
 export const BOSS_RADIUS = 40;
 export const BOSS_COLOR = '#8b0000';
 export const BOSS_ROTATION_SPEED = 0.3;
+export const BOSS_MOVE_SPEED = 35;
 
 // Attack scheduling
 export const BASE_ATTACK_INTERVAL = 3.0;
@@ -38,6 +39,22 @@ export const BULLET_COLOR = '#ff4444';
 export const BG_COLOR = '#111118';
 export const GRID_COLOR = 'rgba(255,255,255,0.03)';
 export const GRID_SPACING = 40;
+
+// Sprites
+export const PLAYER_SPRITE_SIZE = 16;
+export const PLAYER_RENDER_SIZE = 48;
+export const PLAYER_ANIM_SPEED = 8;
+
+export const BOSS_FRAME_W = 82;
+export const BOSS_FRAME_H = 82;
+export const BOSS_FRAME_COUNT = 10;
+export const BOSS_RENDER_SIZE = 96;
+export const BOSS_ANIM_SPEED = 8;
+
+export const SHURIKEN_RENDER_SIZE = 24;
+
+export const GRASS_TILE_SIZE = 32;
+export const GRASS_TILE_RENDER_SIZE = 64;
 
 // HUD
 export const HP_HEART_SIZE = 20;

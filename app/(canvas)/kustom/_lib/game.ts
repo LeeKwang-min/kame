@@ -9,8 +9,9 @@ import {
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './config';
 import { TGameState } from './types';
 import { createPlayer, updatePlayer, startDash, hitPlayer, renderPlayer, renderHP, renderDashCooldown, checkProjectileCollision, checkLaserCollision, checkAreaCollision } from './player';
-import { createBoss, updateBoss, renderBoss, renderPatterns } from './boss';
+import { createBoss, updateBoss, renderBoss, renderPatterns, checkBossCollision } from './boss';
 import { renderBackground, renderTimeHud } from './renderer';
+import { loadAssets } from './assets';
 
 export type TKustomCallbacks = {
   onGameStart?: () => Promise<void>;
@@ -72,6 +73,7 @@ export function setupKustom(
     }
 
     state = 'loading';
+    await loadAssets();
     if (callbacks.onGameStart) {
       await callbacks.onGameStart();
     }
@@ -88,8 +90,13 @@ export function setupKustom(
     // Update boss
     updateBoss(boss, dt, elapsedTime, { x: player.x, y: player.y });
 
-    // Collision detection
+    // Boss contact collision
     let wasHit = false;
+    if (!player.isInvincible && checkBossCollision(boss, player.x, player.y)) {
+      wasHit = true;
+    }
+
+    // Pattern collision detection
     for (const ap of boss.activePatterns) {
       if (!ap.pattern || wasHit) continue;
       const s = ap.state;
@@ -129,6 +136,7 @@ export function setupKustom(
   }
 
   function render(): void {
+    ctx.imageSmoothingEnabled = false;
     renderBackground(ctx);
 
     if (state === 'start') {

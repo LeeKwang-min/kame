@@ -3,6 +3,8 @@ export type TVector2 = {
   y: number;
 };
 
+export type TDirection = 'down' | 'left' | 'right' | 'up';
+
 export type TPlayer = {
   x: number;
   y: number;
@@ -15,6 +17,9 @@ export type TPlayer = {
   dashDirX: number;
   dashDirY: number;
   trails: TTrail[];
+  direction: TDirection;
+  animFrame: number;
+  animTimer: number;
 };
 
 export type TTrail = {
