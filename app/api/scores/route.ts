@@ -45,6 +45,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'randomdefense',
   'puyopuyo',
   'jewelcrush',
+  'kustom',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

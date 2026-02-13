@@ -38,7 +38,8 @@ export type TGameType =
   | 'maze'
   | 'randomdefense'
   | 'puyopuyo'
-  | 'jewelcrush';
+  | 'jewelcrush'
+  | 'kustom';
 
 export type TScore = {
   id: string;

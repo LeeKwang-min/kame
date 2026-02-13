@@ -27,6 +27,7 @@ import {
   TreePine,
   Layers,
   Sword,
+  Swords,
   Crosshair,
   Brain,
   Grid2X2,
@@ -86,6 +87,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/randomdefense': Shield,
   '/puyopuyo': Grip,
   '/jewelcrush': Gem,
+  '/kustom': Swords,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

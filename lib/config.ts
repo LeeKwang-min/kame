@@ -145,6 +145,14 @@ export const MENU_LIST = [
     href: '/towerblocks',
     category: 'Action',
   },
+  {
+    name: {
+      kor: '커스텀',
+      eng: 'Kustom',
+    },
+    href: '/kustom',
+    category: 'Action',
+  },
   // Puzzle
   {
     name: {
