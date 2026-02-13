@@ -1,17 +1,18 @@
-import type { TWaveEvent, TEnemy } from './types';
+import type { TWaveEvent, TEnemy, TEnemyType } from './types';
 import { WAVE_SCHEDULE, GAME_DURATION } from './config';
 import { spawnEnemy, getSpawnPosition } from './enemies';
 
 // ─── Internal Types ───
 
-type TActiveWave = {
+type TActiveSpawner = {
   event: TWaveEvent;
   spawnTimer: number;
   spawned: number;
 };
 
 type TWaveManager = {
-  activeWaves: TActiveWave[];
+  // One active spawner per enemy type (replaced when new event activates)
+  spawners: Map<TEnemyType, TActiveSpawner>;
   activatedIndices: Set<number>;
   deathSpawned: boolean;
 };
@@ -20,7 +21,7 @@ type TWaveManager = {
 
 export function createWaveManager(): TWaveManager {
   return {
-    activeWaves: [],
+    spawners: new Map(),
     activatedIndices: new Set(),
     deathSpawned: false,
   };
@@ -36,62 +37,80 @@ export function updateWaves(
   playerX: number,
   playerY: number,
 ): void {
-  // 1. Activate new wave events based on elapsed time
+  // 1. Activate new events based on elapsed time
   for (let i = 0; i < WAVE_SCHEDULE.length; i++) {
     if (manager.activatedIndices.has(i)) continue;
 
     const event = WAVE_SCHEDULE[i];
     if (event.time <= elapsed) {
-      manager.activeWaves.push({ event, spawnTimer: 0, spawned: 0 });
       manager.activatedIndices.add(i);
+
+      if (event.count != null) {
+        // Finite spawn (e.g. boss): handle immediately, don't replace spawner
+        if (event.interval === 0) {
+          // Instant spawn all at once
+          for (let j = 0; j < event.count; j++) {
+            const spawnPos = getSpawnPosition(playerX, playerY);
+            spawnEnemy(
+              enemyPool,
+              event.enemyType,
+              spawnPos.x,
+              spawnPos.y,
+              event.hpMultiplier,
+              event.speedMultiplier,
+            );
+          }
+        } else {
+          // Finite count with interval: create a temporary separate spawner
+          // Store with a unique key so it doesn't replace the continuous spawner
+          const tempKey = `${event.enemyType}_finite_${i}` as TEnemyType;
+          manager.spawners.set(tempKey, { event, spawnTimer: 0, spawned: 0 });
+        }
+      } else {
+        // Infinite spawn: replace existing spawner for this enemy type
+        manager.spawners.set(event.enemyType, { event, spawnTimer: 0, spawned: 0 });
+      }
     }
   }
 
-  // 2. Update each active wave (iterate backwards for safe removal)
-  for (let i = manager.activeWaves.length - 1; i >= 0; i--) {
-    const wave = manager.activeWaves[i];
+  // 2. Update all active spawners
+  const toRemove: TEnemyType[] = [];
 
-    // Instant spawn (interval === 0): spawn all at once
-    if (wave.event.interval === 0) {
-      while (wave.spawned < wave.event.count) {
-        const spawnPos = getSpawnPosition(playerX, playerY);
-        spawnEnemy(
-          enemyPool,
-          wave.event.enemyType,
-          spawnPos.x,
-          spawnPos.y,
-          wave.event.hpMultiplier,
-          wave.event.speedMultiplier,
-        );
-        wave.spawned++;
-      }
-      manager.activeWaves.splice(i, 1);
+  for (const [key, spawner] of manager.spawners) {
+    // Skip instant spawns (already handled above)
+    if (spawner.event.interval === 0) {
+      toRemove.push(key);
       continue;
     }
 
-    // Interval-based spawning
-    wave.spawnTimer += dt;
-    if (wave.spawnTimer >= wave.event.interval) {
-      wave.spawnTimer -= wave.event.interval;
+    spawner.spawnTimer += dt;
+    while (spawner.spawnTimer >= spawner.event.interval) {
+      spawner.spawnTimer -= spawner.event.interval;
 
       const spawnPos = getSpawnPosition(playerX, playerY);
       spawnEnemy(
         enemyPool,
-        wave.event.enemyType,
+        spawner.event.enemyType,
         spawnPos.x,
         spawnPos.y,
-        wave.event.hpMultiplier,
-        wave.event.speedMultiplier,
+        spawner.event.hpMultiplier,
+        spawner.event.speedMultiplier,
       );
-      wave.spawned++;
+      spawner.spawned++;
 
-      if (wave.spawned >= wave.event.count) {
-        manager.activeWaves.splice(i, 1);
+      // Only remove if finite count is reached
+      if (spawner.event.count != null && spawner.spawned >= spawner.event.count) {
+        toRemove.push(key);
+        break;
       }
     }
   }
 
-  // 3. Death check at GAME_DURATION (600s)
+  for (const key of toRemove) {
+    manager.spawners.delete(key);
+  }
+
+  // 3. Death boss at GAME_DURATION (600s)
   if (elapsed >= GAME_DURATION && !manager.deathSpawned) {
     const spawnPos = getSpawnPosition(playerX, playerY);
     const deathBoss = spawnEnemy(enemyPool, 'boss', spawnPos.x, spawnPos.y, 1, 1);
@@ -108,7 +127,7 @@ export function updateWaves(
 // ─── Reset Wave Manager ───
 
 export function resetWaveManager(manager: TWaveManager): void {
-  manager.activeWaves = [];
+  manager.spawners.clear();
   manager.activatedIndices.clear();
   manager.deathSpawned = false;
 }

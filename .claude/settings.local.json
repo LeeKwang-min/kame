@@ -22,7 +22,12 @@
       "Bash(grep:*)",
       "Bash(wc:*)",
       "Bash(head:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "WebSearch",
+      "Bash(npx next build)",
+      "Bash(git checkout:*)",
+      "Bash(findstr:*)",
+      "Bash(yarn tsc:*)"
     ]
   }
 }

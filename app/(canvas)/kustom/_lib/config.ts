@@ -3,8 +3,8 @@ export const CANVAS_WIDTH = 1080;
 export const CANVAS_HEIGHT = 600;
 
 // Player
-export const PLAYER_RADIUS = 12;
-export const PLAYER_SPEED = 200;
+export const PLAYER_RADIUS = 8;
+export const PLAYER_SPEED = 280;
 export const PLAYER_COLOR = '#00d4ff';
 export const PLAYER_MAX_HP = 3;
 export const DASH_SPEED_MULTIPLIER = 3;
@@ -42,7 +42,7 @@ export const GRID_SPACING = 40;
 
 // Sprites
 export const PLAYER_SPRITE_SIZE = 16;
-export const PLAYER_RENDER_SIZE = 48;
+export const PLAYER_RENDER_SIZE = 32;
 export const PLAYER_ANIM_SPEED = 8;
 
 export const BOSS_FRAME_W = 82;

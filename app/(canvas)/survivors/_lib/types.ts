@@ -184,10 +184,10 @@ export type TLevelUpChoice = {
 export type TWaveEvent = {
   time: number;
   enemyType: TEnemyType;
-  count: number;
   interval: number;
   hpMultiplier: number;
   speedMultiplier: number;
+  count?: number; // optional: only for one-time spawns (e.g. boss)
 };
 
 // ─── Decoration ───
