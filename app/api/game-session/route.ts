@@ -42,6 +42,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'minesweeper',
   'maze',
   'randomdefense',
+  'puyopuyo',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

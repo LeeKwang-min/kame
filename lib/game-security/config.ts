@@ -38,6 +38,7 @@ export const GAME_SECURITY_CONFIG: Record<
   minesweeper: { maxScore: 50000, minPlayTimeSeconds: 10 },
   maze: { maxScore: 300000, minPlayTimeSeconds: 10 },
   randomdefense: { maxScore: 500000, minPlayTimeSeconds: 30 },
+  puyopuyo: { maxScore: 999999, minPlayTimeSeconds: 10 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

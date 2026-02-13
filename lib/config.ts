@@ -220,6 +220,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '뿌요뿌요',
+      eng: 'Puyo Puyo',
+    },
+    href: '/puyopuyo',
+    category: 'Puzzle',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },
