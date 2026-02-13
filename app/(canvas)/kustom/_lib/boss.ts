@@ -29,6 +29,8 @@ import './patterns/area-hazard';
 import './patterns/in-out';
 import './patterns/spiral';
 import './patterns/bullet-wall';
+import './patterns/ground-spike';
+import './patterns/falling-rocks';
 
 export type TBoss = {
   x: number;
