@@ -34,6 +34,9 @@ import './patterns/falling-rocks';
 import './patterns/cage-walls';
 import './patterns/poison-zone';
 import './patterns/sweeping-laser';
+import './patterns/corridor';
+import './patterns/checkerboard';
+import './patterns/minefield';
 
 export type TBoss = {
   x: number;
