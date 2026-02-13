@@ -39,7 +39,7 @@ export const COLORS = {
   tile2: '#1a2e1c',
   player: '#00d4ff',
   playerDamaged: '#ff4444',
-  expGem: '#ffcc00',
+  expGem: '#4488ff',
   hud: '#ffffff',
   hudBg: 'rgba(0,0,0,0.6)',
   levelUpBg: 'rgba(0,0,0,0.85)',
