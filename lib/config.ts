@@ -228,6 +228,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '쥬얼 크러쉬',
+      eng: 'Jewel Crush',
+    },
+    href: '/jewelcrush',
+    category: 'Puzzle',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },

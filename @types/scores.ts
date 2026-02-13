@@ -37,7 +37,8 @@ export type TGameType =
   | 'minesweeper'
   | 'maze'
   | 'randomdefense'
-  | 'puyopuyo';
+  | 'puyopuyo'
+  | 'jewelcrush';
 
 export type TScore = {
   id: string;

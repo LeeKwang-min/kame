@@ -39,6 +39,7 @@ import {
   Compass,
   Shield,
   Grip,
+  Gem,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -84,6 +85,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/maze': Compass,
   '/randomdefense': Shield,
   '/puyopuyo': Grip,
+  '/jewelcrush': Gem,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
