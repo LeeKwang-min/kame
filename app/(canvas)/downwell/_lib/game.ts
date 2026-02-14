@@ -51,7 +51,7 @@ export const setupDownwell = (
   canvas: HTMLCanvasElement,
   callbacks?: TDownwellCallbacks,
 ) => {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   if (!ctx) return;
 
   canvas.width = CANVAS_WIDTH;
