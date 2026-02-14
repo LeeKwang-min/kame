@@ -53,7 +53,9 @@ export const setupBlockPuzzle = (
 
   // --- Grid State ---
   // grid[row][col] holds the color string or null
-  let grid: (string | null)[][] = [];
+  let grid: (string | null)[][] = Array.from({ length: GRID_SIZE }, () =>
+    new Array<string | null>(GRID_SIZE).fill(null),
+  );
 
   // --- Block State ---
   let availableBlocks: (TBlock | null)[] = [];
