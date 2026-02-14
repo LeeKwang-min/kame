@@ -268,6 +268,14 @@ export const MENU_LIST = [
   },
   {
     name: {
+      kor: '블록 퍼즐',
+      eng: 'Block Puzzle',
+    },
+    href: '/blockpuzzle',
+    category: 'Puzzle',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },

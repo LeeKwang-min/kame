@@ -42,7 +42,8 @@ export type TGameType =
   | 'kustom'
   | 'survivors'
   | 'helicopter'
-  | 'downwell';
+  | 'downwell'
+  | 'blockpuzzle';
 
 export type TScore = {
   id: string;

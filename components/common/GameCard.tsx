@@ -43,6 +43,7 @@ import {
   Gem,
   Plane,
   ArrowDownToLine,
+  LayoutGrid as BlockGrid,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -93,6 +94,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/survivors': Shield,
   '/helicopter': Plane,
   '/downwell': ArrowDownToLine,
+  '/blockpuzzle': BlockGrid,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
