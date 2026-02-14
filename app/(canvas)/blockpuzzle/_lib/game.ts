@@ -115,7 +115,16 @@ export const setupBlockPuzzle = (
   };
 
   const generateBlocks = (): (TBlock | null)[] => {
-    return [randomBlock(), randomBlock(), randomBlock()];
+    // 3개 블록은 서로 다른 색상 배정
+    const colorIndices = [...Array(BLOCK_COLORS.length).keys()];
+    for (let i = colorIndices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [colorIndices[i], colorIndices[j]] = [colorIndices[j], colorIndices[i]];
+    }
+    return [0, 1, 2].map((i) => ({
+      shape: BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)],
+      color: BLOCK_COLORS[colorIndices[i]],
+    }));
   };
 
   // Check if a block shape can be placed at grid position (row, col)
