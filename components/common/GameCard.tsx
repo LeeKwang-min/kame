@@ -49,7 +49,7 @@ import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
 import { useLocale } from '@/provider/LocaleProvider';
 
-const GAME_ICONS: Record<string, LucideIcon> = {
+export const GAME_ICONS: Record<string, LucideIcon> = {
   '/tetris': Grid3X3,
   '/snake': Bug,
   '/kero33': Sparkles,

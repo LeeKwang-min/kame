@@ -1,3 +1,5 @@
+import { TFeaturedGame } from '@/@types/menus';
+
 export const MENU_LIST = [
   // Arcade
   {
@@ -380,5 +382,85 @@ export const MENU_LIST = [
     },
     href: '/wheel',
     category: 'Utility',
+  },
+];
+
+export const FEATURED_GAMES: TFeaturedGame[] = [
+  {
+    href: '/tetris',
+    description: {
+      kor: '블록을 쌓아 줄을 완성하는 클래식 퍼즐 게임',
+      eng: 'Stack blocks and clear lines in this classic puzzle',
+    },
+  },
+  {
+    href: '/snake',
+    description: {
+      kor: '먹이를 먹고 점점 길어지는 뱀을 조종하세요',
+      eng: 'Guide the growing snake to eat and survive',
+    },
+  },
+  {
+    href: '/kero33',
+    description: {
+      kor: '반짝이는 키어로와 함께하는 아케이드 게임',
+      eng: 'Play the sparkling Kero33 arcade game',
+    },
+  },
+  {
+    href: '/randomdefense',
+    description: {
+      kor: '랜덤 유닛을 배치해 적의 침공을 막아내세요',
+      eng: 'Place random units to defend against enemies',
+    },
+  },
+  {
+    href: '/stairs',
+    description: {
+      kor: '끝없이 이어지는 계단을 올라가세요',
+      eng: 'Climb the never-ending stairs',
+    },
+  },
+  {
+    href: '/kustom',
+    description: {
+      kor: '나만의 전략으로 전투에서 승리하세요',
+      eng: 'Win battles with your own strategy',
+    },
+  },
+  {
+    href: '/survivors',
+    description: {
+      kor: '몰려오는 적들을 물리치고 살아남으세요',
+      eng: 'Survive endless waves of enemies',
+    },
+  },
+  {
+    href: '/2048',
+    description: {
+      kor: '같은 숫자를 합쳐 2048을 만들어 보세요',
+      eng: 'Merge tiles to reach the 2048 number',
+    },
+  },
+  {
+    href: '/maze',
+    description: {
+      kor: '복잡한 미로를 탐험하고 출구를 찾으세요',
+      eng: 'Navigate the maze and find the exit',
+    },
+  },
+  {
+    href: '/blockpuzzle',
+    description: {
+      kor: '블록을 배치하여 줄을 완성하세요',
+      eng: 'Place blocks to complete lines',
+    },
+  },
+  {
+    href: '/fruitninja',
+    description: {
+      kor: '날아오는 과일을 칼로 베어내는 액션 게임',
+      eng: 'Slash flying fruits with your blade',
+    },
   },
 ];

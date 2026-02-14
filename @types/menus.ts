@@ -10,3 +10,11 @@ export type TMenu = {
 };
 
 export type TMenuList = TMenu[];
+
+export type TFeaturedGame = {
+  href: string;
+  description: {
+    kor: string;
+    eng: string;
+  };
+};
