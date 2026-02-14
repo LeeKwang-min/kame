@@ -41,7 +41,9 @@ export type TGameType =
   | 'jewelcrush'
   | 'kustom'
   | 'survivors'
-  | 'geometrydash';
+  | 'geometrydash'
+  | 'helicopter'
+  | 'downwell';
 
 export type TScore = {
   id: string;

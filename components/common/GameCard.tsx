@@ -42,6 +42,8 @@ import {
   Grip,
   Gem,
   Triangle,
+  Plane,
+  ArrowDownToLine,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -91,6 +93,8 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/kustom': Swords,
   '/survivors': Shield,
   '/geometrydash': Triangle,
+  '/helicopter': Plane,
+  '/downwell': ArrowDownToLine,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

@@ -169,6 +169,22 @@ export const MENU_LIST = [
     href: '/geometrydash',
     category: 'Action',
   },
+  {
+    name: {
+      kor: '헬리콥터',
+      eng: 'Helicopter',
+    },
+    href: '/helicopter',
+    category: 'Action',
+  },
+  {
+    name: {
+      kor: '다운웰',
+      eng: 'Downwell',
+    },
+    href: '/downwell',
+    category: 'Action',
+  },
   // Puzzle
   {
     name: {

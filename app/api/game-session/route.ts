@@ -47,6 +47,8 @@ const VALID_GAME_TYPES: TGameType[] = [
   'kustom',
   'survivors',
   'geometrydash',
+  'helicopter',
+  'downwell',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
