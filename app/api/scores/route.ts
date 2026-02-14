@@ -47,7 +47,6 @@ const VALID_GAME_TYPES: TGameType[] = [
   'jewelcrush',
   'kustom',
   'survivors',
-  'geometrydash',
   'helicopter',
   'downwell',
 ];

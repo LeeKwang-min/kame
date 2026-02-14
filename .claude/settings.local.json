@@ -27,7 +27,12 @@
       "Bash(npx next build)",
       "Bash(git checkout:*)",
       "Bash(findstr:*)",
-      "Bash(yarn tsc:*)"
+      "Bash(yarn tsc:*)",
+      "Bash(git branch:*)",
+      "Bash(timeout 15 yarn dev:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)",
+      "Bash(curl:*)"
     ]
   }
 }

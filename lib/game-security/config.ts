@@ -42,7 +42,6 @@ export const GAME_SECURITY_CONFIG: Record<
   jewelcrush: { maxScore: 100000, minPlayTimeSeconds: 10 },
   kustom: { maxScore: 9999, minPlayTimeSeconds: 5 },
   survivors: { maxScore: 660, minPlayTimeSeconds: 30 },
-  geometrydash: { maxScore: 100000, minPlayTimeSeconds: 5 },
   helicopter: { maxScore: 100000, minPlayTimeSeconds: 5 },
   downwell: { maxScore: 100000, minPlayTimeSeconds: 5 },
   // 운 기반

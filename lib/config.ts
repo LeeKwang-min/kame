@@ -163,14 +163,6 @@ export const MENU_LIST = [
   },
   {
     name: {
-      kor: '지오메트리 대시',
-      eng: 'Geometry Dash',
-    },
-    href: '/geometrydash',
-    category: 'Action',
-  },
-  {
-    name: {
       kor: '헬리콥터',
       eng: 'Helicopter',
     },

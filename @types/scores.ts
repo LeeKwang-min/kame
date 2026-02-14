@@ -41,7 +41,6 @@ export type TGameType =
   | 'jewelcrush'
   | 'kustom'
   | 'survivors'
-  | 'geometrydash'
   | 'helicopter'
   | 'downwell';
 
