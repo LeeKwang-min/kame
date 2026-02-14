@@ -161,6 +161,14 @@ export const MENU_LIST = [
     href: '/survivors',
     category: 'Action',
   },
+  {
+    name: {
+      kor: '지오메트리 대시',
+      eng: 'Geometry Dash',
+    },
+    href: '/geometrydash',
+    category: 'Action',
+  },
   // Puzzle
   {
     name: {

@@ -41,6 +41,7 @@ import {
   Shield,
   Grip,
   Gem,
+  Triangle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -89,6 +90,7 @@ const GAME_ICONS: Record<string, LucideIcon> = {
   '/jewelcrush': Gem,
   '/kustom': Swords,
   '/survivors': Shield,
+  '/geometrydash': Triangle,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

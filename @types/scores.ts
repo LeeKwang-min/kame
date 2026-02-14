@@ -40,7 +40,8 @@ export type TGameType =
   | 'puyopuyo'
   | 'jewelcrush'
   | 'kustom'
-  | 'survivors';
+  | 'survivors'
+  | 'geometrydash';
 
 export type TScore = {
   id: string;

@@ -42,6 +42,7 @@ export const GAME_SECURITY_CONFIG: Record<
   jewelcrush: { maxScore: 100000, minPlayTimeSeconds: 10 },
   kustom: { maxScore: 9999, minPlayTimeSeconds: 5 },
   survivors: { maxScore: 660, minPlayTimeSeconds: 30 },
+  geometrydash: { maxScore: 100000, minPlayTimeSeconds: 5 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

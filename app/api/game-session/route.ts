@@ -46,6 +46,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'jewelcrush',
   'kustom',
   'survivors',
+  'geometrydash',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
