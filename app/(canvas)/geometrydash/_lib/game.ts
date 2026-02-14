@@ -13,6 +13,7 @@ import {
   PLAYER_X,
   PLAYER_GROUND_Y,
   JUMP_VELOCITY,
+  JUMPPAD_VELOCITY,
   GRAVITY,
   GROUND_Y,
   GROUND_HEIGHT,
@@ -21,21 +22,29 @@ import {
   SPEED_INCREASE_RATE,
   SPIKE_WIDTH,
   SPIKE_HEIGHT,
-  BLOCK_WIDTH,
-  BLOCK_HEIGHT,
-  BLOCK_Y_OFFSET,
-  PIT_WIDTH_MIN,
-  PIT_WIDTH_MAX,
-  MIN_OBSTACLE_GAP,
-  MAX_OBSTACLE_GAP,
-  OBSTACLE_GAP_DECREASE_RATE,
-  MIN_GAP_FLOOR,
+  PLATFORM_WIDTH,
+  PLATFORM_HEIGHT,
+  PLATFORM_ELEVATION,
+  JUMPPAD_WIDTH,
+  JUMPPAD_HEIGHT,
+  PIT_WIDTH,
+  PATTERN_GAP_MIN,
+  PATTERN_GAP_MAX,
+  PATTERN_GAP_DECREASE_RATE,
+  PATTERN_GAP_FLOOR,
   PARTICLE_COUNT,
   PARTICLE_LIFE,
   GRID_SPACING,
   COLORS,
+  PATTERNS,
 } from './config';
-import { TObstacle, TObstacleType, TPlayer, TParticle, TGroundSegment } from './types';
+import {
+  TObstacle,
+  TPlayer,
+  TParticle,
+  TPlatformBlock,
+  TJumpPad,
+} from './types';
 
 export type TGeometryDashCallbacks = {
   onGameStart?: () => Promise<void>;
@@ -64,13 +73,14 @@ export const setupGeometryDash = (
   };
 
   let obstacles: TObstacle[] = [];
-  let groundSegments: TGroundSegment[] = [];
+  let platforms: TPlatformBlock[] = [];
+  let jumppads: TJumpPad[] = [];
   let particles: TParticle[] = [];
 
   let score = 0;
   let speed = BASE_SPEED;
-  let distanceSinceLastObstacle = 0;
-  let nextObstacleGap = MIN_OBSTACLE_GAP;
+  let distanceSinceLastPattern = 0;
+  let nextPatternDistance = 300;
   let gridOffset = 0;
   let elapsedTime = 0;
 
@@ -120,12 +130,13 @@ export const setupGeometryDash = (
       isGrounded: true,
     };
     obstacles = [];
-    groundSegments = [];
+    platforms = [];
+    jumppads = [];
     particles = [];
     score = 0;
     speed = BASE_SPEED;
-    distanceSinceLastObstacle = 0;
-    nextObstacleGap = MIN_OBSTACLE_GAP;
+    distanceSinceLastPattern = 0;
+    nextPatternDistance = 300;
     gridOffset = 0;
     elapsedTime = 0;
     isStarted = false;
@@ -156,12 +167,13 @@ export const setupGeometryDash = (
       isGrounded: true,
     };
     obstacles = [];
-    groundSegments = [];
+    platforms = [];
+    jumppads = [];
     particles = [];
     score = 0;
     speed = BASE_SPEED;
-    distanceSinceLastObstacle = 0;
-    nextObstacleGap = rand(MIN_OBSTACLE_GAP, MAX_OBSTACLE_GAP);
+    distanceSinceLastPattern = 0;
+    nextPatternDistance = 300;
     gridOffset = 0;
     elapsedTime = 0;
   };
@@ -172,65 +184,86 @@ export const setupGeometryDash = (
     isStarted = false;
   };
 
-  // --- Spawn Obstacle ---
-  const spawnObstacle = () => {
-    const roll = Math.random();
-    let type: TObstacleType;
+  // --- Spawn Pattern ---
+  const spawnPattern = () => {
+    // 1. Filter patterns by current difficulty
+    const maxDifficulty = elapsedTime < 15 ? 1 : elapsedTime < 30 ? 2 : 3;
+    const available = PATTERNS.filter((p) => p.difficulty <= maxDifficulty);
 
-    if (roll < 0.45) {
-      type = 'spike';
-    } else if (roll < 0.75) {
-      type = 'block';
-    } else {
-      type = 'pit';
+    // 2. Random selection
+    const pattern = available[Math.floor(Math.random() * available.length)];
+
+    // 3. Convert pattern elements to game objects
+    const startX = CANVAS_WIDTH + 50;
+    for (const elem of pattern.elements) {
+      const x = startX + elem.offsetX;
+      switch (elem.type) {
+        case 'spike':
+          obstacles.push({
+            x,
+            y: GROUND_Y - SPIKE_HEIGHT,
+            width: SPIKE_WIDTH,
+            height: SPIKE_HEIGHT,
+            type: 'spike',
+          });
+          break;
+        case 'platform': {
+          const platWidth = elem.width ?? PLATFORM_WIDTH;
+          const platY =
+            GROUND_Y - PLATFORM_ELEVATION + (elem.offsetY ?? 0);
+          platforms.push({
+            x,
+            y: platY,
+            width: platWidth,
+            height: PLATFORM_HEIGHT,
+          });
+          break;
+        }
+        case 'jumppad':
+          jumppads.push({
+            x,
+            y: GROUND_Y - JUMPPAD_HEIGHT,
+            width: JUMPPAD_WIDTH,
+            height: JUMPPAD_HEIGHT,
+            triggered: false,
+            animTimer: 0,
+          });
+          break;
+        case 'pit': {
+          const pitWidth = elem.width ?? PIT_WIDTH;
+          obstacles.push({
+            x,
+            y: GROUND_Y,
+            width: pitWidth,
+            height: GROUND_HEIGHT,
+            type: 'pit',
+          });
+          break;
+        }
+        case 'spike-on-platform':
+          obstacles.push({
+            x,
+            y:
+              GROUND_Y -
+              PLATFORM_ELEVATION -
+              SPIKE_HEIGHT +
+              (elem.offsetY ?? 0),
+            width: SPIKE_WIDTH,
+            height: SPIKE_HEIGHT,
+            type: 'spike',
+          });
+          break;
+      }
     }
 
-    if (type === 'spike') {
-      const obstacle: TObstacle = {
-        x: CANVAS_WIDTH + SPIKE_WIDTH,
-        y: GROUND_Y - SPIKE_HEIGHT,
-        width: SPIKE_WIDTH,
-        height: SPIKE_HEIGHT,
-        type: 'spike',
-      };
-      obstacles.push(obstacle);
-    } else if (type === 'block') {
-      const obstacle: TObstacle = {
-        x: CANVAS_WIDTH + BLOCK_WIDTH,
-        y: GROUND_Y - BLOCK_Y_OFFSET - BLOCK_HEIGHT,
-        width: BLOCK_WIDTH,
-        height: BLOCK_HEIGHT,
-        type: 'block',
-      };
-      obstacles.push(obstacle);
-    } else {
-      // pit
-      const pitWidth = rand(PIT_WIDTH_MIN, PIT_WIDTH_MAX);
-      const obstacle: TObstacle = {
-        x: CANVAS_WIDTH + pitWidth,
-        y: GROUND_Y,
-        width: pitWidth,
-        height: GROUND_HEIGHT,
-        type: 'pit',
-      };
-      obstacles.push(obstacle);
-
-      // Add ground segment with pit
-      groundSegments.push({
-        x: CANVAS_WIDTH + pitWidth,
-        width: pitWidth,
-        hasPit: true,
-      });
-    }
-
-    // Calculate next gap (decreasing over time)
+    // 4. Calculate distance until next pattern
     const currentMaxGap = Math.max(
-      MIN_GAP_FLOOR,
-      MAX_OBSTACLE_GAP - elapsedTime * OBSTACLE_GAP_DECREASE_RATE,
+      PATTERN_GAP_FLOOR,
+      PATTERN_GAP_MAX - elapsedTime * PATTERN_GAP_DECREASE_RATE,
     );
-    const currentMinGap = Math.max(MIN_GAP_FLOOR, MIN_OBSTACLE_GAP);
-    nextObstacleGap = rand(currentMinGap, Math.max(currentMinGap, currentMaxGap));
-    distanceSinceLastObstacle = 0;
+    nextPatternDistance =
+      pattern.totalWidth + rand(PATTERN_GAP_MIN, currentMaxGap);
+    distanceSinceLastPattern = 0;
   };
 
   // --- Is Over Pit ---
@@ -276,7 +309,7 @@ export const setupGeometryDash = (
         continue;
       }
 
-      // AABB collision for spike and block
+      // AABB collision for spike
       const oLeft = obs.x;
       const oRight = obs.x + obs.width;
       const oTop = obs.y;
@@ -327,7 +360,7 @@ export const setupGeometryDash = (
     // Increase score based on speed
     score += speed * dt * 0.1;
 
-    // Player physics
+    // --- Player physics ---
     if (!player.isGrounded) {
       player.vy += GRAVITY * dt;
       player.y += player.vy * dt;
@@ -335,35 +368,105 @@ export const setupGeometryDash = (
       // Rotation while in air
       player.rotation += dt * 6;
 
+      // Platform landing check (only when falling down)
+      if (player.vy > 0) {
+        for (const plat of platforms) {
+          const playerBottom = player.y + player.size / 2;
+          const playerLeft = player.x - player.size / 2;
+          const playerRight = player.x + player.size / 2;
+          const prevBottom = playerBottom - player.vy * dt;
+
+          if (
+            prevBottom <= plat.y &&
+            playerBottom >= plat.y &&
+            playerRight > plat.x + 4 &&
+            playerLeft < plat.x + plat.width - 4
+          ) {
+            player.y = plat.y - player.size / 2;
+            player.vy = 0;
+            player.isGrounded = true;
+            player.rotation =
+              Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+            break;
+          }
+        }
+      }
+
       // Check if over pit
-      if (isOverPit()) {
+      if (!player.isGrounded && isOverPit()) {
         // Don't land, keep falling
         if (player.y > CANVAS_HEIGHT + player.size) {
           triggerGameOver();
           return;
         }
-      } else {
+      } else if (!player.isGrounded) {
         // Land on ground
         if (player.y >= PLAYER_GROUND_Y) {
           player.y = PLAYER_GROUND_Y;
           player.vy = 0;
           player.isGrounded = true;
           // Snap rotation to nearest 90 degrees
-          player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+          player.rotation =
+            Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
         }
       }
     } else {
-      // On ground, check if a pit appeared below
-      if (isOverPit()) {
-        player.isGrounded = false;
-        player.vy = 0;
+      // On ground or platform, check if a pit appeared below
+      if (player.y + player.size / 2 >= GROUND_Y - 5) {
+        // On the main ground level
+        if (isOverPit()) {
+          player.isGrounded = false;
+          player.vy = 0;
+        }
       }
     }
 
-    // Spawn obstacles
-    distanceSinceLastObstacle += speed * dt;
-    if (distanceSinceLastObstacle >= nextObstacleGap) {
-      spawnObstacle();
+    // Platform edge fall-off check (grounded on a platform, not main ground)
+    if (player.isGrounded && player.y + player.size / 2 < GROUND_Y - 5) {
+      const playerLeft = player.x - player.size / 2;
+      const playerRight = player.x + player.size / 2;
+      const playerBottom = player.y + player.size / 2;
+      let onPlatform = false;
+      for (const plat of platforms) {
+        if (
+          Math.abs(playerBottom - plat.y) < 3 &&
+          playerRight > plat.x + 4 &&
+          playerLeft < plat.x + plat.width - 4
+        ) {
+          onPlatform = true;
+          break;
+        }
+      }
+      if (!onPlatform) {
+        player.isGrounded = false;
+      }
+    }
+
+    // Jump pad check
+    for (const pad of jumppads) {
+      if (pad.triggered) continue;
+      const playerBottom = player.y + player.size / 2;
+      const playerLeft = player.x - player.size / 2;
+      const playerRight = player.x + player.size / 2;
+
+      if (
+        playerBottom >= pad.y &&
+        playerBottom <= pad.y + pad.height + 5 &&
+        playerRight > pad.x &&
+        playerLeft < pad.x + pad.width &&
+        player.vy >= 0
+      ) {
+        player.vy = JUMPPAD_VELOCITY;
+        player.isGrounded = false;
+        pad.triggered = true;
+        pad.animTimer = 0.3;
+      }
+    }
+
+    // Spawn patterns
+    distanceSinceLastPattern += speed * dt;
+    if (distanceSinceLastPattern >= nextPatternDistance) {
+      spawnPattern();
     }
 
     // Move obstacles
@@ -376,12 +479,26 @@ export const setupGeometryDash = (
       }
     }
 
-    // Move ground segments
-    for (let i = groundSegments.length - 1; i >= 0; i--) {
-      groundSegments[i].x -= speed * dt;
+    // Move platforms
+    for (let i = platforms.length - 1; i >= 0; i--) {
+      platforms[i].x -= speed * dt;
 
-      if (groundSegments[i].x + groundSegments[i].width < -50) {
-        groundSegments.splice(i, 1);
+      if (platforms[i].x + platforms[i].width < -50) {
+        platforms.splice(i, 1);
+      }
+    }
+
+    // Move jump pads
+    for (let i = jumppads.length - 1; i >= 0; i--) {
+      jumppads[i].x -= speed * dt;
+
+      // Update anim timer
+      if (jumppads[i].animTimer > 0) {
+        jumppads[i].animTimer -= dt;
+      }
+
+      if (jumppads[i].x + jumppads[i].width < -50) {
+        jumppads.splice(i, 1);
       }
     }
 
@@ -420,6 +537,16 @@ export const setupGeometryDash = (
 
     // Ground (skip pit areas)
     drawGround();
+
+    // Platforms
+    for (const plat of platforms) {
+      drawPlatform(plat);
+    }
+
+    // Jump pads
+    for (const pad of jumppads) {
+      drawJumpPad(pad);
+    }
 
     // Obstacles
     for (const obs of obstacles) {
@@ -565,6 +692,43 @@ export const setupGeometryDash = (
     ctx.stroke();
   };
 
+  const drawPlatform = (plat: TPlatformBlock) => {
+    // Block body
+    ctx.fillStyle = COLORS.platform;
+    ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+
+    // Top highlight
+    ctx.fillStyle = COLORS.platformTop;
+    ctx.fillRect(plat.x, plat.y, plat.width, 3);
+
+    // Border
+    ctx.strokeStyle = COLORS.platformBorder;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(plat.x, plat.y, plat.width, plat.height);
+  };
+
+  const drawJumpPad = (pad: TJumpPad) => {
+    ctx.fillStyle = pad.triggered ? COLORS.jumppadTriggered : COLORS.jumppad;
+
+    // Trapezoid shape (wider at bottom, narrower at top)
+    ctx.beginPath();
+    ctx.moveTo(pad.x + 3, pad.y + pad.height);
+    ctx.lineTo(pad.x - 3 + pad.width, pad.y + pad.height);
+    ctx.lineTo(pad.x + pad.width - 6, pad.y);
+    ctx.lineTo(pad.x + 6, pad.y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Glow effect
+    if (!pad.triggered) {
+      ctx.shadowColor = COLORS.jumppadGlow;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+    }
+  };
+
   const drawObstacle = (obs: TObstacle) => {
     if (obs.type === 'spike') {
       // Triangle spike
@@ -579,25 +743,6 @@ export const setupGeometryDash = (
       // Neon outline
       ctx.strokeStyle = COLORS.neon;
       ctx.lineWidth = 1.5;
-      ctx.stroke();
-    } else if (obs.type === 'block') {
-      // Filled rectangle
-      ctx.fillStyle = COLORS.block;
-      ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-
-      // Border
-      ctx.strokeStyle = COLORS.blockBorder;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
-
-      // Inner cross pattern
-      ctx.strokeStyle = COLORS.neon;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(obs.x, obs.y);
-      ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
-      ctx.moveTo(obs.x + obs.width, obs.y);
-      ctx.lineTo(obs.x, obs.y + obs.height);
       ctx.stroke();
     }
     // Pit is drawn by drawGround

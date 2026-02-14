@@ -1,4 +1,4 @@
-export type TObstacleType = 'spike' | 'block' | 'pit';
+export type TObstacleType = 'spike' | 'pit';
 
 export type TObstacle = {
   x: number;
