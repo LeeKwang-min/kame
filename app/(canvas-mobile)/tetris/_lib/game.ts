@@ -9,6 +9,8 @@ import {
 import { TBoard, TTetromino, TTetrominoType, TTSpinType } from './types';
 import {
   BASE_STEP,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
   CELL,
   CELL_GAP,
   COLORS,
@@ -40,12 +42,21 @@ export type TTetrisCallbacks = {
   isLoggedIn?: boolean;
 };
 
+// --- 터치 컨트롤 상수 ---
+const CELL_DRAG_PX = 22; // 캔버스 좌표 기준: 1셀 이동에 필요한 드래그 거리
+const SOFT_DROP_PX = 25; // 1행 소프트 드롭에 필요한 드래그 거리
+const TAP_THRESHOLD = 12; // 탭 인식 최대 이동 거리
+const TAP_MAX_DURATION = 250; // 탭 인식 최대 시간 (ms)
+const SWIPE_UP_THRESHOLD = 40; // 홀드를 위한 최소 위로 스와이프 거리
+const HARD_DROP_VELOCITY = 0.8; // 하드 드롭 최소 속도 (px/ms)
+const HARD_DROP_THRESHOLD = 50; // 하드 드롭 최소 이동 거리
+
 export const setupTetris = (
   canvas: HTMLCanvasElement,
   callbacks?: TTetrisCallbacks,
 ) => {
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) return () => {};
 
   const bag = createBag();
 
@@ -61,7 +72,7 @@ export const setupTetris = (
   let step = BASE_STEP;
 
   let score = 0;
-  let combo = 0; // 콤보 카운터
+  let combo = 0;
   let isStarted = false;
   let isLoading = false;
   let isGameOver = false;
@@ -72,14 +83,25 @@ export const setupTetris = (
   let sec = 0;
 
   // Lock Delay 관련 상태
-  let isLocking = false; // 바닥에 닿아서 lock delay 진행 중
-  let lockTimer = 0; // lock delay 타이머
-  let lockMoveCount = 0; // lock delay 중 이동/회전 횟수
+  let isLocking = false;
+  let lockTimer = 0;
+  let lockMoveCount = 0;
 
   // T-Spin 관련 상태
-  let lastMoveWasRotation = false; // 마지막 동작이 회전이었는지
+  let lastMoveWasRotation = false;
   let lastTSpinType: TTSpinType = 'NONE';
-  let tSpinDisplayTimer = 0; // T-Spin 표시 타이머
+  let tSpinDisplayTimer = 0;
+
+  // 터치 상태
+  const touch = {
+    active: false,
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    lastProcessedX: 0,
+    lastProcessedY: 0,
+    hasMoved: false,
+  };
 
   const gameOverCallbacks: TGameOverCallbacks = {
     onScoreSave: async (finalScore) => {
@@ -93,9 +115,15 @@ export const setupTetris = (
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'tetris', gameOverCallbacks, {
-    isLoggedIn: callbacks?.isLoggedIn ?? false,
-  });
+  const gameOverHud = createGameOverHud(
+    canvas,
+    ctx,
+    'tetris',
+    gameOverCallbacks,
+    {
+      isLoggedIn: callbacks?.isLoggedIn ?? false,
+    },
+  );
 
   const startGame = async () => {
     if (isStarted || isLoading) return;
@@ -133,12 +161,10 @@ export const setupTetris = (
     lines = 0;
     step = BASE_STEP;
 
-    // Lock Delay 상태 초기화
     isLocking = false;
     lockTimer = 0;
     lockMoveCount = 0;
 
-    // T-Spin 상태 초기화
     lastMoveWasRotation = false;
     lastTSpinType = 'NONE';
     tSpinDisplayTimer = 0;
@@ -146,16 +172,31 @@ export const setupTetris = (
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
 
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    canvas.width = Math.round(CANVAS_WIDTH * dpr);
+    canvas.height = Math.round(CANVAS_HEIGHT * dpr);
+    canvas.style.width = `${CANVAS_WIDTH}px`;
+    canvas.style.height = `${CANVAS_HEIGHT}px`;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
 
     resetGame();
   };
+
+  // Lock delay 중 이동/회전 시 호출하는 헬퍼
+  const onLockMove = () => {
+    if (isLocking) {
+      lockTimer = 0;
+      lockMoveCount++;
+
+      if (isValidPosition(board, current, 0, 1)) {
+        isLocking = false;
+        lockMoveCount = 0;
+      }
+    }
+  };
+
+  // --- 키보드 이벤트 ---
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyS') {
@@ -185,20 +226,6 @@ export const setupTetris = (
 
     if (!isStarted || isGameOver || isPaused) return;
 
-    // Lock delay 중 움직임 처리 헬퍼
-    const onLockMove = () => {
-      if (isLocking) {
-        lockTimer = 0; // 타이머 리셋
-        lockMoveCount++;
-
-        // 이동 후 바닥에서 떨어지면 lock 상태 해제
-        if (isValidPosition(board, current, 0, 1)) {
-          isLocking = false;
-          lockMoveCount = 0;
-        }
-      }
-    };
-
     switch (e.code) {
       case 'ArrowLeft':
         if (isValidPosition(board, current, -1, 0)) {
@@ -222,7 +249,6 @@ export const setupTetris = (
         if (isValidPosition(board, current, 0, 1)) {
           current.y++;
           lastMoveWasRotation = false;
-          // 아래로 내리면 lock 상태 해제
           if (isLocking) {
             isLocking = false;
             lockMoveCount = 0;
@@ -259,6 +285,152 @@ export const setupTetris = (
     }
   };
 
+  // --- 터치 이벤트 (스와이프 기반) ---
+
+  const getTouchPos = (t: Touch) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_WIDTH / rect.width;
+    const scaleY = CANVAS_HEIGHT / rect.height;
+    return {
+      x: (t.clientX - rect.left) * scaleX,
+      y: (t.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (!t) return;
+
+    const pos = getTouchPos(t);
+
+    // 게임 시작 전이면 터치로 시작
+    if (!isStarted && !isLoading && !isGameOver) {
+      startGame();
+      return;
+    }
+
+    // 일시정지 상태이면 터치로 재개
+    if (isPaused) {
+      isPaused = false;
+      lastTime = 0;
+      return;
+    }
+
+    // 게임 오버 상태: 터치로 SAVE/SKIP/재시작 처리
+    if (isGameOver) {
+      const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (handled) return;
+      return;
+    }
+
+    touch.active = true;
+    touch.startX = pos.x;
+    touch.startY = pos.y;
+    touch.startTime = performance.now();
+    touch.lastProcessedX = pos.x;
+    touch.lastProcessedY = pos.y;
+    touch.hasMoved = false;
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    e.preventDefault();
+    if (!touch.active || !isStarted || isGameOver || isPaused) return;
+
+    const t = e.touches[0];
+    if (!t) return;
+
+    const pos = getTouchPos(t);
+
+    const totalDx = pos.x - touch.startX;
+    const totalDy = pos.y - touch.startY;
+    const totalDist = Math.sqrt(totalDx * totalDx + totalDy * totalDy);
+
+    if (totalDist > TAP_THRESHOLD) {
+      touch.hasMoved = true;
+    }
+
+    // 수평 드래그 → 좌우 이동 (셀 단위)
+    const hDelta = pos.x - touch.lastProcessedX;
+    if (Math.abs(hDelta) >= CELL_DRAG_PX) {
+      const dir = hDelta > 0 ? 1 : -1;
+      const cells = Math.floor(Math.abs(hDelta) / CELL_DRAG_PX);
+      for (let i = 0; i < cells; i++) {
+        if (isValidPosition(board, current, dir, 0)) {
+          current.x += dir;
+          lastMoveWasRotation = false;
+          onLockMove();
+        }
+      }
+      touch.lastProcessedX += dir * cells * CELL_DRAG_PX;
+    }
+
+    // 아래로 드래그 → 소프트 드롭 (행 단위)
+    const vDelta = pos.y - touch.lastProcessedY;
+    if (vDelta >= SOFT_DROP_PX) {
+      const rows = Math.floor(vDelta / SOFT_DROP_PX);
+      for (let i = 0; i < rows; i++) {
+        if (isValidPosition(board, current, 0, 1)) {
+          current.y++;
+          lastMoveWasRotation = false;
+          if (isLocking) {
+            isLocking = false;
+            lockMoveCount = 0;
+          }
+        }
+      }
+      touch.lastProcessedY += rows * SOFT_DROP_PX;
+    }
+  };
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    e.preventDefault();
+    if (!touch.active) return;
+    touch.active = false;
+
+    if (!isStarted || isGameOver || isPaused) return;
+
+    const t = e.changedTouches[0];
+    if (!t) return;
+
+    const endPos = getTouchPos(t);
+    const elapsed = performance.now() - touch.startTime;
+    const dy = endPos.y - touch.startY;
+    const dx = endPos.x - touch.startX;
+
+    // 탭 → 시계 방향 회전
+    if (!touch.hasMoved && elapsed < TAP_MAX_DURATION) {
+      rotatePiece(1);
+      onLockMove();
+      return;
+    }
+
+    // 위로 스와이프 → 홀드
+    if (
+      dy < -SWIPE_UP_THRESHOLD &&
+      Math.abs(dy) > Math.abs(dx) * 1.5
+    ) {
+      holdPiece();
+      return;
+    }
+
+    // 빠른 아래 스와이프 → 하드 드롭
+    const velocity = dy / Math.max(elapsed, 1);
+    if (
+      velocity > HARD_DROP_VELOCITY &&
+      dy > HARD_DROP_THRESHOLD &&
+      Math.abs(dy) > Math.abs(dx) * 1.5
+    ) {
+      while (isValidPosition(board, current, 0, 1)) {
+        current.y++;
+      }
+      lockPiece();
+      return;
+    }
+  };
+
+  // --- 게임 로직 ---
+
   const rotatePiece = (dir: 1 | -1) => {
     const newRotation = (current.rotation + dir + 4) % 4;
 
@@ -280,7 +452,6 @@ export const setupTetris = (
   };
 
   const lockPiece = () => {
-    // T-Spin 판정 (보드에 고정하기 전에 체크)
     const tSpinResult = checkTSpin(board, current, lastMoveWasRotation);
 
     const shape = getShape(current);
@@ -300,7 +471,6 @@ export const setupTetris = (
 
     clearLines(tSpinResult);
 
-    // Lock 상태 초기화
     isLocking = false;
     lockTimer = 0;
     lockMoveCount = 0;
@@ -323,7 +493,6 @@ export const setupTetris = (
 
     canHold = false;
 
-    // Lock 상태 초기화
     isLocking = false;
     lockTimer = 0;
     lockMoveCount = 0;
@@ -342,13 +511,12 @@ export const setupTetris = (
       }
     }
 
-    // T-Spin 점수 계산
     let tSpinScore = 0;
     if (tSpinType !== 'NONE') {
       if (tSpinType === 'MINI') {
         tSpinScore = TSPIN_SCORE.MINI;
         lastTSpinType = 'MINI';
-        tSpinDisplayTimer = 2; // 2초간 표시
+        tSpinDisplayTimer = 2;
       } else if (tSpinType === 'FULL') {
         if (cleared === 1) {
           tSpinScore = TSPIN_SCORE.SINGLE;
@@ -369,13 +537,12 @@ export const setupTetris = (
     if (cleared > 0 || tSpinScore > 0) {
       lines += cleared;
 
-      // 콤보 배수 적용: 기본 점수 × (1 + combo × COMBO_MULTIPLIER)
       const baseScore = (SCORE_PER_LINE[cleared] || 0) + tSpinScore;
       const comboMultiplier = 1 + combo * COMBO_MULTIPLIER;
       score += Math.floor(baseScore * comboMultiplier);
 
       if (cleared > 0) {
-        combo++; // 콤보 증가
+        combo++;
       }
 
       const newLevel = Math.floor(lines / 10) + 1;
@@ -384,7 +551,6 @@ export const setupTetris = (
         step = Math.max(MIN_STEP, BASE_STEP - (level - 1) * SPEED_INCREASE);
       }
     } else {
-      // 줄을 제거하지 못하면 콤보 리셋
       combo = 0;
       lastTSpinType = 'NONE';
     }
@@ -395,7 +561,6 @@ export const setupTetris = (
     nextType = bag.getNext();
     canHold = true;
 
-    // Lock 상태 초기화
     isLocking = false;
     lockTimer = 0;
     lockMoveCount = 0;
@@ -417,7 +582,6 @@ export const setupTetris = (
     acc += dt;
     sec += dt;
 
-    // T-Spin 표시 타이머 감소
     if (tSpinDisplayTimer > 0) {
       tSpinDisplayTimer -= dt;
       if (tSpinDisplayTimer <= 0) {
@@ -427,11 +591,9 @@ export const setupTetris = (
     }
 
     if (isStarted && !isGameOver) {
-      // Lock Delay 처리
       if (isLocking) {
         lockTimer += dt;
 
-        // 이동 횟수 초과 또는 타이머 만료 시 확정
         if (lockTimer >= LOCK_DELAY || lockMoveCount >= LOCK_MOVE_LIMIT) {
           lockPiece();
           return;
@@ -443,14 +605,12 @@ export const setupTetris = (
 
         if (isValidPosition(board, current, 0, 1)) {
           current.y++;
-          // 아래로 내려가면 lock 상태 해제
           if (isLocking) {
             isLocking = false;
             lockTimer = 0;
             lockMoveCount = 0;
           }
         } else {
-          // 바닥에 닿음 - Lock Delay 시작
           if (!isLocking) {
             isLocking = true;
             lockTimer = 0;
@@ -459,6 +619,8 @@ export const setupTetris = (
       }
     }
   };
+
+  // --- 렌더링 ---
 
   const renderGrid = () => {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
@@ -549,32 +711,27 @@ export const setupTetris = (
     const panelWidth = SIDE_PANEL_WIDTH - 20;
     const panelHeight = 100;
 
-    // HOLD 패널 배경 - 어두운 보라색 그라데이션 느낌
     ctx.fillStyle = '#2d1f3d';
     ctx.beginPath();
     ctx.roundRect(panelX, panelY, panelWidth, panelHeight, 8);
     ctx.fill();
 
-    // 테두리
     ctx.strokeStyle = canHold ? '#7B5D8E' : '#4a3a5a';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // HOLD 라벨 - 왼쪽 상단에 작게
     ctx.fillStyle = canHold ? '#b8a0c8' : '#6a5a7a';
     ctx.font = 'bold 10px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('HOLD', panelX + 8, panelY + 16);
 
-    // 잠금 아이콘 (사용 불가 시)
     if (!canHold) {
       ctx.fillStyle = '#6a5a7a';
       ctx.font = '12px sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText('🔒', panelX + panelWidth - 8, panelY + 16);
+      ctx.fillText('\u{1F512}', panelX + panelWidth - 8, panelY + 16);
     }
 
-    // 블록 렌더링
     const centerX = panelX + panelWidth / 2;
     const centerY = panelY + 58;
 
@@ -593,7 +750,6 @@ export const setupTetris = (
     const startX = centerX - shapeWidth / 2;
     const startY = centerY - shapeHeight / 2;
 
-    // 블록 색상 (사용 불가 시 어둡게)
     ctx.fillStyle = canHold ? COLORS[holdType] : '#4a4a4a';
     ctx.globalAlpha = canHold ? 1 : 0.5;
 
@@ -619,18 +775,15 @@ export const setupTetris = (
     const panelWidth = SIDE_PANEL_WIDTH - 20;
     const panelHeight = 100;
 
-    // NEXT 패널 배경 - 밝은 청록색
     ctx.fillStyle = '#1a3a4a';
     ctx.beginPath();
     ctx.roundRect(panelX, panelY, panelWidth, panelHeight, 8);
     ctx.fill();
 
-    // 테두리 - 밝은 색
     ctx.strokeStyle = '#5B8A9A';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // 하이라이트 상단 라인
     ctx.strokeStyle = '#7ab0c0';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -638,13 +791,11 @@ export const setupTetris = (
     ctx.lineTo(panelX + panelWidth - 8, panelY + 1);
     ctx.stroke();
 
-    // NEXT 라벨 - 중앙 상단에 강조
     ctx.fillStyle = '#7ab0c0';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('▼ NEXT ▼', panelX + panelWidth / 2, panelY + 18);
+    ctx.fillText('\u25BC NEXT \u25BC', panelX + panelWidth / 2, panelY + 18);
 
-    // 블록 렌더링
     const centerX = panelX + panelWidth / 2;
     const centerY = panelY + 58;
 
@@ -655,7 +806,6 @@ export const setupTetris = (
     const startX = centerX - shapeWidth / 2;
     const startY = centerY - shapeHeight / 2;
 
-    // 블록 그림자
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
@@ -670,7 +820,6 @@ export const setupTetris = (
       }
     }
 
-    // 블록 본체
     ctx.fillStyle = COLORS[nextType];
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
@@ -716,7 +865,6 @@ export const setupTetris = (
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText(String(lines), x, y + 20);
 
-    // 콤보 표시 (콤보가 1 이상일 때만)
     if (combo > 0) {
       y += 50;
       ctx.fillStyle = '#ffcc00';
@@ -724,22 +872,23 @@ export const setupTetris = (
       ctx.fillText('COMBO', x, y);
       ctx.fillStyle = '#ffcc00';
       ctx.font = 'bold 18px sans-serif';
-      ctx.fillText(`×${(1 + combo * COMBO_MULTIPLIER).toFixed(1)}`, x, y + 20);
+      ctx.fillText(
+        `\u00D7${(1 + combo * COMBO_MULTIPLIER).toFixed(1)}`,
+        x,
+        y + 20,
+      );
     }
 
-    // T-Spin 표시
     if (tSpinDisplayTimer > 0 && lastTSpinType !== 'NONE') {
       const tSpinY = 500;
       const alpha = Math.min(1, tSpinDisplayTimer);
       ctx.globalAlpha = alpha;
 
-      // T-Spin 배경
       ctx.fillStyle = '#7B5D8E';
       ctx.beginPath();
       ctx.roundRect(boardWidth + 10, tSpinY, SIDE_PANEL_WIDTH - 20, 40, 6);
       ctx.fill();
 
-      // T-Spin 텍스트
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'center';
@@ -749,16 +898,13 @@ export const setupTetris = (
       ctx.globalAlpha = 1;
     }
 
-    // Lock delay 인디케이터 (바닥에 닿았을 때)
     if (isLocking) {
       const lockY = 560;
       const progress = Math.min(lockTimer / LOCK_DELAY, 1);
 
-      // 배경
       ctx.fillStyle = '#333';
       ctx.fillRect(boardWidth + 15, lockY, SIDE_PANEL_WIDTH - 30, 8);
 
-      // 진행 바
       ctx.fillStyle = progress > 0.7 ? '#A85454' : '#5B8A9A';
       ctx.fillRect(
         boardWidth + 15,
@@ -770,8 +916,7 @@ export const setupTetris = (
   };
 
   const render = () => {
-    const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     renderGrid();
     renderBoard();
@@ -790,6 +935,21 @@ export const setupTetris = (
         gameLoadingHud(canvas, ctx);
       } else {
         gameStartHud(canvas, ctx);
+        // 터치 조작 힌트
+        const cx = CANVAS_WIDTH / 2;
+        const cy = CANVAS_HEIGHT / 2;
+        ctx.save();
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Tap: Rotate  Drag: Move', cx, cy + 65);
+        ctx.fillText(
+          '\u2B07 Fast Swipe: Hard Drop  \u2B06 Swipe: Hold',
+          cx,
+          cy + 85,
+        );
+        ctx.restore();
       }
       return;
     }
@@ -817,9 +977,15 @@ export const setupTetris = (
 
   resize();
   window.addEventListener('keydown', onKeyDown);
+  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+  canvas.addEventListener('touchend', handleTouchEnd);
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
+    canvas.removeEventListener('touchstart', handleTouchStart);
+    canvas.removeEventListener('touchmove', handleTouchMove);
+    canvas.removeEventListener('touchend', handleTouchEnd);
   };
 };
