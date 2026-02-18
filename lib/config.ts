@@ -132,6 +132,7 @@ export const MENU_LIST: TMenu[] = [
     },
     href: '/stairs',
     category: 'Action',
+    platform: 'both',
   },
   {
     name: {
@@ -148,6 +149,7 @@ export const MENU_LIST: TMenu[] = [
     },
     href: '/towerblocks',
     category: 'Action',
+    platform: 'both',
   },
   {
     name: {
@@ -189,6 +191,7 @@ export const MENU_LIST: TMenu[] = [
     },
     href: '/2048',
     category: 'Puzzle',
+    platform: 'both',
   },
   {
     name: {
@@ -277,6 +280,7 @@ export const MENU_LIST: TMenu[] = [
     },
     href: '/blockpuzzle',
     category: 'Puzzle',
+    platform: 'both',
   },
   {
     name: {
