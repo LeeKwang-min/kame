@@ -8,15 +8,35 @@ import { useLocale } from '@/provider/LocaleProvider';
 import { FEATURED_GAMES, MENU_LIST } from '@/lib/config';
 import { GAME_ICONS } from '@/components/common/GameCard';
 
-function FeaturedCarousel() {
+interface FeaturedCarouselProps {
+  isMobile: boolean;
+}
+
+function FeaturedCarousel({ isMobile }: FeaturedCarouselProps) {
   const { locale } = useLocale();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const total = FEATURED_GAMES.length;
 
-  const games = FEATURED_GAMES.map((featured) => {
+  // 모바일에서는 platform: 'both'인 게임만 추천 표시
+  const filteredFeatured = isMobile
+    ? FEATURED_GAMES.filter((f) => {
+        const menu = MENU_LIST.find((m) => m.href === f.href);
+        return menu?.platform === 'both';
+      })
+    : FEATURED_GAMES;
+
+  const total = filteredFeatured.length;
+
+  // total 변경 시 currentIndex 범위 초과 방지
+  useEffect(() => {
+    if (total > 0 && currentIndex >= total) {
+      setCurrentIndex(0);
+    }
+  }, [total, currentIndex]);
+
+  const games = filteredFeatured.map((featured) => {
     const menu = MENU_LIST.find((m) => m.href === featured.href);
     const Icon = GAME_ICONS[featured.href] || Gamepad2;
     return {
@@ -60,6 +80,8 @@ function FeaturedCarousel() {
 
   const getSlideIndex = (offset: number) =>
     ((currentIndex + offset) % total + total) % total;
+
+  if (total === 0) return null;
 
   return (
     <div

@@ -36,10 +36,11 @@ export const CATEGORY_ICON = {
 interface IProps {
   keyword: string;
   category: string;
+  isMobile: boolean;
 }
 
-function MainMenuList({ keyword, category }: IProps) {
-  const { data: menus, isLoading } = useGetMenus(keyword, category);
+function MainMenuList({ keyword, category, isMobile }: IProps) {
+  const { data: menus, isLoading } = useGetMenus(keyword, category, isMobile);
 
   if (isLoading) return <MainMenuListSkeleton />;
 

@@ -1,6 +1,6 @@
-import { TFeaturedGame } from '@/@types/menus';
+import { TFeaturedGame, TMenu } from '@/@types/menus';
 
-export const MENU_LIST = [
+export const MENU_LIST: TMenu[] = [
   // Arcade
   {
     name: {
@@ -9,6 +9,7 @@ export const MENU_LIST = [
     },
     href: '/tetris',
     category: 'Arcade',
+    platform: 'both',
   },
   {
     name: {
@@ -90,6 +91,7 @@ export const MENU_LIST = [
     },
     href: '/dodge',
     category: 'Action',
+    platform: 'both',
   },
   {
     name: {

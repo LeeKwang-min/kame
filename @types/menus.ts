@@ -1,3 +1,5 @@
+import { TGamePlatform } from './game-meta';
+
 export type TMenu = {
   name: {
     kor: string;
@@ -7,6 +9,7 @@ export type TMenu = {
   category: string;
   target?: string;
   disabled?: boolean;
+  platform?: TGamePlatform;
 };
 
 export type TMenuList = TMenu[];

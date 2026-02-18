@@ -7,9 +7,17 @@ export async function GET(request: NextRequest) {
   const keyword = searchParams.get('keyword') ?? '';
   const category =
     searchParams.get('category') === 'ALL' ? '' : searchParams.get('category');
+  const mobile = searchParams.get('mobile') === 'true';
 
   try {
     let filteredMenuList = MENU_LIST;
+
+    // 모바일에서는 platform: 'both'인 게임만 표시
+    if (mobile) {
+      filteredMenuList = filteredMenuList.filter(
+        (menu) => menu.platform === 'both',
+      );
+    }
 
     if (keyword) {
       filteredMenuList = filteredMenuList.filter(
