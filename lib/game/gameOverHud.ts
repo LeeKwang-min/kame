@@ -1,4 +1,5 @@
 import { TGameType } from '@/@types/scores';
+import { getCanvasLogicalSize } from './utils';
 
 export type TSaveResult = {
   saved: boolean;
@@ -98,17 +99,60 @@ export const createGameOverHud = (
     return false;
   };
 
+  // 터치 이벤트 처리 (모바일용)
+  // x, y는 캔버스 논리 좌표 (0 ~ canvasLogicalSize)
+  const onTouchStart = (x: number, y: number, score: number): boolean => {
+    const { width, height } = getCanvasLogicalSize(canvas);
+    const cx = width / 2;
+    const cy = height / 2;
+
+    // 저장/스킵 완료 또는 비로그인 상태: 터치로 재시작
+    if (isSaved || isSkipped || isNotHigher || !isLoggedIn) {
+      callbacks.onRestart();
+      return true;
+    }
+
+    if (isSubmitting) return true;
+
+    // 로그인 상태에서 버튼 탭 감지
+    if (isLoggedIn) {
+      const buttonW = 100;
+      const buttonH = 44;
+      const buttonGap = 20;
+      const buttonsY = cy + 30;
+
+      const saveX = cx - buttonW - buttonGap / 2;
+      const skipX = cx + buttonGap / 2;
+
+      // SAVE 버튼 터치
+      if (x >= saveX && x <= saveX + buttonW && y >= buttonsY && y <= buttonsY + buttonH) {
+        selectedButton = 'save';
+        void onSelect(score);
+        return true;
+      }
+
+      // SKIP 버튼 터치
+      if (x >= skipX && x <= skipX + buttonW && y >= buttonsY && y <= buttonsY + buttonH) {
+        selectedButton = 'skip';
+        void onSelect(score);
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   const render = (score: number) => {
-    const rect = canvas.getBoundingClientRect();
+    const { width, height } = getCanvasLogicalSize(canvas);
     const totalScore = Math.floor(score);
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
+    const cx = width / 2;
+    const cy = height / 2;
 
     ctx.save();
 
     // 배경 오버레이
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillRect(0, 0, width, height);
 
     // GAME OVER 텍스트
     ctx.textAlign = 'center';
@@ -133,7 +177,7 @@ export const createGameOverHud = (
 
       ctx.font = '16px sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.fillText('R을 눌러 재시작', cx, cy + 60);
+      ctx.fillText('R 또는 터치하여 재시작', cx, cy + 60);
     } else if (isNotHigher) {
       ctx.font = '16px sans-serif';
       ctx.fillStyle = '#fbbf24';
@@ -145,11 +189,11 @@ export const createGameOverHud = (
 
       ctx.font = '16px sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.fillText('R을 눌러 재시작', cx, cy + 75);
+      ctx.fillText('R 또는 터치하여 재시작', cx, cy + 75);
     } else if (isSkipped || !isLoggedIn) {
       ctx.font = '18px sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.fillText('R을 눌러 재시작', cx, cy + 20);
+      ctx.fillText('R 또는 터치하여 재시작', cx, cy + 20);
     } else if (isLoggedIn) {
       // 버튼 영역
       const buttonW = 100;
@@ -212,6 +256,7 @@ export const createGameOverHud = (
     reset,
     render,
     onKeyDown,
+    onTouchStart,
     getState,
     setLoggedIn,
   };

@@ -467,9 +467,8 @@ export type TGameObject = {
 
 Canvas 2D (기존) 규칙의 필수 단계를 동일하게 수행한 후, 추가로:
 
-1. `hooks/useMobileDetect.ts` 훅 읽기
-2. `lib/game/touchControls.ts` 터치 컨트롤 유틸 읽기
-3. 기존 `(canvas-mobile)` 게임이 있다면 해당 게임의 패턴 읽기
+1. `hooks/use-mobile.ts` 훅 읽기 (`useIsMobile`)
+2. 기존 `(canvas-mobile)` 게임이 있다면 해당 게임의 패턴 읽기 (참조: `dodge`)
 
 ### 1. 디렉토리 구조
 
@@ -480,7 +479,7 @@ app/(canvas-mobile)/[게임명]/
 │   ├── types.ts       # 타입 정의
 │   └── game.ts        # 게임 로직 (키보드 + 터치 이벤트 모두 처리)
 ├── _components/
-│   └── [게임명].tsx   # 게임 컴포넌트 (useMobileDetect로 조건부 렌더링)
+│   └── [게임명].tsx   # 게임 컴포넌트 (CSS transform 스케일링)
 ├── layout.tsx         # 레이아웃 (KameHeader 포함)
 └── page.tsx          # 페이지 (모바일: 햄버거 메뉴, 데스크탑: 3칼럼)
 ```
@@ -502,8 +501,8 @@ export const GAME_META: TGameMeta = {
   difficulty: '[progressive|fixed|selectable]',
 };
 
-export const CANVAS_WIDTH = 800;
-export const CANVAS_HEIGHT = 600;
+export const CANVAS_SIZE = 620;
+// 기타 게임별 상수들
 ```
 
 #### game.ts에 터치 이벤트 추가
@@ -512,6 +511,7 @@ export const CANVAS_HEIGHT = 600;
 ```typescript
 // 키보드 이벤트 (기존 패턴 그대로)
 window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', handleKeyUp);
 
 // 터치 이벤트 추가
 canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -521,6 +521,7 @@ canvas.addEventListener('touchend', handleTouchEnd);
 // cleanup에 터치 이벤트도 제거
 return () => {
   window.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('keyup', handleKeyUp);
   canvas.removeEventListener('touchstart', handleTouchStart);
   canvas.removeEventListener('touchmove', handleTouchMove);
   canvas.removeEventListener('touchend', handleTouchEnd);
@@ -528,65 +529,163 @@ return () => {
 };
 ```
 
-#### page.tsx에 모바일 반응형 레이아웃
+#### 게임 오버 터치 처리 (필수!)
+
+`gameOverHud`에는 `onTouchStart(x, y, score)` 메서드가 있으며, 터치 이벤트에서 반드시 호출해야 함:
 ```typescript
-'use client';
+const handleTouchStart = (e: TouchEvent) => {
+  e.preventDefault();
+  const pos = getTouchPos(e.touches[0]);
 
-import { useMobileDetect } from '@/hooks/useMobileDetect';
-import ControlInfoTable from '@/components/common/ControlInfoTable';
-import RankBoard from '@/components/common/RankBoard';
-import { useGetScores } from '@/service/scores';
-import [게임명] from './_components/[게임명]';
-
-function [게임명]Page() {
-  const isMobile = useMobileDetect();
-  const { data: scores = [], isLoading } = useGetScores('[게임명소문자]');
-
-  if (isMobile) {
-    return (
-      <section className="w-full h-full flex flex-col">
-        {/* 햄버거 메뉴로 ControlInfoTable, RankBoard 접근 */}
-        <div className="flex-1">
-          <[게임명] />
-        </div>
-      </section>
-    );
+  // 게임 오버 상태: 터치로 SAVE/SKIP/재시작 처리
+  if (isGameOver) {
+    gameOverHud.onTouchStart(pos.x, pos.y, score);
+    return;
   }
 
+  // 게임 시작 전: 터치로 시작
+  if (!isStarted && !isLoading) {
+    startGame();
+    return;
+  }
+
+  // 일시정지: 터치로 재개
+  if (isPaused) {
+    isPaused = false;
+    lastTime = 0;
+    return;
+  }
+
+  // 게임 플레이 중: 조이스틱/탭 등 조작
+  // ...
+};
+```
+
+**터치 좌표 변환 필수**: CSS transform으로 스케일링된 캔버스에서 정확한 좌표를 얻으려면:
+```typescript
+const getTouchPos = (touch: Touch) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = CANVAS_SIZE / rect.width;
+  const scaleY = CANVAS_SIZE / rect.height;
+  return {
+    x: (touch.clientX - rect.left) * scaleX,
+    y: (touch.clientY - rect.top) * scaleY,
+  };
+};
+```
+
+### 3. 모바일 캔버스 스케일링 (필수!)
+
+**핵심 원칙**: 캔버스의 논리적 크기(CANVAS_SIZE)는 고정하고, CSS transform으로 모바일 화면에 맞게 축소한다.
+
+이유:
+- 공유 HUD 함수(`gameStartHud`, `gamePauseHud`, `gameOverHud`)가 `canvas.getBoundingClientRect()`로 좌표를 계산
+- `canvas.style.width/height`를 변경하면 `rect.width`가 달라져 HUD 위치가 어긋남
+- CSS transform은 `getBoundingClientRect()`에 반영되므로 터치 좌표도 정확
+
+```typescript
+// _components/[게임명].tsx
+function [게임명]() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const updateScale = useCallback(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const container = wrapper.parentElement;
+    if (!container) return;
+    const containerWidth = container.clientWidth;
+    const scale = Math.min(containerWidth / CANVAS_SIZE, 1);
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.transformOrigin = 'top center';
+    wrapper.style.height = `${CANVAS_SIZE * scale}px`;
+  }, []);
+
+  useEffect(() => {
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [updateScale]);
+
   return (
-    <section className="w-full h-full flex gap-6 items-start justify-center">
-      <aside className="shrink-0 w-72">
-        <ControlInfoTable controls={controls} />
-      </aside>
-      <div className="flex-1 h-full max-w-[캔버스너비px]">
+    <div className="w-full h-full flex justify-center">
+      <div ref={wrapperRef} style={{ width: CANVAS_SIZE, minHeight: CANVAS_SIZE }}>
+        <canvas ref={canvasRef} className="border touch-none bg-white" />
+      </div>
+    </div>
+  );
+}
+```
+
+### 4. 모바일 페이지 필수 요소
+
+모바일 레이아웃에서는 **Sheet 햄버거 메뉴**로 다음을 제공해야 한다:
+
+1. **로그인/유저 프로필** — `GoogleLoginButton` 또는 `UserProfile`
+2. **조작법 안내** — `ControlInfoTable`
+3. **랭킹 보드** — `RankBoard`
+
+```typescript
+// page.tsx 모바일 레이아웃
+import { Menu } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
+import UserProfile from '@/components/auth/UserProfile';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+
+if (isMobile) {
+  return (
+    <section className="w-full h-full flex flex-col items-center">
+      <div className="w-full flex justify-end px-2 pb-2">
+        <Sheet>
+          <SheetTrigger asChild>
+            <button className="p-2 rounded-lg border border-arcade-border bg-arcade-surface text-arcade-text">
+              <Menu size={20} />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="bg-arcade-bg border-arcade-border overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle className="text-arcade-text">Menu</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-6 p-4">
+              {/* 로그인/프로필 */}
+              {session?.user ? <UserProfile user={session.user} /> : <GoogleLoginButton />}
+              {/* 조작법 */}
+              <ControlInfoTable controls={controls} />
+              {/* 랭킹 */}
+              <RankBoard data={scores} isLoading={isLoading} showCountry />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+      <div className="flex-1 w-full">
         <[게임명] />
       </div>
-      <aside className="shrink-0 w-64">
-        <RankBoard data={scores} isLoading={isLoading} showCountry />
-      </aside>
     </section>
   );
 }
 ```
 
-### 3. 모바일 레이아웃 와이어프레임
+**절대 하지 말아야 할 것:**
+- 모바일에서 로그인 수단 없이 배포 (점수 저장 불가능)
+- 게임 오버 화면에서 터치 이벤트 미처리 (모바일에서 저장/재시작 불가)
+- `canvas.style.width`를 직접 변경하여 반응형 처리 (HUD 좌표 깨짐)
+
+### 5. 모바일 레이아웃 와이어프레임
 
 ```
 ┌─────────────────────┐
-│ ☰  게임 제목    ...  │  간소화된 헤더 (햄버거 메뉴)
+│ KAME   Dodge     [☰] │  헤더 + 햄버거 메뉴 버튼
 ├─────────────────────┤
 │                     │
-│     게임 캔버스      │  전체 화면 활용 (자동 스케일링)
+│     게임 캔버스      │  CSS transform으로 자동 스케일링
 │                     │
-├─────────────────────┤
-│  [터치 컨트롤 영역]   │  게임별 커스텀 (선택적)
 └─────────────────────┘
 
-☰ 햄버거 메뉴 내용:
+☰ 햄버거 메뉴 (Sheet):
+├── 로그인 / 유저 프로필
 ├── 조작법 안내
-├── 랭킹 보드
-├── 홈으로 이동
-└── 전체 화면 토글
+└── 랭킹 보드
 ```
 
 데스크탑에서는 기존 3칼럼 레이아웃 유지.

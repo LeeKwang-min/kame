@@ -1,8 +1,6 @@
 import {
   BASE_ENEMY_SPAWN_INTERVAL,
   DIRS,
-  INITIALS_KEY_COLS,
-  INITIALS_KEY_GRID,
   MAX_ENEMY_SPEED,
   MIN_ENEMY_SPAWN_INTERVAL,
   MIN_ENEMY_SPEED,
@@ -123,8 +121,4 @@ export const getEnemySpeedRange = (t: number) => {
 export const randomDirection = () => {
   const a = Math.random() * Math.PI * 2;
   return { vx: Math.cos(a), vy: Math.sin(a) };
-};
-
-export const initialLabelAt = (r: number, c: number) => {
-  return INITIALS_KEY_GRID[r * INITIALS_KEY_COLS + c];
 };
