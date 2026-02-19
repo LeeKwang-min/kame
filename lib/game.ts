@@ -22,16 +22,22 @@ export {
 export { initialLabelAt, getCanvasLogicalSize } from './game/utils';
 
 // 내부 사용을 위한 inline 헬퍼 (순환 참조 방지)
-const _logicalSize = (canvas: HTMLCanvasElement) => {
-  const dpr = window.devicePixelRatio || 1;
-  return { width: canvas.width / dpr, height: canvas.height / dpr };
+// ctx.getTransform()의 실제 스케일 팩터를 사용하여 DPR 적용/미적용 게임 모두 정확
+const _logicalSize = (
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+) => {
+  const transform = ctx.getTransform();
+  const scaleX = transform.a || 1;
+  const scaleY = transform.d || 1;
+  return { width: canvas.width / scaleX, height: canvas.height / scaleY };
 };
 
 export const gameLoadingHud = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
 ) => {
-  const { width, height } = _logicalSize(canvas);
+  const { width, height } = _logicalSize(canvas, ctx);
   const cx = width / 2;
   const cy = height / 2;
 
@@ -61,7 +67,7 @@ export const gameStartHud = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
 ) => {
-  const { width, height } = _logicalSize(canvas);
+  const { width, height } = _logicalSize(canvas, ctx);
   const cx = width / 2;
   const cy = height / 2;
 
@@ -102,7 +108,7 @@ export const gameOverHud = (
   ctx: CanvasRenderingContext2D,
   score: number,
 ) => {
-  const { width, height } = _logicalSize(canvas);
+  const { width, height } = _logicalSize(canvas, ctx);
   const totalScore = Math.floor(score);
 
   ctx.save();

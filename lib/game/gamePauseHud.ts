@@ -10,7 +10,7 @@ export const gamePauseHud = (
   ctx: CanvasRenderingContext2D,
   options?: TGamePauseHudOptions,
 ) => {
-  const { width, height } = getCanvasLogicalSize(canvas);
+  const { width, height } = getCanvasLogicalSize(canvas, ctx);
   const cx = width / 2;
   const cy = height / 2;
   const resumeKey = options?.resumeKey || 'S';

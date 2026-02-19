@@ -102,7 +102,7 @@ export const createGameOverHud = (
   // 터치 이벤트 처리 (모바일용)
   // x, y는 캔버스 논리 좌표 (0 ~ canvasLogicalSize)
   const onTouchStart = (x: number, y: number, score: number): boolean => {
-    const { width, height } = getCanvasLogicalSize(canvas);
+    const { width, height } = getCanvasLogicalSize(canvas, ctx);
     const cx = width / 2;
     const cy = height / 2;
 
@@ -143,7 +143,7 @@ export const createGameOverHud = (
   };
 
   const render = (score: number) => {
-    const { width, height } = getCanvasLogicalSize(canvas);
+    const { width, height } = getCanvasLogicalSize(canvas, ctx);
     const totalScore = Math.floor(score);
     const cx = width / 2;
     const cy = height / 2;
