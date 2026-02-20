@@ -15,7 +15,7 @@ import {
   HINT_PENALTY_SECONDS,
   COLORS,
 } from './config';
-import { TDifficulty, TCell, TBoard, TCellState } from './types';
+import { TDifficulty, TCell, TBoard, TCellState, TCellAnim, TParticle, TCelebration } from './types';
 import { generatePuzzle } from './generator';
 
 export type TQueensCallbacks = {
@@ -58,6 +58,26 @@ export function setupQueens(
   let cursorRow = -1;
   let cursorCol = -1;
   let hoveredDifficulty: TDifficulty | null = null;
+
+  // Animation state
+  let cellAnims: TCellAnim[][] = [];
+  let particles: TParticle[] = [];
+  let celebration: TCelebration = { active: false, time: 0, highlightIndex: -1 };
+
+  function initCellAnims(size: number) {
+    cellAnims = Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => ({
+        scale: 1,
+        opacity: 1,
+        shakeX: 0,
+        shakeTime: 0,
+        scaleTime: 0,
+        scaleDir: 'in' as const,
+        fadeTime: 0,
+        fadeDir: 'in' as const,
+      })),
+    );
+  }
 
   type TDifficultyButton = {
     x: number;
@@ -204,16 +224,77 @@ export function setupQueens(
     return null;
   }
 
+  // --- Particle spawners ---
+  function spawnSparkles(row: number, col: number) {
+    const { cellSize, offsetX, offsetY } = getGridLayout();
+    const cx = offsetX + col * cellSize + cellSize / 2;
+    const cy = offsetY + row * cellSize + cellSize / 2;
+    const regionColor = REGION_COLORS[board[row][col].region % REGION_COLORS.length];
+
+    for (let i = 0; i < 4; i++) {
+      const angle = (Math.PI * 2 * i) / 4 + Math.random() * 0.5;
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * (60 + Math.random() * 40),
+        vy: Math.sin(angle) * (60 + Math.random() * 40) - 30,
+        life: 500,
+        maxLife: 500,
+        size: 3 + Math.random() * 2,
+        color: lightenColor(regionColor, 30),
+        type: 'sparkle',
+      });
+    }
+  }
+
+  function spawnCelebrationParticles() {
+    for (let i = 0; i < 30; i++) {
+      const color = REGION_COLORS[Math.floor(Math.random() * REGION_COLORS.length)];
+      particles.push({
+        x: Math.random() * CANVAS_WIDTH,
+        y: -10,
+        vx: (Math.random() - 0.5) * 80,
+        vy: 40 + Math.random() * 60,
+        life: 1500,
+        maxLife: 1500,
+        size: 4 + Math.random() * 4,
+        color,
+        type: (['star', 'heart', 'sparkle'] as const)[Math.floor(Math.random() * 3)],
+      });
+    }
+  }
+
   // --- Cell toggle logic ---
   function toggleCell(row: number, col: number): void {
     const cell = board[row][col];
-    if (cell.isHinted) return; // hinted cells cannot be changed
+    if (cell.isHinted) return;
 
+    const prevState = cell.state;
     const cycle: TCellState[] = ['empty', 'cross', 'queen'];
     const idx = cycle.indexOf(cell.state);
     cell.state = cycle[(idx + 1) % cycle.length];
 
-    // Re-validate after every toggle
+    // Trigger animations
+    const anim = cellAnims[row]?.[col];
+    if (anim) {
+      if (cell.state === 'queen') {
+        anim.scale = 0;
+        anim.scaleTime = 300;
+        anim.scaleDir = 'in';
+        spawnSparkles(row, col);
+      } else if (prevState === 'queen') {
+        anim.scale = 1;
+      }
+      if (cell.state === 'cross') {
+        anim.opacity = 0;
+        anim.fadeTime = 150;
+        anim.fadeDir = 'in';
+      }
+      if (cell.state === 'empty' && prevState === 'cross') {
+        anim.opacity = 1;
+      }
+    }
+
     validateBoard();
     checkWin();
   }
@@ -259,6 +340,18 @@ export function setupQueens(
         }
       }
     }
+
+    // Trigger shake on error queens
+    for (let r = 0; r < boardSize; r++) {
+      for (let c = 0; c < boardSize; c++) {
+        if (board[r][c].isError && board[r][c].state === 'queen') {
+          const anim = cellAnims[r]?.[c];
+          if (anim && anim.shakeTime <= 0) {
+            anim.shakeTime = 400;
+          }
+        }
+      }
+    }
   }
 
   function checkWin(): void {
@@ -280,6 +373,8 @@ export function setupQueens(
       const elapsed = getElapsedSeconds();
       const effectiveTime = elapsed + hintPenalty;
       score = Math.floor(config.multiplier * Math.max(0, config.baseTime - effectiveTime));
+      celebration = { active: true, time: 0, highlightIndex: -1 };
+      spawnCelebrationParticles();
       state = 'gameover';
     }
   }
@@ -376,6 +471,7 @@ export function setupQueens(
     }
 
     initBoard(boardSize);
+    initCellAnims(boardSize);
     score = 0;
     elapsedBeforePause = 0;
     cursorRow = 0;
@@ -607,6 +703,74 @@ export function setupQueens(
       cursorRow = cell.row;
       cursorCol = cell.col;
       toggleCell(cell.row, cell.col);
+    }
+  }
+
+  // --- Animation update ---
+  function updateAnimations(dt: number) {
+    const dtMs = dt * 1000;
+
+    for (let r = 0; r < boardSize; r++) {
+      for (let c = 0; c < boardSize; c++) {
+        const anim = cellAnims[r]?.[c];
+        if (!anim) continue;
+
+        // Scale animation (queen pop/shrink)
+        if (anim.scaleTime > 0) {
+          anim.scaleTime = Math.max(0, anim.scaleTime - dtMs);
+          const progress = 1 - anim.scaleTime / 300;
+          if (anim.scaleDir === 'in') {
+            if (progress < 0.6) {
+              anim.scale = (progress / 0.6) * 1.2;
+            } else {
+              anim.scale = 1.2 - ((progress - 0.6) / 0.4) * 0.2;
+            }
+          } else {
+            anim.scale = 1 - progress;
+          }
+          if (anim.scaleTime <= 0) {
+            anim.scale = anim.scaleDir === 'in' ? 1 : 0;
+          }
+        }
+
+        // Fade animation (X mark)
+        if (anim.fadeTime > 0) {
+          anim.fadeTime = Math.max(0, anim.fadeTime - dtMs);
+          const progress = 1 - anim.fadeTime / 150;
+          anim.opacity = anim.fadeDir === 'in' ? progress : 1 - progress;
+          if (anim.fadeTime <= 0) {
+            anim.opacity = anim.fadeDir === 'in' ? 1 : 0;
+          }
+        }
+
+        // Shake animation (error)
+        if (anim.shakeTime > 0) {
+          anim.shakeTime = Math.max(0, anim.shakeTime - dtMs);
+          const intensity = (anim.shakeTime / 400) * 4;
+          anim.shakeX = Math.sin(anim.shakeTime * 0.05) * intensity;
+          if (anim.shakeTime <= 0) anim.shakeX = 0;
+        }
+      }
+    }
+
+    // Update particles
+    particles = particles.filter(p => {
+      p.life -= dtMs;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 120 * dt;
+      return p.life > 0;
+    });
+
+    // Update celebration
+    if (celebration.active) {
+      celebration.time += dtMs;
+      celebration.highlightIndex = Math.floor(
+        celebration.time / (800 / (boardSize * boardSize)),
+      );
+      if (celebration.time > 2300) {
+        celebration.active = false;
+      }
     }
   }
 
@@ -843,8 +1007,20 @@ export function setupQueens(
         ctx.lineWidth = 0.5;
         ctx.strokeRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
 
+        // Celebration highlight overlay
+        if (celebration.active) {
+          const cellIndex = r * boardSize + c;
+          if (cellIndex <= celebration.highlightIndex) {
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillRect(x, y, cellSize, cellSize);
+          }
+        }
+
         // Draw cell content
         if (cell.state === 'cross') {
+          const anim = cellAnims[r]?.[c];
+          const opacity = anim?.opacity ?? 1;
+          ctx.globalAlpha = opacity;
           const pad = cellSize * 0.3;
           ctx.strokeStyle = cell.isHinted
             ? COLORS.hint
@@ -862,16 +1038,21 @@ export function setupQueens(
           ctx.lineTo(x + pad, y + cellSize - pad);
           ctx.stroke();
           ctx.lineCap = 'butt';
+          ctx.globalAlpha = 1;
         } else if (cell.state === 'queen') {
-          const qcx = x + cellSize / 2;
-          const qcy = y + cellSize / 2;
-          const crownSize = cellSize * 0.65;
-          const crownColor = cell.isError
-            ? COLORS.error
-            : cell.isHinted
-              ? COLORS.hint
-              : regionColor;
-          drawPixelCrown(qcx, qcy, crownSize, crownColor);
+          const anim = cellAnims[r]?.[c];
+          const scale = anim?.scale ?? 1;
+          if (scale > 0.01) {
+            const qcx = x + cellSize / 2 + (anim?.shakeX ?? 0);
+            const qcy = y + cellSize / 2;
+            const crownSize = cellSize * 0.65 * scale;
+            const crownColor = cell.isError
+              ? COLORS.error
+              : cell.isHinted
+                ? COLORS.hint
+                : regionColor;
+            drawPixelCrown(qcx, qcy, crownSize, crownColor);
+          }
         }
 
         // Cursor highlight (desktop)
@@ -918,6 +1099,29 @@ export function setupQueens(
     ctx.strokeRect(offsetX, offsetY, totalW, totalH);
   }
 
+  function renderParticles() {
+    for (const p of particles) {
+      const alpha = Math.max(0, p.life / p.maxLife);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      if (p.type === 'sparkle') {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      } else if (p.type === 'star') {
+        ctx.fillRect(p.x - p.size / 2, p.y - 1, p.size, 2);
+        ctx.fillRect(p.x - 1, p.y - p.size / 2, 2, p.size);
+      } else {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
   function render() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.fillStyle = COLORS.canvasBg;
@@ -925,6 +1129,7 @@ export function setupQueens(
 
     if (state === 'playing' || state === 'paused' || state === 'gameover') {
       renderGrid();
+      renderParticles();
       renderHud();
     }
 
@@ -941,7 +1146,11 @@ export function setupQueens(
 
   // --- Game loop ---
   function gameLoop(timestamp: number) {
+    const dt = lastTime > 0 ? Math.min((timestamp - lastTime) / 1000, 0.1) : 0;
     lastTime = timestamp;
+    if (state === 'playing' || state === 'gameover') {
+      updateAnimations(dt);
+    }
     render();
     animationId = requestAnimationFrame(gameLoop);
   }
