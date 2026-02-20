@@ -1,10 +1,28 @@
+import { TGameMeta } from '@/@types/game-meta';
 import { TDifficulty, TDifficultyConfig } from './types';
+
+export const GAME_META: TGameMeta = {
+  id: 'minesweeper',
+  title: 'Minesweeper',
+  engine: 'canvas',
+  platform: 'both',
+  touchControls: 'tap',
+  orientation: 'landscape',
+  category: 'puzzle',
+  difficulty: 'selectable',
+};
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
 
 export const HUD_HEIGHT = 50;
 export const PADDING = 10;
+
+export const LONG_PRESS_DURATION = 500;
+export const LONG_PRESS_MOVE_THRESHOLD = 15;
+
+export const MIN_ZOOM = 1;
+export const MAX_ZOOM = 4;
 
 export const DIFFICULTIES: Record<TDifficulty, TDifficultyConfig> = {
   beginner: { rows: 9, cols: 9, mines: 10, label: 'Easy', multiplier: 1 },

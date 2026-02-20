@@ -2,7 +2,7 @@ import KameHeader from '@/components/common/KameHeader';
 
 function MinesweeperLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="w-full h-screen px-6 py-4 flex flex-col gap-10 items-center">
+    <main className="w-full h-screen px-4 xl:px-6 py-4 flex flex-col gap-4 xl:gap-10 items-center">
       <KameHeader title="Minesweeper" />
       <section className="w-full h-full">{children}</section>
     </main>

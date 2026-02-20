@@ -23,6 +23,10 @@ import {
   MINE_COLOR,
   FLAG_COLOR,
   MINE_HIT_BG,
+  LONG_PRESS_DURATION,
+  LONG_PRESS_MOVE_THRESHOLD,
+  MIN_ZOOM,
+  MAX_ZOOM,
 } from './config';
 import { TCell, TDifficulty } from './types';
 
@@ -45,8 +49,17 @@ export function setupMinesweeper(
   callbacks?: TMinesweeperCallbacks,
 ): () => void {
   const ctx = canvas.getContext('2d')!;
-  canvas.width = CANVAS_WIDTH;
-  canvas.height = CANVAS_HEIGHT;
+
+  // DPR resize
+  const resize = () => {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(CANVAS_WIDTH * dpr);
+    canvas.height = Math.round(CANVAS_HEIGHT * dpr);
+    canvas.style.width = `${CANVAS_WIDTH}px`;
+    canvas.style.height = `${CANVAS_HEIGHT}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resize();
 
   let state: 'start' | 'loading' | 'playing' | 'paused' | 'gameover' =
     'start';
@@ -62,6 +75,34 @@ export function setupMinesweeper(
   let animationId = 0;
   let lastTime = 0;
   let hoveredDifficulty: TDifficulty | null = null;
+
+  // Touch state
+  let touchActive = false;
+  let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  let longPressTriggered = false;
+  let touchStartPos = { x: 0, y: 0 };
+  let longPressCell: { row: number; col: number } | null = null;
+  let longPressProgress = 0;
+  let longPressStartTime = 0;
+
+  // Zoom/pan state
+  let zoomScale = 1;
+  let panX = 0;
+  let panY = 0;
+
+  // Pinch state
+  let isPinching = false;
+  let wasPinching = false;
+  let pinchStartDist = 0;
+  let pinchStartScale = 1;
+  let pinchMidX = 0;
+  let pinchMidY = 0;
+
+  // Pan state
+  let isPanning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let touchStartCanvasPos = { x: 0, y: 0 };
 
   const difficultyButtons: TDifficultyButton[] = [];
 
@@ -87,6 +128,48 @@ export function setupMinesweeper(
     },
   );
 
+  // --- Zoom/pan helpers ---
+  function getGamePos(canvasX: number, canvasY: number) {
+    return {
+      x: (canvasX - panX) / zoomScale,
+      y: (canvasY - panY) / zoomScale,
+    };
+  }
+
+  function clampPan() {
+    if (zoomScale <= 1) {
+      panX = 0;
+      panY = 0;
+      return;
+    }
+
+    if (grid.length === 0) return;
+
+    const { cellSize, offsetX, offsetY } = getCellLayout();
+    const config = DIFFICULTIES[difficulty];
+    const gridW = config.cols * cellSize;
+    const gridH = config.rows * cellSize;
+
+    const margin = 50;
+
+    // Horizontal clamp
+    const minPanX = margin - (offsetX + gridW) * zoomScale;
+    const maxPanX = CANVAS_WIDTH - margin - offsetX * zoomScale;
+    panX = Math.max(minPanX, Math.min(maxPanX, panX));
+
+    // Vertical clamp (respect HUD area)
+    const minPanY = HUD_HEIGHT + margin - (offsetY + gridH) * zoomScale;
+    const maxPanY = CANVAS_HEIGHT - margin - offsetY * zoomScale;
+    panY = Math.max(minPanY, Math.min(maxPanY, panY));
+  }
+
+  function resetZoom() {
+    zoomScale = 1;
+    panX = 0;
+    panY = 0;
+  }
+
+  // --- Grid/cell helpers ---
   function createEmptyGrid(rows: number, cols: number): TCell[][] {
     return Array.from({ length: rows }, () =>
       Array.from({ length: cols }, () => ({
@@ -259,6 +342,7 @@ export function setupMinesweeper(
       }
     }
 
+    cancelLongPress();
     state = 'gameover';
   }
 
@@ -279,14 +363,14 @@ export function setupMinesweeper(
   }
 
   function getCellFromPos(
-    canvasX: number,
-    canvasY: number,
+    gameX: number,
+    gameY: number,
   ): { row: number; col: number } | null {
     const config = DIFFICULTIES[difficulty];
     const { cellSize, offsetX, offsetY } = getCellLayout();
 
-    const col = Math.floor((canvasX - offsetX) / cellSize);
-    const row = Math.floor((canvasY - offsetY) / cellSize);
+    const col = Math.floor((gameX - offsetX) / cellSize);
+    const row = Math.floor((gameY - offsetY) / cellSize);
 
     if (row >= 0 && row < config.rows && col >= 0 && col < config.cols) {
       return { row, col };
@@ -299,6 +383,14 @@ export function setupMinesweeper(
     return {
       x: ((clientX - rect.left) / rect.width) * CANVAS_WIDTH,
       y: ((clientY - rect.top) / rect.height) * CANVAS_HEIGHT,
+    };
+  };
+
+  const getTouchPos = (touch: Touch) => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((touch.clientX - rect.left) / rect.width) * CANVAS_WIDTH,
+      y: ((touch.clientY - rect.top) / rect.height) * CANVAS_HEIGHT,
     };
   };
 
@@ -319,20 +411,21 @@ export function setupMinesweeper(
     return null;
   }
 
-  function handleClick(e: MouseEvent) {
-    const pos = getCanvasPos(e.clientX, e.clientY);
-
-    if (state === 'start') {
-      const clicked = getDifficultyAt(pos.x, pos.y);
-      if (clicked) {
-        difficulty = clicked;
-        startGame();
-      }
-      return;
+  // --- Long press helpers ---
+  function cancelLongPress() {
+    if (longPressTimer !== null) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
     }
+    longPressTriggered = false;
+    longPressCell = null;
+    longPressProgress = 0;
+    longPressStartTime = 0;
+  }
 
-    if (state !== 'playing') return;
-    const cell = getCellFromPos(pos.x, pos.y);
+  // --- Cell action helper (shared by mouse click and touch tap) ---
+  function handleCellAction(gameX: number, gameY: number) {
+    const cell = getCellFromPos(gameX, gameY);
     if (!cell) return;
 
     const config = DIFFICULTIES[difficulty];
@@ -358,6 +451,28 @@ export function setupMinesweeper(
 
     revealCell(cell.row, cell.col);
     checkWin();
+  }
+
+  // --- Mouse handlers (desktop, no zoom) ---
+  function handleClick(e: MouseEvent) {
+    if (touchActive) {
+      touchActive = false;
+      return;
+    }
+
+    const pos = getCanvasPos(e.clientX, e.clientY);
+
+    if (state === 'start') {
+      const clicked = getDifficultyAt(pos.x, pos.y);
+      if (clicked) {
+        difficulty = clicked;
+        startGame();
+      }
+      return;
+    }
+
+    if (state !== 'playing') return;
+    handleCellAction(pos.x, pos.y);
   }
 
   function handleMouseMove(e: MouseEvent) {
@@ -387,11 +502,187 @@ export function setupMinesweeper(
     target.state = target.state === 'flagged' ? 'hidden' : 'flagged';
   }
 
+  // --- Touch handlers (with zoom/pan support) ---
+  function handleTouchStart(e: TouchEvent) {
+    e.preventDefault();
+    touchActive = true;
+
+    // Two-finger pinch start
+    if (e.touches.length >= 2 && (state === 'playing' || state === 'paused' || state === 'gameover')) {
+      cancelLongPress();
+      isPanning = false;
+      isPinching = true;
+      wasPinching = true;
+
+      const t1 = getTouchPos(e.touches[0]);
+      const t2 = getTouchPos(e.touches[1]);
+      pinchStartDist = Math.hypot(t2.x - t1.x, t2.y - t1.y);
+      pinchStartScale = zoomScale;
+      pinchMidX = (t1.x + t2.x) / 2;
+      pinchMidY = (t1.y + t2.y) / 2;
+      return;
+    }
+
+    // Single touch
+    if (isPinching) return;
+
+    const touch = e.touches[0];
+    const pos = getTouchPos(touch);
+
+    if (state === 'gameover') {
+      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      return;
+    }
+
+    if (state === 'start') {
+      const clicked = getDifficultyAt(pos.x, pos.y);
+      if (clicked) {
+        difficulty = clicked;
+        startGame();
+      }
+      return;
+    }
+
+    if (state === 'loading') return;
+
+    if (state === 'paused') {
+      startTime = performance.now();
+      state = 'playing';
+      return;
+    }
+
+    // Playing state
+    touchStartPos = { x: touch.clientX, y: touch.clientY };
+    touchStartCanvasPos = { x: pos.x, y: pos.y };
+    longPressTriggered = false;
+    isPanning = false;
+
+    const gamePos = getGamePos(pos.x, pos.y);
+    const cell = getCellFromPos(gamePos.x, gamePos.y);
+    longPressCell = cell;
+    longPressStartTime = performance.now();
+
+    if (cell) {
+      longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        const target = grid[cell.row][cell.col];
+        if (target.state === 'revealed') return;
+        target.state = target.state === 'flagged' ? 'hidden' : 'flagged';
+        longPressCell = null;
+        longPressProgress = 0;
+        longPressStartTime = 0;
+      }, LONG_PRESS_DURATION);
+    }
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    e.preventDefault();
+
+    // Pinch zoom
+    if (isPinching && e.touches.length >= 2) {
+      const t1 = getTouchPos(e.touches[0]);
+      const t2 = getTouchPos(e.touches[1]);
+      const dist = Math.hypot(t2.x - t1.x, t2.y - t1.y);
+      const newScale = Math.max(
+        MIN_ZOOM,
+        Math.min(MAX_ZOOM, pinchStartScale * (dist / pinchStartDist)),
+      );
+
+      const midX = (t1.x + t2.x) / 2;
+      const midY = (t1.y + t2.y) / 2;
+
+      // Zoom toward pinch center: keep game point under center stable
+      const gameX = (pinchMidX - panX) / zoomScale;
+      const gameY = (pinchMidY - panY) / zoomScale;
+
+      zoomScale = newScale;
+      panX = midX - gameX * zoomScale;
+      panY = midY - gameY * zoomScale;
+
+      pinchMidX = midX;
+      pinchMidY = midY;
+
+      clampPan();
+      return;
+    }
+
+    if (state !== 'playing' || e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartPos.x;
+    const dy = touch.clientY - touchStartPos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist > LONG_PRESS_MOVE_THRESHOLD) {
+      cancelLongPress();
+
+      // If zoomed in, start panning
+      if (zoomScale > 1 && !isPanning) {
+        isPanning = true;
+        panStartX = panX;
+        panStartY = panY;
+      }
+    }
+
+    if (isPanning) {
+      const pos = getTouchPos(touch);
+      panX = panStartX + (pos.x - touchStartCanvasPos.x);
+      panY = panStartY + (pos.y - touchStartCanvasPos.y);
+      clampPan();
+    }
+  }
+
+  function handleTouchEnd(e: TouchEvent) {
+    e.preventDefault();
+
+    // Pinch end
+    if (isPinching) {
+      if (e.touches.length < 2) {
+        isPinching = false;
+        // Snap to 1x if nearly unzoomed
+        if (zoomScale <= 1.05) {
+          resetZoom();
+        }
+      }
+      return;
+    }
+
+    // Pan end
+    if (isPanning) {
+      isPanning = false;
+      return;
+    }
+
+    // Skip if just finished pinching (second finger lift)
+    if (wasPinching && e.touches.length === 0) {
+      wasPinching = false;
+      return;
+    }
+
+    // Long press already handled
+    if (longPressTriggered) {
+      cancelLongPress();
+      return;
+    }
+
+    cancelLongPress();
+
+    // Short tap = reveal cell
+    if (state !== 'playing') return;
+
+    const touch = e.changedTouches[0];
+    const pos = getTouchPos(touch);
+    const gamePos = getGamePos(pos.x, pos.y);
+    handleCellAction(gamePos.x, gamePos.y);
+  }
+
+  // --- Game state management ---
   async function startGame() {
     if (state === 'loading') return;
     state = 'loading';
     canvas.style.cursor = 'default';
     hoveredDifficulty = null;
+    resetZoom();
     if (callbacks?.onGameStart) {
       await callbacks.onGameStart();
     }
@@ -416,6 +707,8 @@ export function setupMinesweeper(
     hitMineCol = -1;
     elapsedBeforePause = 0;
     startTime = 0;
+    cancelLongPress();
+    resetZoom();
     gameOverHud.reset();
   }
 
@@ -453,6 +746,7 @@ export function setupMinesweeper(
     }
   };
 
+  // --- Rendering ---
   function renderCell(
     x: number,
     y: number,
@@ -555,6 +849,36 @@ export function setupMinesweeper(
         ctx.fillText(`${cell.adjacentMines}`, x + size / 2, y + size / 2 + 1);
       }
     }
+  }
+
+  function renderLongPressIndicator() {
+    if (!longPressCell || longPressStartTime === 0 || state !== 'playing')
+      return;
+
+    const elapsed = performance.now() - longPressStartTime;
+    const progress = Math.min(elapsed / LONG_PRESS_DURATION, 1);
+    longPressProgress = progress;
+
+    const { cellSize, offsetX, offsetY } = getCellLayout();
+    const cx = offsetX + longPressCell.col * cellSize + cellSize / 2;
+    const cy = offsetY + longPressCell.row * cellSize + cellSize / 2;
+    const radius = cellSize * 0.4;
+
+    // Semi-transparent highlight
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
+    ctx.fillRect(
+      offsetX + longPressCell.col * cellSize,
+      offsetY + longPressCell.row * cellSize,
+      cellSize,
+      cellSize,
+    );
+
+    // Progress ring
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    ctx.stroke();
   }
 
   function renderMiniGrid(
@@ -717,10 +1041,32 @@ export function setupMinesweeper(
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(
-      "Press 'S' to start with Normal difficulty",
+      "Press 'S' or tap a card to start",
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 30,
     );
+  }
+
+  function renderZoomIndicator() {
+    if (zoomScale <= 1.05) return;
+
+    const text = `${zoomScale.toFixed(1)}x`;
+    const px = CANVAS_WIDTH - 15;
+    const py = HUD_HEIGHT / 2 + 22;
+
+    // Badge background
+    ctx.fillStyle = 'rgba(34, 211, 211, 0.2)';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(text).width;
+    ctx.beginPath();
+    ctx.roundRect(px - tw - 8, py - 10, tw + 16, 20, 6);
+    ctx.fill();
+
+    // Text
+    ctx.fillStyle = '#22d3d3';
+    ctx.fillText(text, px, py);
   }
 
   function render() {
@@ -736,6 +1082,15 @@ export function setupMinesweeper(
       const config = DIFFICULTIES[difficulty];
       const { cellSize, offsetX, offsetY } = getCellLayout();
 
+      // Grid rendering with zoom/pan (clipped below HUD)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, HUD_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT - HUD_HEIGHT);
+      ctx.clip();
+
+      ctx.translate(panX, panY);
+      ctx.scale(zoomScale, zoomScale);
+
       // Render grid
       for (let r = 0; r < config.rows; r++) {
         for (let c = 0; c < config.cols; c++) {
@@ -745,7 +1100,15 @@ export function setupMinesweeper(
         }
       }
 
-      // HUD bar
+      // Long press indicator (in game coordinates, affected by zoom)
+      renderLongPressIndicator();
+
+      ctx.restore();
+
+      // HUD bar (outside zoom, always fixed)
+      ctx.fillStyle = BACKGROUND_COLOR;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, HUD_HEIGHT);
+
       const elapsed = Math.floor(getElapsedSeconds());
       let flagCount = 0;
       for (let r = 0; r < config.rows; r++) {
@@ -770,6 +1133,9 @@ export function setupMinesweeper(
 
       ctx.textAlign = 'right';
       ctx.fillText(`Time: ${elapsed}s`, CANVAS_WIDTH - 15, HUD_HEIGHT / 2);
+
+      // Zoom indicator
+      renderZoomIndicator();
     }
 
     if (state === 'loading') {
@@ -789,19 +1155,29 @@ export function setupMinesweeper(
     animationId = requestAnimationFrame(gameLoop);
   }
 
+  // Event listeners
   canvas.addEventListener('click', handleClick);
   canvas.addEventListener('mousemove', handleMouseMove);
   canvas.addEventListener('contextmenu', handleContextMenu);
+  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+  canvas.addEventListener('touchend', handleTouchEnd);
   window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('resize', resize);
   lastTime = performance.now();
   animationId = requestAnimationFrame(gameLoop);
 
   return () => {
+    cancelLongPress();
     cancelAnimationFrame(animationId);
     canvas.removeEventListener('click', handleClick);
     canvas.removeEventListener('mousemove', handleMouseMove);
     canvas.removeEventListener('contextmenu', handleContextMenu);
+    canvas.removeEventListener('touchstart', handleTouchStart);
+    canvas.removeEventListener('touchmove', handleTouchMove);
+    canvas.removeEventListener('touchend', handleTouchEnd);
     window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('resize', resize);
     canvas.style.cursor = 'default';
   };
 }

@@ -240,6 +240,7 @@ export const MENU_LIST: TMenu[] = [
     },
     href: '/minesweeper',
     category: 'Puzzle',
+    platform: 'both',
   },
   {
     name: {
