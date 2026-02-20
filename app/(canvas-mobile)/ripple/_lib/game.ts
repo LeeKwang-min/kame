@@ -645,7 +645,7 @@ export function setupRipple(
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '15px sans-serif';
     ctx.fillText(
-      'Place stones to match the ripple numbers',
+      '돌을 놓아 파문 숫자를 맞추는 퍼즐',
       CANVAS_WIDTH / 2,
       155,
     );
@@ -653,12 +653,12 @@ export function setupRipple(
     // Stage info
     ctx.fillStyle = COLORS.text;
     ctx.font = 'bold 18px sans-serif';
-    ctx.fillText(`Stage ${stage}`, CANVAS_WIDTH / 2, 200);
+    ctx.fillText(`스테이지 ${stage}`, CANVAS_WIDTH / 2, 200);
 
     if (totalScore > 0) {
       ctx.fillStyle = COLORS.textLight;
       ctx.font = '14px sans-serif';
-      ctx.fillText(`Total Score: ${totalScore}`, CANVAS_WIDTH / 2, 225);
+      ctx.fillText(`총 점수: ${totalScore}`, CANVAS_WIDTH / 2, 225);
     }
 
     // Rules summary box
@@ -681,17 +681,17 @@ export function setupRipple(
     ctx.fillStyle = COLORS.text;
     ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('How to Play', CANVAS_WIDTH / 2, boxY + 28);
+    ctx.fillText('게임 방법', CANVAS_WIDTH / 2, boxY + 28);
 
     ctx.font = '14px sans-serif';
     ctx.fillStyle = COLORS.textLight;
     ctx.textAlign = 'left';
     const rules = [
-      'Each stone creates ripples that affect nearby cells.',
-      `Stone cell = ${RIPPLE_VALUES[0]}, distance 1 = ${RIPPLE_VALUES[1]}, distance 2 = ${RIPPLE_VALUES[2]}`,
-      'Ripple values from multiple stones add up.',
-      'Numbers show the total ripple value for that cell.',
-      'Place all stones so every cell matches its number.',
+      '돌을 놓으면 주변 셀에 파문이 퍼집니다.',
+      `돌 위치 = ${RIPPLE_VALUES[0]}, 거리 1 = ${RIPPLE_VALUES[1]}, 거리 2 = ${RIPPLE_VALUES[2]}`,
+      '여러 돌의 파문이 겹치면 값이 합산됩니다.',
+      '숫자는 해당 셀의 파문 합산값을 나타냅니다.',
+      '모든 셀의 숫자가 맞도록 돌을 배치하세요.',
     ];
     rules.forEach((rule, i) => {
       ctx.fillText(`  ${rule}`, boxX + 20, boxY + 58 + i * 24);
@@ -709,14 +709,14 @@ export function setupRipple(
     );
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '11px sans-serif';
-    ctx.fillText('Ripple pattern (Manhattan distance)', CANVAS_WIDTH / 2, diagramY + 16);
+    ctx.fillText('파문 패턴 (맨해튼 거리)', CANVAS_WIDTH / 2, diagramY + 16);
 
     // Start prompt
     ctx.fillStyle = COLORS.text;
     ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(
-      'Tap or Press S to Start',
+      '탭 또는 S키를 눌러 시작',
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 80,
     );
@@ -729,14 +729,20 @@ export function setupRipple(
       : `${config.size}`;
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '13px sans-serif';
+    const diffKor: Record<TDifficulty, string> = {
+      easy: '쉬움',
+      normal: '보통',
+      hard: '어려움',
+      expert: '전문가',
+    };
     ctx.fillText(
-      `Difficulty: ${diffLabel.charAt(0).toUpperCase() + diffLabel.slice(1)} | Grid: ${sizeLabel}x${sizeLabel} | x${config.multiplier}`,
+      `난이도: ${diffKor[diffLabel]} | 그리드: ${sizeLabel}x${sizeLabel} | x${config.multiplier}`,
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 50,
     );
 
     ctx.fillText(
-      'S: Start | P: Pause | R: Reset | H: Hint | V: Validate',
+      'S: 시작 | P: 일시정지 | R: 리셋 | H: 힌트 | V: 검증',
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 25,
     );
@@ -755,13 +761,13 @@ export function setupRipple(
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const diffLabels: Record<TDifficulty, string> = {
-      easy: 'Easy',
-      normal: 'Normal',
-      hard: 'Hard',
-      expert: 'Expert',
+      easy: '쉬움',
+      normal: '보통',
+      hard: '어려움',
+      expert: '전문가',
     };
     ctx.fillText(
-      `Stage ${stage} - ${diffLabels[difficulty]}`,
+      `스테이지 ${stage} - ${diffLabels[difficulty]}`,
       15,
       HUD_HEIGHT / 2 - 12,
     );
@@ -777,7 +783,7 @@ export function setupRipple(
     ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(
-      `Stones: ${placedStones}/${stoneTotal}`,
+      `돌: ${placedStones}/${stoneTotal}`,
       CANVAS_WIDTH / 2,
       HUD_HEIGHT / 2,
     );
@@ -805,7 +811,7 @@ export function setupRipple(
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`Hint (${hintsRemaining})`, hbX + hbW / 2, hbY + hbH / 2);
+    ctx.fillText(`힌트 (${hintsRemaining})`, hbX + hbW / 2, hbY + hbH / 2);
 
     // Separator line
     ctx.strokeStyle = COLORS.cellBorder;
@@ -1018,7 +1024,7 @@ export function setupRipple(
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Validate (V)', vbX + btnW / 2, btnY + btnH / 2);
+    ctx.fillText('검증 (V)', vbX + btnW / 2, btnY + btnH / 2);
 
     // Reset button
     const rbX = startX + btnW + gap;
@@ -1039,7 +1045,7 @@ export function setupRipple(
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Reset (R)', rbX + btnW / 2, btnY + btnH / 2);
+    ctx.fillText('리셋 (R)', rbX + btnW / 2, btnY + btnH / 2);
   }
 
   function renderParticles() {
