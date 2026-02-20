@@ -25,15 +25,38 @@ export const DIFFICULTY_CONFIG: Record<TDifficulty, TDifficultyConfig> = {
   hard: { size: 9, baseTime: 600, multiplier: 3, hints: 1 },
 };
 
-// 파스텔 톤 영역 색상 (최대 9개 영역)
+// 캔디 파스텔 영역 색상 (최대 9개 영역)
 export const REGION_COLORS = [
-  '#A8D8EA', // 하늘
-  '#FFB7B2', // 핑크
-  '#B5EAD7', // 민트
-  '#FFDAC1', // 살구
-  '#E2B6CF', // 라벤더
-  '#C7CEEA', // 퍼플블루
-  '#F3E8A3', // 레몬
-  '#D4A5A5', // 로즈
-  '#A0E7E5', // 틸
+  '#FFB3D9', // 캔디 핑크
+  '#B3E8FF', // 스카이 블루
+  '#C8F7C5', // 민트 그린
+  '#FFE0B2', // 피치 오렌지
+  '#D4B3FF', // 라벤더
+  '#FFF3B0', // 레몬 옐로우
+  '#FFB3B3', // 코랄 핑크
+  '#B3FFE0', // 아쿠아 민트
+  '#E8C8FF', // 라일락
 ];
+
+// UI 색상
+export const COLORS = {
+  canvasBg: '#FFF8F0',
+  hudBg: '#FFF0E6',
+  hudSeparator: 'rgba(180,140,200,0.3)',
+  textPrimary: '#4A3B5C',
+  textSecondary: 'rgba(74,59,92,0.5)',
+  accent: '#FF6B9D',
+  accentBg: 'rgba(255,107,157,0.15)',
+  accentBorder: 'rgba(255,107,157,0.4)',
+  error: '#FF4466',
+  hint: '#6C5CE7',
+  cellBorder: 'rgba(180,140,200,0.2)',
+  regionBorder: 'rgba(120,80,160,0.4)',
+  cardBg: '#FFFFFF',
+  cardBorder: 'rgba(180,140,200,0.3)',
+  cardHoverBorder: '#FF6B9D',
+  cardShadow: 'rgba(180,140,200,0.15)',
+  inactiveBg: 'rgba(180,140,200,0.08)',
+  inactiveBorder: 'rgba(180,140,200,0.2)',
+  inactiveText: 'rgba(74,59,92,0.3)',
+} as const;
