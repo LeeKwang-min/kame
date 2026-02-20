@@ -95,6 +95,7 @@ export function setupQueens(
     h: number;
   };
   let hintButton: THintButton = { x: 0, y: 0, w: 0, h: 0 };
+  let resetButton: THintButton = { x: 0, y: 0, w: 0, h: 0 };
 
   // gameOverHud
   const gameOverCallbacks: TGameOverCallbacks = {
@@ -511,6 +512,30 @@ export function setupQueens(
     return null;
   }
 
+  function isResetButtonAt(canvasX: number, canvasY: number): boolean {
+    return (
+      canvasX >= resetButton.x &&
+      canvasX <= resetButton.x + resetButton.w &&
+      canvasY >= resetButton.y &&
+      canvasY <= resetButton.y + resetButton.h
+    );
+  }
+
+  function clearBoard(): void {
+    if (state !== 'playing') return;
+    for (let r = 0; r < boardSize; r++) {
+      for (let c = 0; c < boardSize; c++) {
+        if (!board[r][c].isHinted) {
+          board[r][c].state = 'empty';
+          board[r][c].isError = false;
+        }
+      }
+    }
+    particles = [];
+    initCellAnims(boardSize);
+    validateBoard();
+  }
+
   function isHintButtonAt(canvasX: number, canvasY: number): boolean {
     return (
       canvasX >= hintButton.x &&
@@ -623,6 +648,12 @@ export function setupQueens(
 
     if (state !== 'playing') return;
 
+    // Check reset button
+    if (isResetButtonAt(pos.x, pos.y)) {
+      clearBoard();
+      return;
+    }
+
     // Check hint button
     if (isHintButtonAt(pos.x, pos.y) && hintsRemaining > 0) {
       giveHint();
@@ -651,7 +682,7 @@ export function setupQueens(
         cursorRow = cell.row;
         cursorCol = cell.col;
         canvas.style.cursor = 'pointer';
-      } else if (isHintButtonAt(pos.x, pos.y) && hintsRemaining > 0) {
+      } else if (isResetButtonAt(pos.x, pos.y) || (isHintButtonAt(pos.x, pos.y) && hintsRemaining > 0)) {
         canvas.style.cursor = 'pointer';
       } else {
         canvas.style.cursor = 'default';
@@ -693,6 +724,12 @@ export function setupQueens(
     }
 
     // Playing state
+    // Check reset button
+    if (isResetButtonAt(pos.x, pos.y)) {
+      clearBoard();
+      return;
+    }
+
     // Check hint button
     if (isHintButtonAt(pos.x, pos.y) && hintsRemaining > 0) {
       giveHint();
@@ -950,6 +987,30 @@ export function setupQueens(
       CANVAS_WIDTH / 2,
       HUD_HEIGHT / 2,
     );
+
+    // Reset button (right, before hint)
+    const rbW = 60;
+    const rbH = 30;
+    const rbX = CANVAS_WIDTH - 80 - 15 - rbW - 10;
+    const rbY = HUD_HEIGHT / 2 - rbH / 2;
+    resetButton = { x: rbX, y: rbY, w: rbW, h: rbH };
+
+    ctx.fillStyle = COLORS.inactiveBg;
+    ctx.beginPath();
+    ctx.roundRect(rbX, rbY, rbW, rbH, 6);
+    ctx.fill();
+
+    ctx.strokeStyle = COLORS.inactiveBorder;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(rbX, rbY, rbW, rbH, 6);
+    ctx.stroke();
+
+    ctx.fillStyle = COLORS.textSecondary;
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Reset', rbX + rbW / 2, rbY + rbH / 2);
 
     // Hint button (right)
     const hbW = 80;
