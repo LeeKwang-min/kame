@@ -25,3 +25,32 @@ export type TDifficultyConfig = {
   multiplier: number;
   hints: number;
 };
+
+export type TCellAnim = {
+  scale: number;
+  opacity: number;
+  shakeX: number;
+  shakeTime: number;
+  scaleTime: number;
+  scaleDir: 'in' | 'out';
+  fadeTime: number;
+  fadeDir: 'in' | 'out';
+};
+
+export type TParticle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
+  type: 'star' | 'heart' | 'sparkle';
+};
+
+export type TCelebration = {
+  active: boolean;
+  time: number;
+  highlightIndex: number;
+};
