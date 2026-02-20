@@ -77,8 +77,8 @@ export function setupRipple(
   const TUTORIAL_GRID_SIZE = 3;
   const TUTORIAL_STONE_POS: [number, number] = [1, 1]; // center
   const TUTORIAL_MESSAGES = [
-    '돌을 놓으면 파문이 주변으로 퍼집니다',
-    `파문 값: 돌=3, 거리1=2, 거리2=1`,
+    '돌을 놓으면 8방향으로 파문이 퍼집니다',
+    `파문 값: 돌=3, 주변 8칸=2, 바깥=1`,
     '가운데 셀(3)을 탭하여\n돌을 놓아보세요',
     '파문이 퍼져서 모든 숫자가\n맞았습니다!',
     '준비 완료!\n이제 진짜 퍼즐을 풀어봅시다 🎉',
@@ -806,7 +806,7 @@ export function setupRipple(
       for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
         for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
           if (r === sr && c === sc) continue;
-          const dist = Math.abs(r - sr) + Math.abs(c - sc);
+          const dist = Math.max(Math.abs(r - sr), Math.abs(c - sc));
           const x = gridLeft + c * cellSize;
           const y = gridTop + r * cellSize;
           if (dist === 1) {
@@ -909,7 +909,7 @@ export function setupRipple(
     const boxX = CANVAS_WIDTH / 2 - 220;
     const boxY = 255;
     const boxW = 440;
-    const boxH = 210;
+    const boxH = 280;
 
     ctx.fillStyle = COLORS.hudBg;
     ctx.beginPath();
@@ -932,7 +932,7 @@ export function setupRipple(
     ctx.textAlign = 'left';
     const rules = [
       '돌을 놓으면 주변 셀에 파문이 퍼집니다.',
-      `돌 위치 = ${RIPPLE_VALUES[0]}, 거리 1 = ${RIPPLE_VALUES[1]}, 거리 2 = ${RIPPLE_VALUES[2]}`,
+      `돌=${RIPPLE_VALUES[0]}, 주변 8칸=${RIPPLE_VALUES[1]}, 그 바깥 8방향=${RIPPLE_VALUES[2]}`,
       '여러 돌의 파문이 겹치면 값이 합산됩니다.',
       '숫자는 해당 셀의 파문 합산값을 나타냅니다.',
       '모든 셀의 숫자가 맞도록 돌을 배치하세요.',
@@ -942,18 +942,24 @@ export function setupRipple(
     });
 
     // Ripple diagram
-    const diagramY = boxY + boxH - 40;
+    const diagramY = boxY + boxH - 100;
     ctx.fillStyle = COLORS.accent;
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(
-      `[${RIPPLE_VALUES[2]}] [${RIPPLE_VALUES[1]}] [${RIPPLE_VALUES[0]}] [${RIPPLE_VALUES[1]}] [${RIPPLE_VALUES[2]}]`,
-      CANVAS_WIDTH / 2,
-      diagramY,
-    );
+    const dv = RIPPLE_VALUES;
+    const diagramLines = [
+      `[${dv[2]}] [${dv[2]}] [${dv[2]}] [${dv[2]}] [${dv[2]}]`,
+      `[${dv[2]}] [${dv[1]}] [${dv[1]}] [${dv[1]}] [${dv[2]}]`,
+      `[${dv[2]}] [${dv[1]}] [${dv[0]}] [${dv[1]}] [${dv[2]}]`,
+      `[${dv[2]}] [${dv[1]}] [${dv[1]}] [${dv[1]}] [${dv[2]}]`,
+      `[${dv[2]}] [${dv[2]}] [${dv[2]}] [${dv[2]}] [${dv[2]}]`,
+    ];
+    diagramLines.forEach((line, i) => {
+      ctx.fillText(line, CANVAS_WIDTH / 2, diagramY + i * 14);
+    });
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '11px sans-serif';
-    ctx.fillText('파문 패턴 (맨해튼 거리)', CANVAS_WIDTH / 2, diagramY + 16);
+    ctx.fillText('파문 패턴 (8방향 확산)', CANVAS_WIDTH / 2, diagramY + diagramLines.length * 14 + 4);
 
     // Start prompt
     ctx.fillStyle = COLORS.text;

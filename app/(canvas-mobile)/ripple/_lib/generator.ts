@@ -17,7 +17,7 @@ export function computeRippleBoard(
   for (const [sr, sc] of stonePositions) {
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
-        const dist = Math.abs(r - sr) + Math.abs(c - sc);
+        const dist = Math.max(Math.abs(r - sr), Math.abs(c - sc));
         if (dist <= RIPPLE_MAX_DISTANCE) {
           values[r][c] += RIPPLE_VALUES[dist];
         }
@@ -51,7 +51,7 @@ function hasUniqueSolution(
   function addStone(sr: number, sc: number) {
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
-        const dist = Math.abs(r - sr) + Math.abs(c - sc);
+        const dist = Math.max(Math.abs(r - sr), Math.abs(c - sc));
         if (dist <= RIPPLE_MAX_DISTANCE) {
           board[r][c] += RIPPLE_VALUES[dist];
         }
@@ -62,7 +62,7 @@ function hasUniqueSolution(
   function removeStone(sr: number, sc: number) {
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
-        const dist = Math.abs(r - sr) + Math.abs(c - sc);
+        const dist = Math.max(Math.abs(r - sr), Math.abs(c - sc));
         if (dist <= RIPPLE_MAX_DISTANCE) {
           board[r][c] -= RIPPLE_VALUES[dist];
         }
