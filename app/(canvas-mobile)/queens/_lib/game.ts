@@ -13,6 +13,7 @@ import {
   DIFFICULTY_CONFIG,
   REGION_COLORS,
   HINT_PENALTY_SECONDS,
+  COLORS,
 } from './config';
 import { TDifficulty, TCell, TBoard, TCellState } from './types';
 import { generatePuzzle } from './generator';
@@ -118,6 +119,61 @@ export function setupQueens(
   };
 
   const getTouchPos = (touch: Touch) => getCanvasPos(touch.clientX, touch.clientY);
+
+  // Color utilities
+  function darkenColor(hex: string, amount: number): string {
+    const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - amount);
+    const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - amount);
+    const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - amount);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function lightenColor(hex: string, amount: number): string {
+    const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount);
+    const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount);
+    const b = Math.min(255, parseInt(hex.slice(5, 7), 16) + amount);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  // Pixel art crown bitmap (7x7)
+  const CROWN_BITMAP = [
+    [0, 1, 0, 1, 0, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 0],
+    [0, 1, 1, 1, 1, 1, 0],
+    [0, 0, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1],
+  ];
+  const CROWN_JEWELS: [number, number][] = [[0, 1], [0, 3], [0, 5]];
+
+  function drawPixelCrown(
+    cx: number, cy: number, size: number, color: string,
+  ) {
+    const pixelSize = Math.floor(size / 7);
+    if (pixelSize < 1) return;
+    const totalW = pixelSize * 7;
+    const totalH = pixelSize * 7;
+    const startX = cx - totalW / 2;
+    const startY = cy - totalH / 2;
+    const mainColor = darkenColor(color, 60);
+    const jewelColor = lightenColor(color, 40);
+
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        if (CROWN_BITMAP[r][c]) {
+          const isJewel = CROWN_JEWELS.some(([jr, jc]) => jr === r && jc === c);
+          ctx.fillStyle = isJewel ? jewelColor : mainColor;
+          ctx.fillRect(
+            startX + c * pixelSize,
+            startY + r * pixelSize,
+            pixelSize,
+            pixelSize,
+          );
+        }
+      }
+    }
+  }
 
   // --- Grid metrics calculation ---
   function getGridLayout() {
@@ -310,9 +366,14 @@ export function setupQueens(
     hintsRemaining = config.hints;
     hintPenalty = 0;
 
-    const puzzle = generatePuzzle(boardSize);
-    regions = puzzle.regions;
-    solution = puzzle.solution;
+    try {
+      const puzzle = await generatePuzzle(boardSize);
+      regions = puzzle.regions;
+      solution = puzzle.solution;
+    } catch {
+      state = 'start';
+      return;
+    }
 
     initBoard(boardSize);
     score = 0;
@@ -551,19 +612,22 @@ export function setupQueens(
 
   // --- Render functions ---
   function renderStartScreen() {
-    // Dark background
-    ctx.fillStyle = '#1a1a2e';
+    // Light candy background
+    ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // Pixel crown next to title
+    drawPixelCrown(CANVAS_WIDTH / 2 - 75, 80, 24, COLORS.accent);
+
     // Title
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = COLORS.textPrimary;
     ctx.font = 'bold 36px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Queens', CANVAS_WIDTH / 2, 80);
+    ctx.fillText('Queens', CANVAS_WIDTH / 2 + 12, 80);
 
     // Subtitle
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillStyle = COLORS.textSecondary;
     ctx.font = '15px sans-serif';
     ctx.fillText('Place N queens with no conflicts', CANVAS_WIDTH / 2, 120);
 
@@ -590,15 +654,24 @@ export function setupQueens(
       difficultyButtons.push({ x, y, w: btnW, h: btnH, difficulty: diff });
 
       // Button background
-      const borderColor = isHovered ? '#00fff5' : 'rgba(255,255,255,0.15)';
-      const bgColor = isHovered
-        ? 'rgba(0,255,245,0.08)'
-        : 'rgba(255,255,255,0.03)';
+      const borderColor = isHovered ? COLORS.cardHoverBorder : COLORS.cardBorder;
+      const bgColor = COLORS.cardBg;
+
+      // Card shadow on hover
+      if (isHovered) {
+        ctx.shadowColor = 'rgba(255,107,157,0.3)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetY = 4;
+      }
 
       ctx.fillStyle = bgColor;
       ctx.beginPath();
       ctx.roundRect(x, y, btnW, btnH, 12);
       ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
 
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = isHovered ? 2 : 1;
@@ -608,9 +681,9 @@ export function setupQueens(
 
       // Glow on hover
       if (isHovered) {
-        ctx.shadowColor = '#00fff5';
+        ctx.shadowColor = COLORS.accent;
         ctx.shadowBlur = 20;
-        ctx.strokeStyle = '#00fff5';
+        ctx.strokeStyle = COLORS.accent;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(x, y, btnW, btnH, 12);
@@ -619,14 +692,14 @@ export function setupQueens(
       }
 
       // Label
-      ctx.fillStyle = isHovered ? '#00fff5' : '#FFFFFF';
+      ctx.fillStyle = isHovered ? COLORS.accent : COLORS.textPrimary;
       ctx.font = 'bold 22px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(labels[i], x + btnW / 2, y + 30);
 
       // Size label
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillStyle = COLORS.textSecondary;
       ctx.font = '16px sans-serif';
       ctx.fillText(sizeLabels[i], x + btnW / 2, y + 60);
 
@@ -640,7 +713,7 @@ export function setupQueens(
         for (let c = 0; c < miniSize; c++) {
           const colorIdx = (r + c) % REGION_COLORS.length;
           ctx.fillStyle = REGION_COLORS[colorIdx];
-          ctx.globalAlpha = 0.4;
+          ctx.globalAlpha = 0.6;
           ctx.fillRect(
             miniStartX + c * miniCellSize,
             miniStartY + r * miniCellSize,
@@ -653,8 +726,8 @@ export function setupQueens(
 
       // Multiplier badge
       ctx.fillStyle = isHovered
-        ? 'rgba(0,255,245,0.2)'
-        : 'rgba(255,255,255,0.08)';
+        ? COLORS.accentBg
+        : COLORS.inactiveBg;
       const badgeW = 50;
       const badgeH = 22;
       const badgeX = x + btnW / 2 - badgeW / 2;
@@ -663,13 +736,13 @@ export function setupQueens(
       ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
       ctx.fill();
 
-      ctx.fillStyle = isHovered ? '#00fff5' : 'rgba(255,255,255,0.5)';
+      ctx.fillStyle = isHovered ? COLORS.accent : COLORS.textSecondary;
       ctx.font = 'bold 12px sans-serif';
       ctx.fillText(`x${config.multiplier}`, x + btnW / 2, badgeY + badgeH / 2);
     });
 
     // Keyboard hint
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillStyle = COLORS.textSecondary;
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(
@@ -686,13 +759,13 @@ export function setupQueens(
 
   function renderHud() {
     // HUD background
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = COLORS.hudBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, HUD_HEIGHT);
 
     const elapsed = getElapsedSeconds();
 
     // Timer (left)
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = COLORS.textPrimary;
     ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -721,28 +794,28 @@ export function setupQueens(
 
     const hasHints = hintsRemaining > 0;
     ctx.fillStyle = hasHints
-      ? 'rgba(0,255,245,0.15)'
-      : 'rgba(255,255,255,0.05)';
+      ? COLORS.accentBg
+      : COLORS.inactiveBg;
     ctx.beginPath();
     ctx.roundRect(hbX, hbY, hbW, hbH, 6);
     ctx.fill();
 
     ctx.strokeStyle = hasHints
-      ? 'rgba(0,255,245,0.4)'
-      : 'rgba(255,255,255,0.1)';
+      ? COLORS.accentBorder
+      : COLORS.inactiveBorder;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(hbX, hbY, hbW, hbH, 6);
     ctx.stroke();
 
-    ctx.fillStyle = hasHints ? '#00fff5' : 'rgba(255,255,255,0.3)';
+    ctx.fillStyle = hasHints ? COLORS.accent : COLORS.inactiveText;
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`Hint (${hintsRemaining})`, hbX + hbW / 2, hbY + hbH / 2);
 
     // Separator line
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.strokeStyle = COLORS.hudSeparator;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, HUD_HEIGHT - 0.5);
@@ -759,25 +832,25 @@ export function setupQueens(
         const x = offsetX + c * cellSize;
         const y = offsetY + r * cellSize;
         const cell = board[r][c];
+        const regionColor = REGION_COLORS[cell.region % REGION_COLORS.length];
 
         // Cell background with region color
-        ctx.fillStyle = REGION_COLORS[cell.region % REGION_COLORS.length];
+        ctx.fillStyle = regionColor;
         ctx.fillRect(x, y, cellSize, cellSize);
 
         // Cell border (thin)
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.strokeStyle = COLORS.cellBorder;
         ctx.lineWidth = 0.5;
         ctx.strokeRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
 
         // Draw cell content
         if (cell.state === 'cross') {
-          // Gray X
           const pad = cellSize * 0.3;
           ctx.strokeStyle = cell.isHinted
-            ? '#0088ff'
+            ? COLORS.hint
             : cell.isError
-              ? '#ff4444'
-              : 'rgba(100,100,100,0.7)';
+              ? COLORS.error
+              : darkenColor(regionColor, 40);
           ctx.lineWidth = 2;
           ctx.lineCap = 'round';
           ctx.beginPath();
@@ -790,31 +863,20 @@ export function setupQueens(
           ctx.stroke();
           ctx.lineCap = 'butt';
         } else if (cell.state === 'queen') {
-          const cx = x + cellSize / 2;
-          const cy = y + cellSize / 2;
-          const radius = cellSize * 0.32;
-
-          // Circle background
-          ctx.fillStyle = cell.isError
-            ? '#ff4444'
+          const qcx = x + cellSize / 2;
+          const qcy = y + cellSize / 2;
+          const crownSize = cellSize * 0.65;
+          const crownColor = cell.isError
+            ? COLORS.error
             : cell.isHinted
-              ? '#0088ff'
-              : '#333333';
-          ctx.beginPath();
-          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Queen character
-          ctx.fillStyle = '#FFFFFF';
-          ctx.font = `${Math.floor(cellSize * 0.4)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('\u265B', cx, cy + 1);
+              ? COLORS.hint
+              : regionColor;
+          drawPixelCrown(qcx, qcy, crownSize, crownColor);
         }
 
         // Cursor highlight (desktop)
         if (r === cursorRow && c === cursorCol && state === 'playing') {
-          ctx.strokeStyle = '#00fff5';
+          ctx.strokeStyle = COLORS.accent;
           ctx.lineWidth = 2.5;
           ctx.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
         }
@@ -822,7 +884,7 @@ export function setupQueens(
     }
 
     // Draw thick region boundary lines
-    ctx.strokeStyle = '#333333';
+    ctx.strokeStyle = COLORS.regionBorder;
     ctx.lineWidth = 2.5;
 
     for (let r = 0; r < boardSize; r++) {
@@ -851,14 +913,14 @@ export function setupQueens(
     // Outer border
     const totalW = boardSize * cellSize;
     const totalH = boardSize * cellSize;
-    ctx.strokeStyle = '#333333';
+    ctx.strokeStyle = COLORS.regionBorder;
     ctx.lineWidth = 2.5;
     ctx.strokeRect(offsetX, offsetY, totalW, totalH);
   }
 
   function render() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     if (state === 'playing' || state === 'paused' || state === 'gameover') {
