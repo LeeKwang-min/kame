@@ -52,7 +52,7 @@ export function setupRipple(
   resize();
 
   // Game state variables
-  let state: 'start' | 'loading' | 'playing' | 'paused' | 'gameover' = 'start';
+  let state: 'start' | 'loading' | 'playing' | 'paused' | 'gameover' | 'tutorial' = 'start';
   let stage = 1;
   let difficulty: TDifficulty = 'easy';
   let gridSize = 5;
@@ -69,6 +69,26 @@ export function setupRipple(
   let cursorRow = -1;
   let cursorCol = -1;
   let placedStones = 0;
+
+  // Tutorial state
+  const TUTORIAL_STORAGE_KEY = 'ripple_tutorial_done';
+  let tutorialStep = 0;
+  let tutorialBlinkTime = 0; // for pulsing target cell
+  const TUTORIAL_GRID_SIZE = 3;
+  const TUTORIAL_STONE_POS: [number, number] = [1, 1]; // center
+  const TUTORIAL_MESSAGES = [
+    '돌을 놓으면 파문이 주변으로 퍼집니다',
+    `파문 값: 돌=3, 거리1=2, 거리2=1`,
+    '가운데 셀(3)을 탭하여\n돌을 놓아보세요',
+    '파문이 퍼져서 모든 숫자가\n맞았습니다!',
+    '준비 완료!\n이제 진짜 퍼즐을 풀어봅시다 🎉',
+  ];
+  function isTutorialDone(): boolean {
+    try { return localStorage.getItem(TUTORIAL_STORAGE_KEY) === 'true'; } catch { return false; }
+  }
+  function markTutorialDone(): void {
+    try { localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true'); } catch { /* noop */ }
+  }
 
   // Animation state
   let cellAnims: TCellAnim[][] = [];
@@ -537,6 +557,65 @@ export function setupRipple(
     gameOverHud.reset();
   }
 
+  // --- Tutorial logic ---
+  function startTutorial(): void {
+    state = 'tutorial';
+    tutorialStep = 0;
+    tutorialBlinkTime = 0;
+    gridSize = TUTORIAL_GRID_SIZE;
+
+    // Build a fixed 3x3 board with stone at center (1,1)
+    const stonePositions: [number, number][] = [TUTORIAL_STONE_POS];
+    const values = computeRippleBoard(TUTORIAL_GRID_SIZE, stonePositions);
+
+    board = values.map((row) =>
+      row.map((val) => ({
+        value: val,
+        revealed: true,
+        hasStone: false,
+        isError: false,
+        isHinted: false,
+      })),
+    );
+
+    initCellAnims(TUTORIAL_GRID_SIZE);
+    placedStones = 0;
+    particles = [];
+    celebration = { active: false, time: 0, rippleIndex: -1 };
+  }
+
+  function advanceTutorial(): void {
+    tutorialStep++;
+    if (tutorialStep >= TUTORIAL_MESSAGES.length) {
+      // Tutorial complete
+      markTutorialDone();
+      state = 'start';
+    }
+  }
+
+  function handleTutorialTap(row?: number, col?: number): void {
+    if (tutorialStep === 2) {
+      // Step 3: user must tap center cell
+      if (row === TUTORIAL_STONE_POS[0] && col === TUTORIAL_STONE_POS[1]) {
+        board[row][col].hasStone = true;
+        placedStones = 1;
+        const anim = cellAnims[row]?.[col];
+        if (anim) {
+          anim.scale = 0;
+          anim.rippleActive = true;
+          anim.rippleTime = 600;
+        }
+        spawnDropParticles(row, col);
+        spawnRingParticle(row, col);
+        advanceTutorial();
+      }
+      // Wrong cell: do nothing (message stays)
+    } else {
+      // Other steps: tap anywhere to advance
+      advanceTutorial();
+    }
+  }
+
   // --- Time helpers ---
   function getElapsedSeconds(): number {
     if (state === 'paused') return elapsedBeforePause;
@@ -625,6 +704,171 @@ export function setupRipple(
   }
 
   // --- Render functions ---
+
+  function renderTutorial() {
+    ctx.fillStyle = COLORS.canvasBg;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Title
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🌊 튜토리얼', CANVAS_WIDTH / 2, 50);
+
+    // Draw tutorial grid (centered, larger cells)
+    const cellSize = 80;
+    const gridW = TUTORIAL_GRID_SIZE * cellSize;
+    const gridLeft = (CANVAS_WIDTH - gridW) / 2;
+    const gridTop = 100;
+
+    for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
+      for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
+        const x = gridLeft + c * cellSize;
+        const y = gridTop + r * cellSize;
+        const cell = board[r]?.[c];
+        if (!cell) continue;
+
+        const anim = cellAnims[r]?.[c];
+        const isTarget = r === TUTORIAL_STONE_POS[0] && c === TUTORIAL_STONE_POS[1];
+
+        // Cell background
+        let bgColor: string = COLORS.cellRevealed;
+        if (cell.hasStone) bgColor = COLORS.accentLight;
+
+        ctx.fillStyle = bgColor;
+        ctx.beginPath();
+        ctx.roundRect(x + 2, y + 2, cellSize - 4, cellSize - 4, 6);
+        ctx.fill();
+
+        // Cell border
+        ctx.strokeStyle = COLORS.cellBorder;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(x + 2, y + 2, cellSize - 4, cellSize - 4, 6);
+        ctx.stroke();
+
+        // Pulsing highlight on target cell at step 2
+        if (isTarget && tutorialStep === 2 && !cell.hasStone) {
+          const pulse = 0.4 + 0.6 * Math.abs(Math.sin(tutorialBlinkTime * 3));
+          ctx.strokeStyle = `rgba(74, 144, 217, ${pulse})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 5);
+          ctx.stroke();
+        }
+
+        // Stone
+        if (cell.hasStone) {
+          const stoneScale = anim ? Math.min(Math.max(anim.scale, 0), 1.3) : 1;
+          const stoneR = cellSize * 0.28 * stoneScale;
+          const cx = x + cellSize / 2;
+          const cy = y + cellSize / 2;
+
+          ctx.fillStyle = COLORS.stone;
+          ctx.beginPath();
+          ctx.arc(cx, cy, stoneR, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.beginPath();
+          ctx.arc(cx - stoneR * 0.2, cy - stoneR * 0.2, stoneR * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Ripple ring animation
+          if (anim?.rippleActive) {
+            for (let ring = 0; ring < 3; ring++) {
+              const t = (anim.rippleTime - ring * 150) / 600;
+              if (t < 0 || t > 1) continue;
+              const ringR = stoneR + t * cellSize * 0.6;
+              const alpha = 1 - t;
+              ctx.strokeStyle = `rgba(74, 144, 217, ${alpha * 0.5})`;
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          }
+        } else {
+          // Number
+          ctx.fillStyle = COLORS.text;
+          ctx.font = `bold ${cellSize * 0.4}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(cell.value), x + cellSize / 2, y + cellSize / 2);
+        }
+      }
+    }
+
+    // Ripple range overlay (after stone placed)
+    if (tutorialStep >= 3) {
+      const [sr, sc] = TUTORIAL_STONE_POS;
+      for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
+        for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
+          if (r === sr && c === sc) continue;
+          const dist = Math.abs(r - sr) + Math.abs(c - sc);
+          const x = gridLeft + c * cellSize;
+          const y = gridTop + r * cellSize;
+          if (dist === 1) {
+            ctx.fillStyle = COLORS.ripple1;
+            ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+          } else if (dist === 2) {
+            ctx.fillStyle = COLORS.ripple2;
+            ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+          }
+        }
+      }
+    }
+
+    // Particles
+    renderParticles();
+
+    // Message bubble
+    const msgY = gridTop + TUTORIAL_GRID_SIZE * cellSize + 40;
+    const msgW = 400;
+    const msgH = 100;
+    const msgX = (CANVAS_WIDTH - msgW) / 2;
+
+    // Bubble background
+    ctx.fillStyle = COLORS.hudBg;
+    ctx.beginPath();
+    ctx.roundRect(msgX, msgY, msgW, msgH, 12);
+    ctx.fill();
+    ctx.strokeStyle = COLORS.accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(msgX, msgY, msgW, msgH, 12);
+    ctx.stroke();
+
+    // Message text (supports \n)
+    const msg = TUTORIAL_MESSAGES[tutorialStep] ?? '';
+    const lines = msg.split('\n');
+    ctx.fillStyle = COLORS.text;
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const lineHeight = 24;
+    const textStartY = msgY + msgH / 2 - ((lines.length - 1) * lineHeight) / 2 - 8;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, CANVAS_WIDTH / 2, textStartY + i * lineHeight);
+    });
+
+    // "Tap to continue" prompt (except on step 2 which requires specific cell tap)
+    const promptText = tutorialStep === 2 ? '반짝이는 셀을 탭하세요 ▶' : '탭하여 계속 ▶';
+    ctx.fillStyle = COLORS.textLight;
+    ctx.font = '13px sans-serif';
+    ctx.fillText(promptText, CANVAS_WIDTH / 2, msgY + msgH - 12);
+
+    // Step indicator
+    ctx.fillStyle = COLORS.textLight;
+    ctx.font = '12px sans-serif';
+    ctx.fillText(
+      `${tutorialStep + 1} / ${TUTORIAL_MESSAGES.length}`,
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT - 30,
+    );
+  }
+
   function renderStartScreen() {
     ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -1093,6 +1337,11 @@ export function setupRipple(
       }
     }
 
+    if (state === 'tutorial') {
+      renderTutorial();
+      return;
+    }
+
     if (state === 'loading') {
       gameLoadingHud(canvas, ctx);
     } else if (state === 'start') {
@@ -1116,7 +1365,7 @@ export function setupRipple(
     switch (e.code) {
       case 'KeyS':
         if (state === 'start') {
-          startStage();
+          if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
         } else if (state === 'paused') {
           startTime = performance.now();
           state = 'playing';
@@ -1172,7 +1421,14 @@ export function setupRipple(
         break;
       case 'Space':
       case 'Enter':
-        if (state === 'playing' && cursorRow >= 0 && cursorCol >= 0) {
+        if (state === 'tutorial') {
+          if (tutorialStep === 2) {
+            handleTutorialTap(TUTORIAL_STONE_POS[0], TUTORIAL_STONE_POS[1]);
+          } else {
+            handleTutorialTap();
+          }
+          e.preventDefault();
+        } else if (state === 'playing' && cursorRow >= 0 && cursorCol >= 0) {
           toggleStone(cursorRow, cursorCol);
           e.preventDefault();
         }
@@ -1183,8 +1439,26 @@ export function setupRipple(
   function handleClick(e: MouseEvent) {
     const pos = getCanvasPos(e.clientX, e.clientY);
 
+    if (state === 'tutorial') {
+      if (tutorialStep === 2) {
+        // Check if user clicked the target cell
+        const cellSize = 80;
+        const gridW = TUTORIAL_GRID_SIZE * cellSize;
+        const tGridLeft = (CANVAS_WIDTH - gridW) / 2;
+        const tGridTop = 100;
+        const col = Math.floor((pos.x - tGridLeft) / cellSize);
+        const row = Math.floor((pos.y - tGridTop) / cellSize);
+        if (row >= 0 && row < TUTORIAL_GRID_SIZE && col >= 0 && col < TUTORIAL_GRID_SIZE) {
+          handleTutorialTap(row, col);
+        }
+      } else {
+        handleTutorialTap();
+      }
+      return;
+    }
+
     if (state === 'start') {
-      startStage();
+      if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
       return;
     }
 
@@ -1228,8 +1502,25 @@ export function setupRipple(
       return;
     }
 
+    if (state === 'tutorial') {
+      if (tutorialStep === 2) {
+        const cellSize = 80;
+        const gridW = TUTORIAL_GRID_SIZE * cellSize;
+        const tGridLeft = (CANVAS_WIDTH - gridW) / 2;
+        const tGridTop = 100;
+        const col = Math.floor((pos.x - tGridLeft) / cellSize);
+        const row = Math.floor((pos.y - tGridTop) / cellSize);
+        if (row >= 0 && row < TUTORIAL_GRID_SIZE && col >= 0 && col < TUTORIAL_GRID_SIZE) {
+          handleTutorialTap(row, col);
+        }
+      } else {
+        handleTutorialTap();
+      }
+      return;
+    }
+
     if (state === 'start') {
-      startStage();
+      if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
       return;
     }
 
@@ -1274,6 +1565,10 @@ export function setupRipple(
     const dt = lastTime > 0 ? Math.min((timestamp - lastTime) / 1000, 0.1) : 0;
     lastTime = timestamp;
     if (state === 'playing' || state === 'gameover') {
+      updateAnimations(dt);
+    }
+    if (state === 'tutorial') {
+      tutorialBlinkTime += dt;
       updateAnimations(dt);
     }
     render();
