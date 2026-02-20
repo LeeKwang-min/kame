@@ -49,6 +49,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'helicopter',
   'downwell',
   'blockpuzzle',
+  'queens',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

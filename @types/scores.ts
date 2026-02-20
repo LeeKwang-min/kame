@@ -43,7 +43,8 @@ export type TGameType =
   | 'survivors'
   | 'helicopter'
   | 'downwell'
-  | 'blockpuzzle';
+  | 'blockpuzzle'
+  | 'queens';
 
 export type TScore = {
   id: string;

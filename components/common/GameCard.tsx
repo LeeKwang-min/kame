@@ -44,6 +44,7 @@ import {
   Plane,
   ArrowDownToLine,
   LayoutGrid as BlockGrid,
+  Crown,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -95,6 +96,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/helicopter': Plane,
   '/downwell': ArrowDownToLine,
   '/blockpuzzle': BlockGrid,
+  '/queens': Crown,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

@@ -285,6 +285,15 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
+      kor: '퀸즈',
+      eng: 'Queens',
+    },
+    href: '/queens',
+    category: 'Puzzle',
+    platform: 'both',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },
