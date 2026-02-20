@@ -488,6 +488,8 @@ export function setupQueens(
     hintPenalty = 0;
     cursorRow = -1;
     cursorCol = -1;
+    particles = [];
+    celebration = { active: false, time: 0, highlightIndex: -1 };
     gameOverHud.reset();
   }
 

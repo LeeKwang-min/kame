@@ -1,35 +1,5 @@
 import { TPuzzle } from './types';
 
-function generateQueenPlacement(n: number): [number, number][] | null {
-  const cols = new Array(n).fill(-1);
-
-  function isValid(row: number, col: number): boolean {
-    for (let r = 0; r < row; r++) {
-      const c = cols[r];
-      if (c === col) return false;
-      if (Math.abs(r - row) === Math.abs(c - col)) return false;
-      if (row - r === 1 && Math.abs(c - col) <= 1) return false;
-    }
-    return true;
-  }
-
-  function solve(row: number): boolean {
-    if (row === n) return true;
-    const order = shuffle([...Array(n)].map((_, i) => i));
-    for (const col of order) {
-      if (isValid(row, col)) {
-        cols[row] = col;
-        if (solve(row + 1)) return true;
-        cols[row] = -1;
-      }
-    }
-    return false;
-  }
-
-  if (!solve(0)) return null;
-  return cols.map((col, row) => [row, col] as [number, number]);
-}
-
 function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -38,42 +8,52 @@ function shuffle<T>(arr: T[]): T[] {
   return arr;
 }
 
-function generateRegions(n: number, queens: [number, number][]): number[][] {
-  const regions: number[][] = Array.from({ length: n }, () => new Array(n).fill(-1));
+function generateRandomRegions(n: number): number[][] {
+  const grid: number[][] = Array.from({ length: n }, () => new Array(n).fill(-1));
+  const dirs: [number, number][] = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
 
-  queens.forEach(([r, c], idx) => {
-    regions[r][c] = idx;
-  });
+  const allCells: [number, number][] = [];
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++) allCells.push([r, c]);
+  shuffle(allCells);
 
-  const queues: [number, number][][] = queens.map(([r, c]) => [[r, c]]);
-  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  const frontiers: [number, number][][] = [];
+  for (let i = 0; i < n; i++) {
+    const [r, c] = allCells[i];
+    grid[r][c] = i;
+    frontiers.push([[r, c]]);
+  }
 
   let hasUnfilled = true;
   while (hasUnfilled) {
     hasUnfilled = false;
     const order = shuffle([...Array(n)].map((_, i) => i));
     for (const idx of order) {
-      if (queues[idx].length === 0) continue;
-      const nextQueue: [number, number][] = [];
-      const shuffledQueue = shuffle([...queues[idx]]);
-      for (const [r, c] of shuffledQueue) {
-        const shuffledDirs = shuffle([...dirs]);
-        for (const [dr, dc] of shuffledDirs) {
+      if (frontiers[idx].length === 0) continue;
+      const nextFrontier: [number, number][] = [];
+      for (const [r, c] of shuffle([...frontiers[idx]])) {
+        for (const [dr, dc] of shuffle([...dirs])) {
           const nr = r + dr;
           const nc = c + dc;
-          if (nr >= 0 && nr < n && nc >= 0 && nc < n && regions[nr][nc] === -1) {
-            regions[nr][nc] = idx;
-            nextQueue.push([nr, nc]);
+          if (nr >= 0 && nr < n && nc >= 0 && nc < n && grid[nr][nc] === -1) {
+            grid[nr][nc] = idx;
+            nextFrontier.push([nr, nc]);
           }
         }
       }
-      queues[idx] = nextQueue;
-      if (nextQueue.length > 0) hasUnfilled = true;
+      frontiers[idx] = nextFrontier;
+      if (nextFrontier.length > 0) hasUnfilled = true;
     }
+
     if (!hasUnfilled) {
       for (let r = 0; r < n; r++) {
         for (let c = 0; c < n; c++) {
-          if (regions[r][c] === -1) {
+          if (grid[r][c] === -1) {
             hasUnfilled = true;
             break;
           }
@@ -83,13 +63,13 @@ function generateRegions(n: number, queens: [number, number][]): number[][] {
       if (hasUnfilled) {
         for (let r = 0; r < n; r++) {
           for (let c = 0; c < n; c++) {
-            if (regions[r][c] === -1) {
+            if (grid[r][c] === -1) {
               for (const [dr, dc] of dirs) {
                 const nr = r + dr;
                 const nc = c + dc;
-                if (nr >= 0 && nr < n && nc >= 0 && nc < n && regions[nr][nc] !== -1) {
-                  regions[r][c] = regions[nr][nc];
-                  queues[regions[nr][nc]].push([r, c]);
+                if (nr >= 0 && nr < n && nc >= 0 && nc < n && grid[nr][nc] !== -1) {
+                  grid[r][c] = grid[nr][nc];
+                  frontiers[grid[nr][nc]].push([r, c]);
                   break;
                 }
               }
@@ -100,11 +80,12 @@ function generateRegions(n: number, queens: [number, number][]): number[][] {
     }
   }
 
-  return regions;
+  return grid;
 }
 
-function hasUniqueSolution(n: number, regions: number[][]): boolean {
+function findUniqueSolution(n: number, regions: number[][]): number[] | null {
   let solutionCount = 0;
+  let foundSolution: number[] | null = null;
   const cols = new Array(n).fill(-1);
   const usedCols = new Set<number>();
   const usedRegions = new Set<number>();
@@ -112,16 +93,14 @@ function hasUniqueSolution(n: number, regions: number[][]): boolean {
   function isValid(row: number, col: number): boolean {
     if (usedCols.has(col)) return false;
     if (usedRegions.has(regions[row][col])) return false;
-    if (row > 0) {
-      const prevCol = cols[row - 1];
-      if (Math.abs(prevCol - col) <= 1) return false;
-    }
+    if (row > 0 && Math.abs(cols[row - 1] - col) <= 1) return false;
     return true;
   }
 
   function solve(row: number): boolean {
     if (row === n) {
       solutionCount++;
+      if (solutionCount === 1) foundSolution = [...cols];
       return solutionCount > 1;
     }
     for (let col = 0; col < n; col++) {
@@ -139,37 +118,40 @@ function hasUniqueSolution(n: number, regions: number[][]): boolean {
   }
 
   solve(0);
-  return solutionCount === 1;
+  return solutionCount === 1 ? foundSolution : null;
 }
 
-export function generatePuzzle(size: number): TPuzzle {
-  const maxAttempts = 100;
+export function generatePuzzle(size: number): Promise<TPuzzle> {
+  const maxAttempts = size <= 5 ? 200 : size <= 7 ? 2000 : 10000;
+  const batchSize = size <= 5 ? 200 : size <= 7 ? 100 : 50;
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const queens = generateQueenPlacement(size);
-    if (!queens) continue;
+  return new Promise((resolve, reject) => {
+    let attempt = 0;
 
-    for (let regionAttempt = 0; regionAttempt < 5; regionAttempt++) {
-      const regions = generateRegions(size, queens);
-
-      let allFilled = true;
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          if (regions[r][c] === -1) { allFilled = false; break; }
+    function processBatch() {
+      const end = Math.min(attempt + batchSize, maxAttempts);
+      while (attempt < end) {
+        const regions = generateRandomRegions(size);
+        const sol = findUniqueSolution(size, regions);
+        if (sol) {
+          const solution: boolean[][] = Array.from({ length: size }, () =>
+            new Array(size).fill(false)
+          );
+          sol.forEach((col, row) => {
+            solution[row][col] = true;
+          });
+          resolve({ size, regions, solution });
+          return;
         }
-        if (!allFilled) break;
+        attempt++;
       }
-      if (!allFilled) continue;
-
-      if (hasUniqueSolution(size, regions)) {
-        const solution: boolean[][] = Array.from({ length: size }, () =>
-          new Array(size).fill(false)
-        );
-        queens.forEach(([r, c]) => { solution[r][c] = true; });
-        return { size, regions, solution };
+      if (attempt < maxAttempts) {
+        setTimeout(processBatch, 0);
+      } else {
+        reject(new Error(`Failed to generate puzzle of size ${size}`));
       }
     }
-  }
 
-  return generatePuzzle(size);
+    processBatch();
+  });
 }
