@@ -1012,8 +1012,26 @@ export function setupRipple(
     ctx.stroke();
   }
 
+  function computeCurrentContribution(): number[][] {
+    const correctStones: [number, number][] = [];
+    for (let r = 0; r < gridSize; r++) {
+      for (let c = 0; c < gridSize; c++) {
+        if (board[r][c].hasStone && (board[r][c].isCorrect || board[r][c].isHinted)) {
+          correctStones.push([r, c]);
+        }
+      }
+    }
+    if (correctStones.length === 0) {
+      return Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+    }
+    return computeRippleBoard(gridSize, correctStones);
+  }
+
   function renderGrid() {
     const { gridTop, gridLeft, cellSize } = getGridMetrics();
+
+    // Compute current contribution from correct/hinted stones
+    const contribution = computeCurrentContribution();
 
     for (let r = 0; r < gridSize; r++) {
       for (let c = 0; c < gridSize; c++) {
@@ -1024,6 +1042,7 @@ export function setupRipple(
         const shakeX = anim?.shakeX ?? 0;
 
         // Cell background
+        const remaining = cell.value - contribution[r][c];
         let bgColor: string = COLORS.cellEmpty;
         if (cell.isError) {
           bgColor = COLORS.errorLight;
@@ -1031,6 +1050,8 @@ export function setupRipple(
           bgColor = COLORS.successLight;
         } else if (cell.hasStone) {
           bgColor = hexToRgba(COLORS.accent, 0.1);
+        } else if (cell.revealed && remaining === 0) {
+          bgColor = COLORS.successLight;
         } else if (cell.revealed) {
           bgColor = COLORS.cellRevealed;
         } else if (r === cursorRow && c === cursorCol && state === 'playing') {
@@ -1112,27 +1133,36 @@ export function setupRipple(
           }
         }
 
-        // Number text (for revealed cells)
-        if (cell.revealed && cell.value > 0) {
-          ctx.fillStyle = cell.isError
-            ? COLORS.error
-            : cell.hasStone
-              ? COLORS.textWhite
+        // Number text (for revealed cells) — show remaining value
+        if (cell.revealed) {
+          const remaining = cell.value - contribution[r][c];
+          const displayVal = remaining;
+
+          if (cell.hasStone) {
+            // Stone is on a revealed cell — show remaining on top
+            ctx.fillStyle = cell.isError ? COLORS.error : COLORS.textWhite;
+            ctx.font = `bold ${Math.max(12, cellSize * 0.35)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+              String(displayVal),
+              x + cellSize / 2 + shakeX,
+              y + cellSize / 2 + cellSize * 0.02,
+            );
+          } else {
+            // Color: green if satisfied (0), default otherwise
+            ctx.fillStyle = displayVal === 0
+              ? COLORS.success
               : COLORS.text;
-          ctx.font = `bold ${Math.max(12, cellSize * 0.35)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(
-            String(cell.value),
-            x + cellSize / 2 + shakeX,
-            y + cellSize / 2 + (cell.hasStone ? cellSize * 0.02 : 0),
-          );
-        } else if (cell.revealed && cell.value === 0 && !cell.hasStone) {
-          ctx.fillStyle = COLORS.textLight;
-          ctx.font = `bold ${Math.max(12, cellSize * 0.35)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('0', x + cellSize / 2 + shakeX, y + cellSize / 2);
+            ctx.font = `bold ${Math.max(12, cellSize * 0.35)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+              String(displayVal),
+              x + cellSize / 2 + shakeX,
+              y + cellSize / 2,
+            );
+          }
         }
 
         // Dot for hidden empty cells
