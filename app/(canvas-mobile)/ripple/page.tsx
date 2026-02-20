@@ -19,8 +19,6 @@ import Ripple from './_components/ripple';
 const controls = [
   { key: 'Arrow Keys', action: '셀 이동' },
   { key: 'Space', action: '돌 배치 / 제거' },
-  { key: 'V', action: '검증' },
-  { key: 'H', action: '힌트 사용' },
   { key: 'S', action: '시작 / 재개' },
   { key: 'P', action: '일시정지' },
   { key: 'R', action: '리셋' },

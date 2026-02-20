@@ -221,6 +221,7 @@ export function generatePuzzle(
               hasStone: false,
               isError: false,
               isHinted: false,
+              isCorrect: false,
             }),
           ),
         );

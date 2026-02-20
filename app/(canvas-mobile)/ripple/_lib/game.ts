@@ -11,7 +11,8 @@ import {
   HUD_HEIGHT,
   GRID_PADDING,
   DIFFICULTY_CONFIG,
-  HINT_PENALTY_SECONDS,
+  MAX_LIVES,
+  BASE_STAGE_SCORE,
   COLORS,
   RIPPLE_VALUES,
   RIPPLE_MAX_DISTANCE,
@@ -52,30 +53,39 @@ export function setupRipple(
   resize();
 
   // Game state variables
-  let state: 'start' | 'loading' | 'playing' | 'paused' | 'gameover' | 'tutorial' = 'start';
+  let state: 'start' | 'loading' | 'playing' | 'paused' | 'stageclear' | 'gameover' | 'tutorial' = 'start';
   let stage = 1;
   let difficulty: TDifficulty = 'easy';
   let gridSize = 5;
   let puzzle: TPuzzle | null = null;
   let board: TBoard = [];
-  let score = 0;
   let totalScore = 0;
-  let startTime = 0;
-  let elapsedBeforePause = 0;
-  let hintsRemaining = 0;
-  let hintPenalty = 0;
+  let lives = MAX_LIVES;
   let animationId = 0;
   let lastTime = 0;
   let cursorRow = -1;
   let cursorCol = -1;
   let placedStones = 0;
 
+  // Stage clear auto-advance
+  let stageClearTime = 0;
+  let stageScore = 0;
+
+  // Wrong placement animation
+  let wrongCell: { row: number; col: number } | null = null;
+  let wrongTimer = 0;
+  const WRONG_ANIM_MS = 500;
+
+  // Pause timer (for display only, no scoring impact)
+  let pauseElapsed = 0;
+  let pauseStart = 0;
+
   // Tutorial state
   const TUTORIAL_STORAGE_KEY = 'ripple_tutorial_done';
   let tutorialStep = 0;
-  let tutorialBlinkTime = 0; // for pulsing target cell
+  let tutorialBlinkTime = 0;
   const TUTORIAL_GRID_SIZE = 3;
-  const TUTORIAL_STONE_POS: [number, number] = [1, 1]; // center
+  const TUTORIAL_STONE_POS: [number, number] = [1, 1];
   const TUTORIAL_MESSAGES = [
     '돌을 놓으면 8방향으로 파문이 퍼집니다',
     `파문 값: 돌=3, 주변 8칸=2, 바깥=1`,
@@ -111,9 +121,7 @@ export function setupRipple(
 
   // Button bounds
   type TButtonRect = { x: number; y: number; w: number; h: number };
-  let validateButton: TButtonRect = { x: 0, y: 0, w: 0, h: 0 };
   let resetButton: TButtonRect = { x: 0, y: 0, w: 0, h: 0 };
-  let hintButton: TButtonRect = { x: 0, y: 0, w: 0, h: 0 };
 
   // gameOverHud
   const gameOverCallbacks: TGameOverCallbacks = {
@@ -180,13 +188,6 @@ export function setupRipple(
     return `rgba(${r},${g},${b},${alpha})`;
   }
 
-  function darkenColor(hex: string, amount: number): string {
-    const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - amount);
-    const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - amount);
-    const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - amount);
-    return `rgb(${r},${g},${b})`;
-  }
-
   function lightenColor(hex: string, amount: number): string {
     const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount);
     const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount);
@@ -211,6 +212,48 @@ export function setupRipple(
         maxLife: 600,
         size: 3 + Math.random() * 2,
         color: COLORS.accentLight,
+        type: 'drop',
+      });
+    }
+  }
+
+  function spawnCorrectParticles(row: number, col: number) {
+    const { gridTop, gridLeft, cellSize } = getGridMetrics();
+    const cx = gridLeft + col * cellSize + cellSize / 2;
+    const cy = gridTop + row * cellSize + cellSize / 2;
+
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8;
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * (30 + Math.random() * 30),
+        vy: Math.sin(angle) * (30 + Math.random() * 30) - 15,
+        life: 700,
+        maxLife: 700,
+        size: 3 + Math.random() * 3,
+        color: COLORS.success,
+        type: 'sparkle',
+      });
+    }
+  }
+
+  function spawnWrongParticles(row: number, col: number) {
+    const { gridTop, gridLeft, cellSize } = getGridMetrics();
+    const cx = gridLeft + col * cellSize + cellSize / 2;
+    const cy = gridTop + row * cellSize + cellSize / 2;
+
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 * i) / 5 + Math.random() * 0.5;
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * (40 + Math.random() * 30),
+        vy: Math.sin(angle) * (40 + Math.random() * 30) - 10,
+        life: 500,
+        maxLife: 500,
+        size: 3 + Math.random() * 2,
+        color: COLORS.error,
         type: 'drop',
       });
     }
@@ -263,8 +306,15 @@ export function setupRipple(
     return count;
   }
 
+  // --- Check if position is in solution ---
+  function isCorrectPosition(row: number, col: number): boolean {
+    if (!puzzle) return false;
+    return puzzle.stonePositions.some(([r, c]) => r === row && c === col);
+  }
+
   // --- Core game logic ---
   function toggleStone(row: number, col: number): void {
+    if (wrongCell) return; // Block input during wrong animation
     const cell = board[row][col];
     if (cell.isHinted) return;
 
@@ -273,6 +323,7 @@ export function setupRipple(
     if (cell.hasStone) {
       // Remove stone
       cell.hasStone = false;
+      cell.isCorrect = false;
       placedStones--;
       if (anim) {
         anim.scale = 1;
@@ -282,83 +333,47 @@ export function setupRipple(
       // Place stone
       cell.hasStone = true;
       placedStones++;
+
       if (anim) {
         anim.scale = 0;
         anim.glowTime = 300;
         anim.rippleActive = true;
         anim.rippleTime = 600;
       }
-      spawnDropParticles(row, col);
-      spawnRingParticle(row, col);
-    }
 
-    // Clear errors after toggle
-    for (let r = 0; r < gridSize; r++) {
-      for (let c = 0; c < gridSize; c++) {
-        board[r][c].isError = false;
-      }
-    }
+      if (isCorrectPosition(row, col)) {
+        // Correct placement!
+        cell.isCorrect = true;
+        cell.isError = false;
+        spawnCorrectParticles(row, col);
+        spawnRingParticle(row, col);
 
-    // Auto-check win when placed stones equals target
-    if (puzzle && placedStones === puzzle.stoneCount) {
-      checkWin();
-    }
-  }
-
-  function validateBoard(): void {
-    if (!puzzle) return;
-
-    // Compute ripple board for current stone positions
-    const currentStones: [number, number][] = [];
-    for (let r = 0; r < gridSize; r++) {
-      for (let c = 0; c < gridSize; c++) {
-        if (board[r][c].hasStone) {
-          currentStones.push([r, c]);
+        // Check stage clear
+        if (puzzle && placedStones === puzzle.stoneCount) {
+          checkStageClear();
         }
-      }
-    }
+      } else {
+        // Wrong placement!
+        cell.isError = true;
+        cell.isCorrect = false;
+        lives--;
 
-    const currentValues = computeRippleBoard(gridSize, currentStones);
-
-    // Clear all errors first
-    for (let r = 0; r < gridSize; r++) {
-      for (let c = 0; c < gridSize; c++) {
-        board[r][c].isError = false;
-      }
-    }
-
-    // Compare with revealed cells' target values
-    let hasError = false;
-    for (let r = 0; r < gridSize; r++) {
-      for (let c = 0; c < gridSize; c++) {
-        if (board[r][c].revealed) {
-          if (currentValues[r][c] !== board[r][c].value) {
-            board[r][c].isError = true;
-            hasError = true;
-          }
+        if (anim) {
+          anim.shakeTime = WRONG_ANIM_MS;
         }
-      }
-    }
+        spawnWrongParticles(row, col);
 
-    // Trigger shake on error cells
-    if (hasError) {
-      for (let r = 0; r < gridSize; r++) {
-        for (let c = 0; c < gridSize; c++) {
-          if (board[r][c].isError) {
-            const anim = cellAnims[r]?.[c];
-            if (anim && anim.shakeTime <= 0) {
-              anim.shakeTime = 400;
-            }
-          }
-        }
+        // Schedule auto-remove
+        wrongCell = { row, col };
+        wrongTimer = WRONG_ANIM_MS;
       }
     }
   }
 
-  function checkWin(): void {
+  function checkStageClear(): void {
     if (!puzzle) return;
 
-    // Compute ripple board for current positions
+    // Verify all placed stones match solution (safety check)
     const currentStones: [number, number][] = [];
     for (let r = 0; r < gridSize; r++) {
       for (let c = 0; c < gridSize; c++) {
@@ -371,84 +386,35 @@ export function setupRipple(
     if (currentStones.length !== puzzle.stoneCount) return;
 
     const currentValues = computeRippleBoard(gridSize, currentStones);
-
-    // Compare ALL cells with puzzle values
     for (let r = 0; r < gridSize; r++) {
       for (let c = 0; c < gridSize; c++) {
         if (currentValues[r][c] !== board[r][c].value) {
-          return; // Not a win
+          return; // Not correct
         }
       }
     }
 
-    // Win!
+    // Stage clear!
     const config = DIFFICULTY_CONFIG[difficulty];
-    const elapsed = getElapsedSeconds();
-    const effectiveTime = elapsed + hintPenalty;
-    const stageScore = Math.floor(
-      config.multiplier * Math.max(0, config.baseTime - effectiveTime),
-    );
-    score = stageScore;
+    stageScore = config.multiplier * BASE_STAGE_SCORE;
     totalScore += stageScore;
+
     celebration = { active: true, time: 0, rippleIndex: -1 };
     spawnCelebrationParticles();
-    state = 'gameover';
-  }
-
-  function useHint(): void {
-    if (hintsRemaining <= 0) return;
-    if (state !== 'playing') return;
-    if (!puzzle) return;
-
-    // Find unplaced correct stone positions
-    const candidates: [number, number][] = [];
-    for (const [r, c] of puzzle.stonePositions) {
-      if (!board[r][c].hasStone && !board[r][c].isHinted) {
-        candidates.push([r, c]);
-      }
-    }
-
-    if (candidates.length === 0) return;
-
-    // Place one randomly
-    const [hr, hc] = candidates[Math.floor(Math.random() * candidates.length)];
-    board[hr][hc].hasStone = true;
-    board[hr][hc].isHinted = true;
-    placedStones++;
-
-    // Animation for hinted stone
-    const anim = cellAnims[hr]?.[hc];
-    if (anim) {
-      anim.scale = 0;
-      anim.glowTime = 300;
-      anim.rippleActive = true;
-      anim.rippleTime = 600;
-    }
-    spawnDropParticles(hr, hc);
-
-    hintsRemaining--;
-    hintPenalty += HINT_PENALTY_SECONDS;
-
-    // Clear errors after hint
-    for (let r = 0; r < gridSize; r++) {
-      for (let c = 0; c < gridSize; c++) {
-        board[r][c].isError = false;
-      }
-    }
-
-    // Auto-check win
-    if (puzzle && placedStones === puzzle.stoneCount) {
-      checkWin();
-    }
+    stageClearTime = 0;
+    state = 'stageclear';
   }
 
   function resetBoard(): void {
     if (state !== 'playing') return;
+    wrongCell = null;
+    wrongTimer = 0;
     for (let r = 0; r < gridSize; r++) {
       for (let c = 0; c < gridSize; c++) {
         if (!board[r][c].isHinted) {
           board[r][c].hasStone = false;
           board[r][c].isError = false;
+          board[r][c].isCorrect = false;
         }
       }
     }
@@ -460,9 +426,7 @@ export function setupRipple(
       for (let c = 0; c < gridSize; c++) {
         if (board[r][c].isHinted) {
           const anim = cellAnims[r]?.[c];
-          if (anim) {
-            anim.scale = 1;
-          }
+          if (anim) anim.scale = 1;
         }
       }
     }
@@ -487,8 +451,8 @@ export function setupRipple(
       gridSize = sizeConfig;
     }
 
-    hintsRemaining = config.hints;
-    hintPenalty = 0;
+    // Reset lives per stage
+    lives = MAX_LIVES;
 
     try {
       puzzle = await generatePuzzle(
@@ -519,23 +483,24 @@ export function setupRipple(
       }
     }
 
-    // Copy board data with hasStone: false
+    // Copy board data
     board = puzzle.board.map((row) =>
       row.map((cell) => ({
         ...cell,
         hasStone: false,
         isError: false,
         isHinted: false,
+        isCorrect: false,
       })),
     );
 
     initCellAnims(gridSize);
     placedStones = 0;
-    score = 0;
-    elapsedBeforePause = 0;
+    stageScore = 0;
     cursorRow = 0;
     cursorCol = 0;
-    startTime = performance.now();
+    wrongCell = null;
+    wrongTimer = 0;
     particles = [];
     celebration = { active: false, time: 0, rippleIndex: -1 };
     state = 'playing';
@@ -544,14 +509,14 @@ export function setupRipple(
   function resetGame(): void {
     state = 'start';
     stage = 1;
-    score = 0;
     totalScore = 0;
-    elapsedBeforePause = 0;
-    startTime = 0;
-    hintPenalty = 0;
+    lives = MAX_LIVES;
+    stageScore = 0;
     cursorRow = -1;
     cursorCol = -1;
     placedStones = 0;
+    wrongCell = null;
+    wrongTimer = 0;
     particles = [];
     celebration = { active: false, time: 0, rippleIndex: -1 };
     gameOverHud.reset();
@@ -564,7 +529,6 @@ export function setupRipple(
     tutorialBlinkTime = 0;
     gridSize = TUTORIAL_GRID_SIZE;
 
-    // Build a fixed 3x3 board with stone at center (1,1)
     const stonePositions: [number, number][] = [TUTORIAL_STONE_POS];
     const values = computeRippleBoard(TUTORIAL_GRID_SIZE, stonePositions);
 
@@ -575,6 +539,7 @@ export function setupRipple(
         hasStone: false,
         isError: false,
         isHinted: false,
+        isCorrect: false,
       })),
     );
 
@@ -587,7 +552,6 @@ export function setupRipple(
   function advanceTutorial(): void {
     tutorialStep++;
     if (tutorialStep >= TUTORIAL_MESSAGES.length) {
-      // Tutorial complete
       markTutorialDone();
       state = 'start';
     }
@@ -595,7 +559,6 @@ export function setupRipple(
 
   function handleTutorialTap(row?: number, col?: number): void {
     if (tutorialStep === 2) {
-      // Step 3: user must tap center cell
       if (row === TUTORIAL_STONE_POS[0] && col === TUTORIAL_STONE_POS[1]) {
         board[row][col].hasStone = true;
         placedStones = 1;
@@ -609,26 +572,9 @@ export function setupRipple(
         spawnRingParticle(row, col);
         advanceTutorial();
       }
-      // Wrong cell: do nothing (message stays)
     } else {
-      // Other steps: tap anywhere to advance
       advanceTutorial();
     }
-  }
-
-  // --- Time helpers ---
-  function getElapsedSeconds(): number {
-    if (state === 'paused') return elapsedBeforePause;
-    if (state === 'playing' && startTime > 0) {
-      return elapsedBeforePause + (performance.now() - startTime) / 1000;
-    }
-    return 0;
-  }
-
-  function formatTime(seconds: number): string {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
   // --- Button hit testing ---
@@ -677,11 +623,32 @@ export function setupRipple(
       }
     }
 
+    // Wrong placement auto-remove
+    if (wrongCell && wrongTimer > 0) {
+      wrongTimer -= dtMs;
+      if (wrongTimer <= 0) {
+        const { row, col } = wrongCell;
+        const cell = board[row]?.[col];
+        if (cell) {
+          cell.hasStone = false;
+          cell.isError = false;
+          cell.isCorrect = false;
+          placedStones = countPlacedStones();
+        }
+        wrongCell = null;
+        wrongTimer = 0;
+
+        // Check game over after stone removed
+        if (lives <= 0) {
+          state = 'gameover';
+        }
+      }
+    }
+
     // Update particles
     particles = particles.filter((p) => {
       p.life -= dtMs;
       if (p.type === 'ring') {
-        // Ring expands
         p.size += dt * 80;
       } else {
         p.x += p.vx * dt;
@@ -701,6 +668,15 @@ export function setupRipple(
         celebration.active = false;
       }
     }
+
+    // Stage clear auto-advance
+    if (state === 'stageclear') {
+      stageClearTime += dtMs;
+      if (stageClearTime > 2500) {
+        stage++;
+        startStage();
+      }
+    }
   }
 
   // --- Render functions ---
@@ -709,14 +685,12 @@ export function setupRipple(
     ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Title
     ctx.fillStyle = COLORS.accent;
     ctx.font = 'bold 28px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🌊 튜토리얼', CANVAS_WIDTH / 2, 50);
+    ctx.fillText('튜토리얼', CANVAS_WIDTH / 2, 50);
 
-    // Draw tutorial grid (centered, larger cells)
     const cellSize = 80;
     const gridW = TUTORIAL_GRID_SIZE * cellSize;
     const gridLeft = (CANVAS_WIDTH - gridW) / 2;
@@ -732,7 +706,6 @@ export function setupRipple(
         const anim = cellAnims[r]?.[c];
         const isTarget = r === TUTORIAL_STONE_POS[0] && c === TUTORIAL_STONE_POS[1];
 
-        // Cell background
         let bgColor: string = COLORS.cellRevealed;
         if (cell.hasStone) bgColor = COLORS.accentLight;
 
@@ -741,14 +714,12 @@ export function setupRipple(
         ctx.roundRect(x + 2, y + 2, cellSize - 4, cellSize - 4, 6);
         ctx.fill();
 
-        // Cell border
         ctx.strokeStyle = COLORS.cellBorder;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.roundRect(x + 2, y + 2, cellSize - 4, cellSize - 4, 6);
         ctx.stroke();
 
-        // Pulsing highlight on target cell at step 2
         if (isTarget && tutorialStep === 2 && !cell.hasStone) {
           const pulse = 0.4 + 0.6 * Math.abs(Math.sin(tutorialBlinkTime * 3));
           ctx.strokeStyle = `rgba(74, 144, 217, ${pulse})`;
@@ -758,7 +729,6 @@ export function setupRipple(
           ctx.stroke();
         }
 
-        // Stone
         if (cell.hasStone) {
           const stoneScale = anim ? Math.min(Math.max(anim.scale, 0), 1.3) : 1;
           const stoneR = cellSize * 0.28 * stoneScale;
@@ -775,7 +745,6 @@ export function setupRipple(
           ctx.arc(cx - stoneR * 0.2, cy - stoneR * 0.2, stoneR * 0.4, 0, Math.PI * 2);
           ctx.fill();
 
-          // Ripple ring animation
           if (anim?.rippleActive) {
             for (let ring = 0; ring < 3; ring++) {
               const t = (anim.rippleTime - ring * 150) / 600;
@@ -790,7 +759,6 @@ export function setupRipple(
             }
           }
         } else {
-          // Number
           ctx.fillStyle = COLORS.text;
           ctx.font = `bold ${cellSize * 0.4}px sans-serif`;
           ctx.textAlign = 'center';
@@ -820,7 +788,6 @@ export function setupRipple(
       }
     }
 
-    // Particles
     renderParticles();
 
     // Message bubble
@@ -829,7 +796,6 @@ export function setupRipple(
     const msgH = 100;
     const msgX = (CANVAS_WIDTH - msgW) / 2;
 
-    // Bubble background
     ctx.fillStyle = COLORS.hudBg;
     ctx.beginPath();
     ctx.roundRect(msgX, msgY, msgW, msgH, 12);
@@ -840,7 +806,6 @@ export function setupRipple(
     ctx.roundRect(msgX, msgY, msgW, msgH, 12);
     ctx.stroke();
 
-    // Message text (supports \n)
     const msg = TUTORIAL_MESSAGES[tutorialStep] ?? '';
     const lines = msg.split('\n');
     ctx.fillStyle = COLORS.text;
@@ -853,13 +818,11 @@ export function setupRipple(
       ctx.fillText(line, CANVAS_WIDTH / 2, textStartY + i * lineHeight);
     });
 
-    // "Tap to continue" prompt (except on step 2 which requires specific cell tap)
     const promptText = tutorialStep === 2 ? '반짝이는 셀을 탭하세요 ▶' : '탭하여 계속 ▶';
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '13px sans-serif';
     ctx.fillText(promptText, CANVAS_WIDTH / 2, msgY + msgH - 12);
 
-    // Step indicator
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '12px sans-serif';
     ctx.fillText(
@@ -880,12 +843,10 @@ export function setupRipple(
     ctx.textBaseline = 'middle';
     ctx.fillText('Ripple', CANVAS_WIDTH / 2, 80);
 
-    // Water wave decoration
     ctx.fillStyle = COLORS.accentLight;
     ctx.font = '28px sans-serif';
     ctx.fillText('~ ~ ~', CANVAS_WIDTH / 2, 120);
 
-    // Subtitle
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '15px sans-serif';
     ctx.fillText(
@@ -934,7 +895,7 @@ export function setupRipple(
       '돌을 놓으면 주변 셀에 파문이 퍼집니다.',
       `돌=${RIPPLE_VALUES[0]}, 주변 8칸=${RIPPLE_VALUES[1]}, 그 바깥 8방향=${RIPPLE_VALUES[2]}`,
       '여러 돌의 파문이 겹치면 값이 합산됩니다.',
-      '숫자는 해당 셀의 파문 합산값을 나타냅니다.',
+      '잘못된 위치에 놓으면 목숨을 잃습니다.',
       '모든 셀의 숫자가 맞도록 돌을 배치하세요.',
     ];
     rules.forEach((rule, i) => {
@@ -992,40 +953,38 @@ export function setupRipple(
     );
 
     ctx.fillText(
-      'S: 시작 | P: 일시정지 | R: 리셋 | H: 힌트 | V: 검증',
+      'S: 시작 | P: 일시정지 | R: 리셋',
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 25,
     );
   }
 
   function renderHud() {
-    // HUD background
     ctx.fillStyle = COLORS.hudBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, HUD_HEIGHT);
 
-    const elapsed = getElapsedSeconds();
-
-    // Stage & difficulty (left)
-    ctx.fillStyle = COLORS.text;
-    ctx.font = 'bold 16px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
     const diffLabels: Record<TDifficulty, string> = {
       easy: '쉬움',
       normal: '보통',
       hard: '어려움',
       expert: '전문가',
     };
+
+    // Stage & difficulty (left)
+    ctx.fillStyle = COLORS.text;
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
     ctx.fillText(
       `스테이지 ${stage} - ${diffLabels[difficulty]}`,
       15,
       HUD_HEIGHT / 2 - 12,
     );
 
-    // Timer (left, second line)
+    // Total score (left, second line)
     ctx.fillStyle = COLORS.textLight;
     ctx.font = '14px sans-serif';
-    ctx.fillText(formatTime(elapsed), 15, HUD_HEIGHT / 2 + 12);
+    ctx.fillText(`점수: ${totalScore}`, 15, HUD_HEIGHT / 2 + 12);
 
     // Stone count (center)
     const stoneTotal = puzzle?.stoneCount ?? 0;
@@ -1038,30 +997,11 @@ export function setupRipple(
       HUD_HEIGHT / 2,
     );
 
-    // Hint button (right)
-    const hbW = 80;
-    const hbH = 30;
-    const hbX = CANVAS_WIDTH - hbW - 15;
-    const hbY = HUD_HEIGHT / 2 - hbH / 2;
-    hintButton = { x: hbX, y: hbY, w: hbW, h: hbH };
-
-    const hasHints = hintsRemaining > 0;
-    ctx.fillStyle = hasHints ? hexToRgba(COLORS.accent, 0.15) : '#F0F4F8';
-    ctx.beginPath();
-    ctx.roundRect(hbX, hbY, hbW, hbH, 6);
-    ctx.fill();
-
-    ctx.strokeStyle = hasHints ? COLORS.accent : COLORS.cellBorder;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(hbX, hbY, hbW, hbH, 6);
-    ctx.stroke();
-
-    ctx.fillStyle = hasHints ? COLORS.accent : COLORS.buttonDisabled;
-    ctx.font = 'bold 13px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`힌트 (${hintsRemaining})`, hbX + hbW / 2, hbY + hbH / 2);
+    // Lives (right) - heart icons
+    ctx.textAlign = 'right';
+    ctx.font = '22px sans-serif';
+    const heartsStr = '❤️'.repeat(lives) + '🖤'.repeat(MAX_LIVES - lives);
+    ctx.fillText(heartsStr, CANVAS_WIDTH - 15, HUD_HEIGHT / 2);
 
     // Separator line
     ctx.strokeStyle = COLORS.cellBorder;
@@ -1075,7 +1015,6 @@ export function setupRipple(
   function renderGrid() {
     const { gridTop, gridLeft, cellSize } = getGridMetrics();
 
-    // Draw cells
     for (let r = 0; r < gridSize; r++) {
       for (let c = 0; c < gridSize; c++) {
         const x = gridLeft + c * cellSize;
@@ -1088,6 +1027,8 @@ export function setupRipple(
         let bgColor: string = COLORS.cellEmpty;
         if (cell.isError) {
           bgColor = COLORS.errorLight;
+        } else if (cell.hasStone && cell.isCorrect) {
+          bgColor = COLORS.successLight;
         } else if (cell.hasStone) {
           bgColor = hexToRgba(COLORS.accent, 0.1);
         } else if (cell.revealed) {
@@ -1100,8 +1041,8 @@ export function setupRipple(
         ctx.fillRect(x + shakeX, y, cellSize, cellSize);
 
         // Cell border
-        ctx.strokeStyle = cell.isError ? COLORS.error : COLORS.cellBorder;
-        ctx.lineWidth = cell.isError ? 1.5 : 0.5;
+        ctx.strokeStyle = cell.isError ? COLORS.error : cell.isCorrect ? COLORS.success : COLORS.cellBorder;
+        ctx.lineWidth = cell.isError ? 1.5 : cell.isCorrect ? 1.5 : 0.5;
         ctx.strokeRect(x + 0.5 + shakeX, y + 0.5, cellSize - 1, cellSize - 1);
 
         // Celebration highlight overlay
@@ -1139,23 +1080,25 @@ export function setupRipple(
             const stoneCx = x + cellSize / 2 + shakeX;
             const stoneCy = y + cellSize / 2;
 
-            // Stone circle
             const stoneColor = cell.isHinted
               ? COLORS.hint
               : cell.isError
                 ? COLORS.error
-                : COLORS.stone;
+                : cell.isCorrect
+                  ? COLORS.success
+                  : COLORS.stone;
             ctx.fillStyle = stoneColor;
             ctx.beginPath();
             ctx.arc(stoneCx, stoneCy, stoneRadius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Stone highlight
             const highlightColor = cell.isHinted
               ? lightenColor(COLORS.hint, 40)
               : cell.isError
                 ? lightenColor(COLORS.error, 40)
-                : COLORS.stoneHighlight;
+                : cell.isCorrect
+                  ? lightenColor(COLORS.success, 40)
+                  : COLORS.stoneHighlight;
             ctx.fillStyle = highlightColor;
             ctx.beginPath();
             ctx.arc(
@@ -1185,7 +1128,6 @@ export function setupRipple(
             y + cellSize / 2 + (cell.hasStone ? cellSize * 0.02 : 0),
           );
         } else if (cell.revealed && cell.value === 0 && !cell.hasStone) {
-          // Show 0 for revealed cells with value 0
           ctx.fillStyle = COLORS.textLight;
           ctx.font = `bold ${Math.max(12, cellSize * 0.35)}px sans-serif`;
           ctx.textAlign = 'center';
@@ -1193,7 +1135,7 @@ export function setupRipple(
           ctx.fillText('0', x + cellSize / 2 + shakeX, y + cellSize / 2);
         }
 
-        // Dot for hidden empty cells (not a stone, not revealed)
+        // Dot for hidden empty cells
         if (!cell.revealed && !cell.hasStone) {
           ctx.fillStyle = COLORS.cellBorder;
           ctx.beginPath();
@@ -1216,20 +1158,18 @@ export function setupRipple(
       }
     }
 
-    // Draw ripple range overlay for placed stones
-    if (state === 'playing') {
+    // Draw ripple range overlay for placed stones (Chebyshev distance)
+    if (state === 'playing' || state === 'stageclear') {
       for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
           if (board[r][c].hasStone) {
-            // Highlight cells within ripple range
             for (let dr = -RIPPLE_MAX_DISTANCE; dr <= RIPPLE_MAX_DISTANCE; dr++) {
               for (let dc = -RIPPLE_MAX_DISTANCE; dc <= RIPPLE_MAX_DISTANCE; dc++) {
                 const nr = r + dr;
                 const nc = c + dc;
                 if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) continue;
                 if (nr === r && nc === c) continue;
-                const dist = Math.abs(dr) + Math.abs(dc);
-                if (dist > RIPPLE_MAX_DISTANCE) continue;
+                const dist = Math.max(Math.abs(dr), Math.abs(dc));
 
                 const nx = gridLeft + nc * cellSize;
                 const ny = gridTop + nr * cellSize;
@@ -1257,45 +1197,64 @@ export function setupRipple(
     const btnY = gridBottom + 15;
     const btnH = 36;
     const btnW = 120;
-    const gap = 20;
-    const totalBtnW = btnW * 2 + gap;
-    const startX = (CANVAS_WIDTH - totalBtnW) / 2;
+    const startX = (CANVAS_WIDTH - btnW) / 2;
 
-    // Validate button
-    const vbX = startX;
-    validateButton = { x: vbX, y: btnY, w: btnW, h: btnH };
-
-    ctx.fillStyle = COLORS.buttonBg;
-    ctx.beginPath();
-    ctx.roundRect(vbX, btnY, btnW, btnH, 8);
-    ctx.fill();
-
-    ctx.fillStyle = COLORS.buttonText;
-    ctx.font = 'bold 14px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('검증 (V)', vbX + btnW / 2, btnY + btnH / 2);
-
-    // Reset button
-    const rbX = startX + btnW + gap;
-    resetButton = { x: rbX, y: btnY, w: btnW, h: btnH };
+    // Reset button only
+    resetButton = { x: startX, y: btnY, w: btnW, h: btnH };
 
     ctx.fillStyle = '#F0F4F8';
     ctx.beginPath();
-    ctx.roundRect(rbX, btnY, btnW, btnH, 8);
+    ctx.roundRect(startX, btnY, btnW, btnH, 8);
     ctx.fill();
 
     ctx.strokeStyle = COLORS.cellBorder;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(rbX, btnY, btnW, btnH, 8);
+    ctx.roundRect(startX, btnY, btnW, btnH, 8);
     ctx.stroke();
 
     ctx.fillStyle = COLORS.textLight;
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('리셋 (R)', rbX + btnW / 2, btnY + btnH / 2);
+    ctx.fillText('리셋 (R)', startX + btnW / 2, btnY + btnH / 2);
+  }
+
+  function renderStageClear() {
+    // Overlay
+    ctx.fillStyle = 'rgba(240,248,255,0.7)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Stage clear message
+    const boxW = 300;
+    const boxH = 140;
+    const boxX = (CANVAS_WIDTH - boxW) / 2;
+    const boxY = (CANVAS_HEIGHT - boxH) / 2 - 30;
+
+    ctx.fillStyle = COLORS.hudBg;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 16);
+    ctx.fill();
+
+    ctx.strokeStyle = COLORS.success;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 16);
+    ctx.stroke();
+
+    ctx.fillStyle = COLORS.success;
+    ctx.font = 'bold 24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('스테이지 클리어!', CANVAS_WIDTH / 2, boxY + 40);
+
+    ctx.fillStyle = COLORS.text;
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText(`+${stageScore}점`, CANVAS_WIDTH / 2, boxY + 75);
+
+    ctx.fillStyle = COLORS.textLight;
+    ctx.font = '14px sans-serif';
+    ctx.fillText(`총 점수: ${totalScore}`, CANVAS_WIDTH / 2, boxY + 105);
   }
 
   function renderParticles() {
@@ -1304,7 +1263,6 @@ export function setupRipple(
       ctx.globalAlpha = alpha;
 
       if (p.type === 'ring') {
-        // Expanding ring
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -1318,7 +1276,6 @@ export function setupRipple(
         ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
         ctx.restore();
       } else {
-        // Drop
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
@@ -1334,7 +1291,7 @@ export function setupRipple(
     ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    if (state === 'playing' || state === 'paused' || state === 'gameover') {
+    if (state === 'playing' || state === 'paused' || state === 'gameover' || state === 'stageclear') {
       renderGrid();
       renderParticles();
       renderHud();
@@ -1354,8 +1311,10 @@ export function setupRipple(
       renderStartScreen();
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
+    } else if (state === 'stageclear') {
+      renderStageClear();
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      gameOverHud.render(totalScore);
     }
   }
 
@@ -1364,7 +1323,7 @@ export function setupRipple(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
+      const handled = gameOverHud.onKeyDown(e, totalScore);
       if (handled) return;
     }
 
@@ -1373,32 +1332,22 @@ export function setupRipple(
         if (state === 'start') {
           if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
         } else if (state === 'paused') {
-          startTime = performance.now();
+          pauseStart = performance.now();
           state = 'playing';
         }
         break;
       case 'KeyP':
         if (state === 'playing') {
-          elapsedBeforePause += (performance.now() - startTime) / 1000;
+          pauseElapsed += (performance.now() - pauseStart);
           state = 'paused';
         } else if (state === 'paused') {
-          startTime = performance.now();
+          pauseStart = performance.now();
           state = 'playing';
         }
         break;
       case 'KeyR':
         if (state === 'playing') {
           resetBoard();
-        }
-        break;
-      case 'KeyH':
-        if (state === 'playing') {
-          useHint();
-        }
-        break;
-      case 'KeyV':
-        if (state === 'playing') {
-          validateBoard();
         }
         break;
       case 'ArrowUp':
@@ -1447,7 +1396,6 @@ export function setupRipple(
 
     if (state === 'tutorial') {
       if (tutorialStep === 2) {
-        // Check if user clicked the target cell
         const cellSize = 80;
         const gridW = TUTORIAL_GRID_SIZE * cellSize;
         const tGridLeft = (CANVAS_WIDTH - gridW) / 2;
@@ -1470,21 +1418,9 @@ export function setupRipple(
 
     if (state !== 'playing') return;
 
-    // Check validate button
-    if (isButtonAt(validateButton, pos.x, pos.y)) {
-      validateBoard();
-      return;
-    }
-
     // Check reset button
     if (isButtonAt(resetButton, pos.x, pos.y)) {
       resetBoard();
-      return;
-    }
-
-    // Check hint button
-    if (isButtonAt(hintButton, pos.x, pos.y) && hintsRemaining > 0) {
-      useHint();
       return;
     }
 
@@ -1504,7 +1440,7 @@ export function setupRipple(
     const pos = getTouchPos(touch);
 
     if (state === 'gameover') {
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      gameOverHud.onTouchStart(pos.x, pos.y, totalScore);
       return;
     }
 
@@ -1530,34 +1466,20 @@ export function setupRipple(
       return;
     }
 
-    if (state === 'loading') return;
+    if (state === 'loading' || state === 'stageclear') return;
 
     if (state === 'paused') {
-      startTime = performance.now();
+      pauseStart = performance.now();
       state = 'playing';
       return;
     }
 
     // Playing state
-    // Check validate button
-    if (isButtonAt(validateButton, pos.x, pos.y)) {
-      validateBoard();
-      return;
-    }
-
-    // Check reset button
     if (isButtonAt(resetButton, pos.x, pos.y)) {
       resetBoard();
       return;
     }
 
-    // Check hint button
-    if (isButtonAt(hintButton, pos.x, pos.y) && hintsRemaining > 0) {
-      useHint();
-      return;
-    }
-
-    // Check cell tap
     const cell = getCellFromPos(pos.x, pos.y);
     if (cell) {
       cursorRow = cell.row;
@@ -1570,7 +1492,7 @@ export function setupRipple(
   function gameLoop(timestamp: number) {
     const dt = lastTime > 0 ? Math.min((timestamp - lastTime) / 1000, 0.1) : 0;
     lastTime = timestamp;
-    if (state === 'playing' || state === 'gameover') {
+    if (state === 'playing' || state === 'gameover' || state === 'stageclear') {
       updateAnimations(dt);
     }
     if (state === 'tutorial') {

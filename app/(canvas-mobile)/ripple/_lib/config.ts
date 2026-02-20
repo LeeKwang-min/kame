@@ -17,7 +17,8 @@ export const CANVAS_HEIGHT = 700;
 
 export const HUD_HEIGHT = 80;
 export const GRID_PADDING = 20;
-export const HINT_PENALTY_SECONDS = 30;
+export const MAX_LIVES = 3;
+export const BASE_STAGE_SCORE = 100;
 
 export const RIPPLE_VALUES = [3, 2, 1] as const;
 export const RIPPLE_MAX_DISTANCE = RIPPLE_VALUES.length - 1;

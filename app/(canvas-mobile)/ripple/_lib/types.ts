@@ -18,6 +18,7 @@ export type TCell = {
   hasStone: boolean;
   isError: boolean;
   isHinted: boolean;
+  isCorrect: boolean;
 };
 
 export type TBoard = TCell[][];
