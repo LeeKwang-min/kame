@@ -44,7 +44,8 @@ export type TGameType =
   | 'helicopter'
   | 'downwell'
   | 'blockpuzzle'
-  | 'queens';
+  | 'queens'
+  | 'ripple';
 
 export type TScore = {
   id: string;

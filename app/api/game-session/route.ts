@@ -50,6 +50,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'downwell',
   'blockpuzzle',
   'queens',
+  'ripple',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

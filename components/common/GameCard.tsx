@@ -45,6 +45,7 @@ import {
   ArrowDownToLine,
   LayoutGrid as BlockGrid,
   Crown,
+  Waves,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -97,6 +98,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/downwell': ArrowDownToLine,
   '/blockpuzzle': BlockGrid,
   '/queens': Crown,
+  '/ripple': Waves,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
