@@ -121,6 +121,112 @@ function findUniqueSolution(n: number, regions: number[][]): number[] | null {
   return solutionCount === 1 ? foundSolution : null;
 }
 
+function canSolveLogically(n: number, regions: number[][]): boolean {
+  const candidates: boolean[][] = [];
+  for (let r = 0; r < n; r++) {
+    candidates[r] = [];
+    for (let c = 0; c < n; c++) {
+      candidates[r][c] = true;
+    }
+  }
+
+  const placed: boolean[][] = [];
+  for (let r = 0; r < n; r++) {
+    placed[r] = [];
+    for (let c = 0; c < n; c++) {
+      placed[r][c] = false;
+    }
+  }
+
+  let placedCount = 0;
+
+  function eliminate(pr: number, pc: number): void {
+    for (let c = 0; c < n; c++) candidates[pr][c] = false;
+    for (let r = 0; r < n; r++) candidates[r][pc] = false;
+    const reg = regions[pr][pc];
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (regions[r][c] === reg) candidates[r][c] = false;
+      }
+    }
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = pr + dr;
+        const nc = pc + dc;
+        if (nr >= 0 && nr < n && nc >= 0 && nc < n) {
+          candidates[nr][nc] = false;
+        }
+      }
+    }
+  }
+
+  function placeQueen(r: number, c: number): void {
+    placed[r][c] = true;
+    placedCount++;
+    eliminate(r, c);
+  }
+
+  let progress = true;
+  while (progress && placedCount < n) {
+    progress = false;
+
+    for (let r = 0; r < n; r++) {
+      let hasQueen = false;
+      for (let c = 0; c < n; c++) {
+        if (placed[r][c]) { hasQueen = true; break; }
+      }
+      if (hasQueen) continue;
+      let count = 0;
+      let lastCol = -1;
+      for (let c = 0; c < n; c++) {
+        if (candidates[r][c]) { count++; lastCol = c; }
+      }
+      if (count === 1) { placeQueen(r, lastCol); progress = true; }
+      else if (count === 0) return false;
+    }
+
+    for (let c = 0; c < n; c++) {
+      let hasQueen = false;
+      for (let r = 0; r < n; r++) {
+        if (placed[r][c]) { hasQueen = true; break; }
+      }
+      if (hasQueen) continue;
+      let count = 0;
+      let lastRow = -1;
+      for (let r = 0; r < n; r++) {
+        if (candidates[r][c]) { count++; lastRow = r; }
+      }
+      if (count === 1) { placeQueen(lastRow, c); progress = true; }
+      else if (count === 0) return false;
+    }
+
+    for (let reg = 0; reg < n; reg++) {
+      let hasQueen = false;
+      for (let r = 0; r < n && !hasQueen; r++) {
+        for (let c = 0; c < n && !hasQueen; c++) {
+          if (regions[r][c] === reg && placed[r][c]) hasQueen = true;
+        }
+      }
+      if (hasQueen) continue;
+      let count = 0;
+      let lastR = -1;
+      let lastC = -1;
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (regions[r][c] === reg && candidates[r][c]) {
+            count++; lastR = r; lastC = c;
+          }
+        }
+      }
+      if (count === 1) { placeQueen(lastR, lastC); progress = true; }
+      else if (count === 0) return false;
+    }
+  }
+
+  return placedCount === n;
+}
+
 export function generatePuzzle(size: number): Promise<TPuzzle> {
   const maxAttempts = size <= 5 ? 200 : size <= 7 ? 2000 : 10000;
   const batchSize = size <= 5 ? 200 : size <= 7 ? 100 : 50;
@@ -133,7 +239,7 @@ export function generatePuzzle(size: number): Promise<TPuzzle> {
       while (attempt < end) {
         const regions = generateRandomRegions(size);
         const sol = findUniqueSolution(size, regions);
-        if (sol) {
+        if (sol && canSolveLogically(size, regions)) {
           const solution: boolean[][] = Array.from({ length: size }, () =>
             new Array(size).fill(false)
           );
