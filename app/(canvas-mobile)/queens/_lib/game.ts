@@ -42,7 +42,7 @@ export function setupQueens(
   resize();
 
   // Game state variables
-  let state: 'start' | 'loading' | 'playing' | 'paused' | 'gameover' = 'start';
+  let state: 'start' | 'loading' | 'playing' | 'paused' | 'gameover' | 'tutorial' = 'start';
   let difficulty: TDifficulty = 'normal';
   let board: TBoard = [];
   let regions: number[][] = [];
@@ -96,6 +96,45 @@ export function setupQueens(
   };
   let hintButton: THintButton = { x: 0, y: 0, w: 0, h: 0 };
   let resetButton: THintButton = { x: 0, y: 0, w: 0, h: 0 };
+  let guideButton = { x: 0, y: 0, w: 0, h: 0 };
+
+  // Tutorial state
+  let tutorialStep = 0;
+  let tutorialBlinkTime = 0;
+  const TUTORIAL_GRID_SIZE = 4;
+  const TUTORIAL_MESSAGES = [
+    '각 행에 퀸을 1개씩 배치하세요',
+    '각 열에도 퀸은 1개만!',
+    '같은 색 영역에도 퀸은 1개만!',
+    '퀸은 대각선으로 인접할 수 없습니다',
+    '직접 풀어보세요!',
+    '준비 완료!\n이제 진짜 퍼즐을 풀어봅시다 🎉',
+  ];
+
+  // Fixed 4x4 tutorial puzzle
+  const TUTORIAL_REGIONS = [
+    [0, 0, 1, 1],
+    [0, 2, 2, 1],
+    [3, 2, 2, 1],
+    [3, 3, 3, 2],
+  ];
+  const TUTORIAL_SOLUTION: boolean[][] = [
+    [false, false, true, false],
+    [true, false, false, false],
+    [false, false, false, true],
+    [false, true, false, false],
+  ];
+
+  // Demo boards for rule steps (show violations)
+  const TUTORIAL_DEMOS: { queens: [number, number][]; highlight: string }[] = [
+    { queens: [[0, 0], [0, 3]], highlight: 'row' },
+    { queens: [[0, 1], [3, 1]], highlight: 'col' },
+    { queens: [[0, 0], [1, 0]], highlight: 'region' },
+    { queens: [[1, 1], [2, 2]], highlight: 'adjacent' },
+  ];
+
+  let tutorialBoard: TCellState[][] = [];
+  let tutorialPlacedCount = 0;
 
   // gameOverHud
   const gameOverCallbacks: TGameOverCallbacks = {
@@ -494,6 +533,63 @@ export function setupQueens(
     gameOverHud.reset();
   }
 
+  function startTutorial(): void {
+    state = 'tutorial';
+    tutorialStep = 0;
+    tutorialBlinkTime = 0;
+    tutorialPlacedCount = 0;
+    tutorialBoard = Array.from({ length: TUTORIAL_GRID_SIZE }, () =>
+      Array.from({ length: TUTORIAL_GRID_SIZE }, () => 'empty' as TCellState),
+    );
+    particles = [];
+  }
+
+  function advanceTutorial(): void {
+    tutorialStep++;
+    if (tutorialStep >= TUTORIAL_MESSAGES.length) {
+      state = 'start';
+      return;
+    }
+    if (tutorialStep === 4) {
+      tutorialPlacedCount = 0;
+      tutorialBoard = Array.from({ length: TUTORIAL_GRID_SIZE }, () =>
+        Array.from({ length: TUTORIAL_GRID_SIZE }, () => 'empty' as TCellState),
+      );
+    }
+  }
+
+  function handleTutorialTap(row?: number, col?: number): void {
+    if (tutorialStep === 4) {
+      if (row === undefined || col === undefined) return;
+      if (row < 0 || row >= TUTORIAL_GRID_SIZE || col < 0 || col >= TUTORIAL_GRID_SIZE) return;
+
+      const current = tutorialBoard[row][col];
+      if (current === 'empty') {
+        tutorialBoard[row][col] = 'cross';
+      } else if (current === 'cross') {
+        tutorialBoard[row][col] = 'queen';
+        tutorialPlacedCount++;
+      } else {
+        tutorialPlacedCount--;
+        tutorialBoard[row][col] = 'empty';
+      }
+
+      if (tutorialPlacedCount === TUTORIAL_GRID_SIZE) {
+        let correct = true;
+        for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
+          for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
+            const shouldBeQueen = TUTORIAL_SOLUTION[r][c];
+            const isQueen = tutorialBoard[r][c] === 'queen';
+            if (shouldBeQueen !== isQueen) correct = false;
+          }
+        }
+        if (correct) advanceTutorial();
+      }
+    } else {
+      advanceTutorial();
+    }
+  }
+
   // --- Difficulty button bounds ---
   function getDifficultyAt(
     canvasX: number,
@@ -554,6 +650,19 @@ export function setupQueens(
       if (handled) return;
     }
 
+    if (state === 'tutorial') {
+      if (e.code === 'Escape') {
+        state = 'start';
+        return;
+      }
+      if (tutorialStep === 4) {
+        // In practice mode, only Escape exits
+        return;
+      }
+      handleTutorialTap();
+      return;
+    }
+
     switch (e.code) {
       case 'KeyS':
         if (state === 'start') {
@@ -580,6 +689,11 @@ export function setupQueens(
       case 'KeyH':
         if (state === 'playing') {
           giveHint();
+        }
+        break;
+      case 'KeyG':
+        if (state === 'start') {
+          startTutorial();
         }
         break;
       case 'ArrowUp':
@@ -637,7 +751,30 @@ export function setupQueens(
   function handleClick(e: MouseEvent) {
     const pos = getCanvasPos(e.clientX, e.clientY);
 
+    if (state === 'tutorial') {
+      if (tutorialStep === 4) {
+        const cellSize = 80;
+        const gridW = TUTORIAL_GRID_SIZE * cellSize;
+        const gridLeft = (CANVAS_WIDTH - gridW) / 2;
+        const gridTop = 80;
+        const col = Math.floor((pos.x - gridLeft) / cellSize);
+        const row = Math.floor((pos.y - gridTop) / cellSize);
+        if (row >= 0 && row < TUTORIAL_GRID_SIZE && col >= 0 && col < TUTORIAL_GRID_SIZE) {
+          handleTutorialTap(row, col);
+        }
+      } else {
+        handleTutorialTap();
+      }
+      return;
+    }
+
     if (state === 'start') {
+      // Guide button check
+      if (pos.x >= guideButton.x && pos.x <= guideButton.x + guideButton.w &&
+          pos.y >= guideButton.y && pos.y <= guideButton.y + guideButton.h) {
+        startTutorial();
+        return;
+      }
       const clicked = getDifficultyAt(pos.x, pos.y);
       if (clicked) {
         difficulty = clicked;
@@ -674,7 +811,9 @@ export function setupQueens(
       const pos = getCanvasPos(e.clientX, e.clientY);
       const hovered = getDifficultyAt(pos.x, pos.y);
       hoveredDifficulty = hovered;
-      canvas.style.cursor = hovered ? 'pointer' : 'default';
+      const isGuideHovered = pos.x >= guideButton.x && pos.x <= guideButton.x + guideButton.w &&
+        pos.y >= guideButton.y && pos.y <= guideButton.y + guideButton.h;
+      canvas.style.cursor = (hovered || isGuideHovered) ? 'pointer' : 'default';
     } else if (state === 'playing') {
       const pos = getCanvasPos(e.clientX, e.clientY);
       const cell = getCellFromPos(pos.x, pos.y);
@@ -706,7 +845,30 @@ export function setupQueens(
       return;
     }
 
+    if (state === 'tutorial') {
+      if (tutorialStep === 4) {
+        const cellSize = 80;
+        const gridW = TUTORIAL_GRID_SIZE * cellSize;
+        const gridLeft = (CANVAS_WIDTH - gridW) / 2;
+        const gridTop = 80;
+        const col = Math.floor((pos.x - gridLeft) / cellSize);
+        const row = Math.floor((pos.y - gridTop) / cellSize);
+        if (row >= 0 && row < TUTORIAL_GRID_SIZE && col >= 0 && col < TUTORIAL_GRID_SIZE) {
+          handleTutorialTap(row, col);
+        }
+      } else {
+        handleTutorialTap();
+      }
+      return;
+    }
+
     if (state === 'start') {
+      // Guide button check
+      if (pos.x >= guideButton.x && pos.x <= guideButton.x + guideButton.w &&
+          pos.y >= guideButton.y && pos.y <= guideButton.y + guideButton.h) {
+        startTutorial();
+        return;
+      }
       const clicked = getDifficultyAt(pos.x, pos.y);
       if (clicked) {
         difficulty = clicked;
@@ -814,6 +976,201 @@ export function setupQueens(
   }
 
   // --- Render functions ---
+  function renderTutorial(): void {
+    ctx.fillStyle = COLORS.canvasBg;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Title
+    ctx.fillStyle = COLORS.textPrimary;
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('튜토리얼', CANVAS_WIDTH / 2, 40);
+
+    // Grid
+    const cellSize = 80;
+    const gridW = TUTORIAL_GRID_SIZE * cellSize;
+    const gridLeft = (CANVAS_WIDTH - gridW) / 2;
+    const gridTop = 80;
+
+    for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
+      for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
+        const x = gridLeft + c * cellSize;
+        const y = gridTop + r * cellSize;
+        const region = TUTORIAL_REGIONS[r][c];
+
+        // Cell background
+        ctx.fillStyle = REGION_COLORS[region];
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(x, y, cellSize, cellSize);
+        ctx.globalAlpha = 1;
+
+        // Cell border
+        ctx.strokeStyle = COLORS.cardBorder;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, cellSize, cellSize);
+
+        // Steps 0-3: Demo violations
+        if (tutorialStep < 4) {
+          const demo = TUTORIAL_DEMOS[tutorialStep];
+          const isQueen = demo.queens.some(([qr, qc]) => qr === r && qc === c);
+
+          if (isQueen) {
+            drawPixelCrown(x + cellSize / 2, y + cellSize / 2, 24, COLORS.error);
+          }
+
+          // Highlight violation area
+          const pulse = 0.3 + 0.3 * Math.abs(Math.sin(tutorialBlinkTime * 4));
+          if (demo.highlight === 'row') {
+            const affectedRow = demo.queens[0][0];
+            if (r === affectedRow) {
+              ctx.strokeStyle = `rgba(255,68,102,${pulse})`;
+              ctx.lineWidth = 3;
+              ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+            }
+          } else if (demo.highlight === 'col') {
+            const affectedCol = demo.queens[0][1];
+            if (c === affectedCol) {
+              ctx.strokeStyle = `rgba(255,68,102,${pulse})`;
+              ctx.lineWidth = 3;
+              ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+            }
+          } else if (demo.highlight === 'region') {
+            const affectedRegion = TUTORIAL_REGIONS[demo.queens[0][0]][demo.queens[0][1]];
+            if (region === affectedRegion) {
+              ctx.strokeStyle = `rgba(255,68,102,${pulse})`;
+              ctx.lineWidth = 3;
+              ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+            }
+          } else if (demo.highlight === 'adjacent') {
+            if (demo.queens.some(([qr, qc]) => qr === r && qc === c)) {
+              ctx.strokeStyle = `rgba(255,68,102,${pulse})`;
+              ctx.lineWidth = 3;
+              ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+            }
+          }
+        }
+
+        // Step 4: Interactive practice puzzle
+        if (tutorialStep === 4) {
+          const cellState = tutorialBoard[r][c];
+          if (cellState === 'queen') {
+            drawPixelCrown(x + cellSize / 2, y + cellSize / 2, 24, COLORS.accent);
+          } else if (cellState === 'cross') {
+            ctx.strokeStyle = COLORS.textSecondary;
+            ctx.lineWidth = 2;
+            const pad = cellSize * 0.3;
+            ctx.beginPath();
+            ctx.moveTo(x + pad, y + pad);
+            ctx.lineTo(x + cellSize - pad, y + cellSize - pad);
+            ctx.moveTo(x + cellSize - pad, y + pad);
+            ctx.lineTo(x + pad, y + cellSize - pad);
+            ctx.stroke();
+          }
+
+          // Pulse hint on first unsolved queen position
+          if (cellState === 'empty' && TUTORIAL_SOLUTION[r][c]) {
+            let isFirstHint = true;
+            for (let hr = 0; hr < TUTORIAL_GRID_SIZE; hr++) {
+              for (let hc = 0; hc < TUTORIAL_GRID_SIZE; hc++) {
+                if (hr === r && hc === c) { isFirstHint = true; break; }
+                if (TUTORIAL_SOLUTION[hr][hc] && tutorialBoard[hr][hc] !== 'queen') {
+                  isFirstHint = false;
+                  break;
+                }
+              }
+              if (!isFirstHint) break;
+            }
+            if (isFirstHint) {
+              const pulse2 = 0.2 + 0.4 * Math.abs(Math.sin(tutorialBlinkTime * 3));
+              ctx.strokeStyle = `rgba(255,107,157,${pulse2})`;
+              ctx.lineWidth = 3;
+              ctx.beginPath();
+              ctx.roundRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 5);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Step 5: Show solution with checkmarks
+        if (tutorialStep === 5) {
+          if (TUTORIAL_SOLUTION[r][c]) {
+            drawPixelCrown(x + cellSize / 2, y + cellSize / 2, 24, COLORS.accent);
+          }
+        }
+      }
+    }
+
+    // Draw thicker region borders
+    ctx.strokeStyle = COLORS.textPrimary;
+    ctx.lineWidth = 2.5;
+    for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
+      for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
+        const x = gridLeft + c * cellSize;
+        const y = gridTop + r * cellSize;
+        if (c < TUTORIAL_GRID_SIZE - 1 && TUTORIAL_REGIONS[r][c] !== TUTORIAL_REGIONS[r][c + 1]) {
+          ctx.beginPath();
+          ctx.moveTo(x + cellSize, y);
+          ctx.lineTo(x + cellSize, y + cellSize);
+          ctx.stroke();
+        }
+        if (r < TUTORIAL_GRID_SIZE - 1 && TUTORIAL_REGIONS[r][c] !== TUTORIAL_REGIONS[r + 1][c]) {
+          ctx.beginPath();
+          ctx.moveTo(x, y + cellSize);
+          ctx.lineTo(x + cellSize, y + cellSize);
+          ctx.stroke();
+        }
+      }
+    }
+    // Outer border
+    ctx.strokeRect(gridLeft, gridTop, gridW, gridW);
+
+    // Message bubble
+    const msgY = gridTop + gridW + 30;
+    const msgW = Math.min(400, CANVAS_WIDTH - 40);
+    const msgH = 100;
+    const msgX = CANVAS_WIDTH / 2 - msgW / 2;
+
+    ctx.fillStyle = COLORS.cardBg;
+    ctx.beginPath();
+    ctx.roundRect(msgX, msgY, msgW, msgH, 12);
+    ctx.fill();
+
+    ctx.strokeStyle = COLORS.cardBorder;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(msgX, msgY, msgW, msgH, 12);
+    ctx.stroke();
+
+    // Message text
+    ctx.fillStyle = COLORS.textPrimary;
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    const msg = TUTORIAL_MESSAGES[tutorialStep];
+    const lines = msg.split('\n');
+    lines.forEach((line, i) => {
+      ctx.fillText(line, CANVAS_WIDTH / 2, msgY + 30 + i * 24);
+    });
+
+    // Prompt
+    ctx.fillStyle = COLORS.textSecondary;
+    ctx.font = '13px sans-serif';
+    if (tutorialStep === 4) {
+      ctx.fillText('퀸을 올바른 위치에 놓아보세요', CANVAS_WIDTH / 2, msgY + msgH - 15);
+    } else {
+      ctx.fillText('탭하여 계속 ▶', CANVAS_WIDTH / 2, msgY + msgH - 15);
+    }
+
+    // Progress
+    ctx.fillStyle = COLORS.textSecondary;
+    ctx.font = '12px sans-serif';
+    ctx.fillText(
+      `${tutorialStep + 1} / ${TUTORIAL_MESSAGES.length}`,
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT - 30,
+    );
+  }
+
   function renderStartScreen() {
     // Light candy background
     ctx.fillStyle = COLORS.canvasBg;
@@ -944,12 +1301,36 @@ export function setupQueens(
       ctx.fillText(`x${config.multiplier}`, x + btnW / 2, badgeY + badgeH / 2);
     });
 
+    // Guide button
+    const guideBtnW = 140;
+    const guideBtnH = 36;
+    const guideBtnX = CANVAS_WIDTH / 2 - guideBtnW / 2;
+    const guideBtnY = 340;
+    guideButton = { x: guideBtnX, y: guideBtnY, w: guideBtnW, h: guideBtnH };
+
+    ctx.fillStyle = COLORS.cardBg;
+    ctx.beginPath();
+    ctx.roundRect(guideBtnX, guideBtnY, guideBtnW, guideBtnH, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = COLORS.accent;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(guideBtnX, guideBtnY, guideBtnW, guideBtnH, 8);
+    ctx.stroke();
+
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📖 가이드', CANVAS_WIDTH / 2, guideBtnY + guideBtnH / 2);
+
     // Keyboard hint
     ctx.fillStyle = COLORS.textSecondary;
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(
-      '1: Easy   2: Normal   3: Hard',
+      '1: Easy   2: Normal   3: Hard   G: 가이드',
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 50,
     );
@@ -1190,6 +1571,11 @@ export function setupQueens(
     ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    if (state === 'tutorial') {
+      renderTutorial();
+      return;
+    }
+
     if (state === 'playing' || state === 'paused' || state === 'gameover') {
       renderGrid();
       renderParticles();
@@ -1211,6 +1597,9 @@ export function setupQueens(
   function gameLoop(timestamp: number) {
     const dt = lastTime > 0 ? Math.min((timestamp - lastTime) / 1000, 0.1) : 0;
     lastTime = timestamp;
+    if (state === 'tutorial') {
+      tutorialBlinkTime += dt;
+    }
     if (state === 'playing' || state === 'gameover') {
       updateAnimations(dt);
     }
