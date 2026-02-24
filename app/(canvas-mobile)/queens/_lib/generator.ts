@@ -83,45 +83,19 @@ function generateRandomRegions(n: number): number[][] {
   return grid;
 }
 
-function findUniqueSolution(n: number, regions: number[][]): number[] | null {
-  let solutionCount = 0;
-  let foundSolution: number[] | null = null;
-  const cols = new Array(n).fill(-1);
-  const usedCols = new Set<number>();
-  const usedRegions = new Set<number>();
-
-  function isValid(row: number, col: number): boolean {
-    if (usedCols.has(col)) return false;
-    if (usedRegions.has(regions[row][col])) return false;
-    if (row > 0 && Math.abs(cols[row - 1] - col) <= 1) return false;
-    return true;
-  }
-
-  function solve(row: number): boolean {
-    if (row === n) {
-      solutionCount++;
-      if (solutionCount === 1) foundSolution = [...cols];
-      return solutionCount > 1;
-    }
-    for (let col = 0; col < n; col++) {
-      if (isValid(row, col)) {
-        cols[row] = col;
-        usedCols.add(col);
-        usedRegions.add(regions[row][col]);
-        if (solve(row + 1)) return true;
-        usedCols.delete(col);
-        usedRegions.delete(regions[row][col]);
-        cols[row] = -1;
-      }
-    }
-    return false;
-  }
-
-  solve(0);
-  return solutionCount === 1 ? foundSolution : null;
-}
-
-function canSolveLogically(n: number, regions: number[][]): boolean {
+/**
+ * 제약 전파 + 교차 제거 기법으로 논리적 풀이를 시도한다.
+ * 성공 시 해답(각 행의 퀸 열 위치)을 반환, 실패 시 null.
+ *
+ * 사용 기법:
+ * 1. Naked singles: 행/열/리전에 후보가 1개면 배치
+ * 2. Region-Row/Col intersection: 리전의 후보가 한 행/열에만 있으면 해당 행/열의 다른 후보 제거
+ * 3. Row/Col-Region intersection: 행/열의 후보가 한 리전에만 있으면 해당 리전의 다른 후보 제거
+ *
+ * 이 함수가 해답을 반환하면 유일 해가 보장된다.
+ * (제약 전파로 모든 퀸을 배치 = 모든 단계가 강제 = 유일 해)
+ */
+function solveLogically(n: number, regions: number[][]): number[] | null {
   const candidates: boolean[][] = [];
   for (let r = 0; r < n; r++) {
     candidates[r] = [];
@@ -139,6 +113,9 @@ function canSolveLogically(n: number, regions: number[][]): boolean {
   }
 
   let placedCount = 0;
+  const rowDone = new Array(n).fill(false);
+  const colDone = new Array(n).fill(false);
+  const regDone = new Array(n).fill(false);
 
   function eliminate(pr: number, pc: number): void {
     for (let c = 0; c < n; c++) candidates[pr][c] = false;
@@ -164,6 +141,9 @@ function canSolveLogically(n: number, regions: number[][]): boolean {
   function placeQueen(r: number, c: number): void {
     placed[r][c] = true;
     placedCount++;
+    rowDone[r] = true;
+    colDone[c] = true;
+    regDone[regions[r][c]] = true;
     eliminate(r, c);
   }
 
@@ -171,44 +151,33 @@ function canSolveLogically(n: number, regions: number[][]): boolean {
   while (progress && placedCount < n) {
     progress = false;
 
+    // Naked singles: 행에서 후보가 1개
     for (let r = 0; r < n; r++) {
-      let hasQueen = false;
-      for (let c = 0; c < n; c++) {
-        if (placed[r][c]) { hasQueen = true; break; }
-      }
-      if (hasQueen) continue;
+      if (rowDone[r]) continue;
       let count = 0;
       let lastCol = -1;
       for (let c = 0; c < n; c++) {
         if (candidates[r][c]) { count++; lastCol = c; }
       }
       if (count === 1) { placeQueen(r, lastCol); progress = true; }
-      else if (count === 0) return false;
+      else if (count === 0) return null;
     }
 
+    // Naked singles: 열에서 후보가 1개
     for (let c = 0; c < n; c++) {
-      let hasQueen = false;
-      for (let r = 0; r < n; r++) {
-        if (placed[r][c]) { hasQueen = true; break; }
-      }
-      if (hasQueen) continue;
+      if (colDone[c]) continue;
       let count = 0;
       let lastRow = -1;
       for (let r = 0; r < n; r++) {
         if (candidates[r][c]) { count++; lastRow = r; }
       }
       if (count === 1) { placeQueen(lastRow, c); progress = true; }
-      else if (count === 0) return false;
+      else if (count === 0) return null;
     }
 
+    // Naked singles: 리전에서 후보가 1개
     for (let reg = 0; reg < n; reg++) {
-      let hasQueen = false;
-      for (let r = 0; r < n && !hasQueen; r++) {
-        for (let c = 0; c < n && !hasQueen; c++) {
-          if (regions[r][c] === reg && placed[r][c]) hasQueen = true;
-        }
-      }
-      if (hasQueen) continue;
+      if (regDone[reg]) continue;
       let count = 0;
       let lastR = -1;
       let lastC = -1;
@@ -220,16 +189,127 @@ function canSolveLogically(n: number, regions: number[][]): boolean {
         }
       }
       if (count === 1) { placeQueen(lastR, lastC); progress = true; }
-      else if (count === 0) return false;
+      else if (count === 0) return null;
+    }
+
+    // naked singles로 진전이 있으면 다시 시도
+    if (progress) continue;
+
+    // Region-Row intersection: 리전의 후보가 한 행에만 존재하면
+    // 해당 행의 다른 리전 후보를 제거
+    for (let reg = 0; reg < n; reg++) {
+      if (regDone[reg]) continue;
+      let onlyRow = -1;
+      let allInOneRow = true;
+      for (let r = 0; r < n && allInOneRow; r++) {
+        for (let c = 0; c < n; c++) {
+          if (regions[r][c] === reg && candidates[r][c]) {
+            if (onlyRow === -1) onlyRow = r;
+            else if (onlyRow !== r) { allInOneRow = false; break; }
+          }
+        }
+      }
+      if (allInOneRow && onlyRow !== -1) {
+        for (let c = 0; c < n; c++) {
+          if (regions[onlyRow][c] !== reg && candidates[onlyRow][c]) {
+            candidates[onlyRow][c] = false;
+            progress = true;
+          }
+        }
+      }
+    }
+
+    // Region-Column intersection: 리전의 후보가 한 열에만 존재하면
+    // 해당 열의 다른 리전 후보를 제거
+    for (let reg = 0; reg < n; reg++) {
+      if (regDone[reg]) continue;
+      let onlyCol = -1;
+      let allInOneCol = true;
+      for (let r = 0; r < n && allInOneCol; r++) {
+        for (let c = 0; c < n; c++) {
+          if (regions[r][c] === reg && candidates[r][c]) {
+            if (onlyCol === -1) onlyCol = c;
+            else if (onlyCol !== c) { allInOneCol = false; break; }
+          }
+        }
+      }
+      if (allInOneCol && onlyCol !== -1) {
+        for (let r = 0; r < n; r++) {
+          if (regions[r][onlyCol] !== reg && candidates[r][onlyCol]) {
+            candidates[r][onlyCol] = false;
+            progress = true;
+          }
+        }
+      }
+    }
+
+    // Row-Region intersection: 행의 후보가 한 리전에만 존재하면
+    // 해당 리전의 다른 행 후보를 제거
+    for (let r = 0; r < n; r++) {
+      if (rowDone[r]) continue;
+      let onlyReg = -1;
+      let allInOneReg = true;
+      for (let c = 0; c < n; c++) {
+        if (candidates[r][c]) {
+          const reg = regions[r][c];
+          if (onlyReg === -1) onlyReg = reg;
+          else if (onlyReg !== reg) { allInOneReg = false; break; }
+        }
+      }
+      if (allInOneReg && onlyReg !== -1) {
+        for (let r2 = 0; r2 < n; r2++) {
+          if (r2 === r) continue;
+          for (let c = 0; c < n; c++) {
+            if (regions[r2][c] === onlyReg && candidates[r2][c]) {
+              candidates[r2][c] = false;
+              progress = true;
+            }
+          }
+        }
+      }
+    }
+
+    // Column-Region intersection: 열의 후보가 한 리전에만 존재하면
+    // 해당 리전의 다른 열 후보를 제거
+    for (let c = 0; c < n; c++) {
+      if (colDone[c]) continue;
+      let onlyReg = -1;
+      let allInOneReg = true;
+      for (let r = 0; r < n; r++) {
+        if (candidates[r][c]) {
+          const reg = regions[r][c];
+          if (onlyReg === -1) onlyReg = reg;
+          else if (onlyReg !== reg) { allInOneReg = false; break; }
+        }
+      }
+      if (allInOneReg && onlyReg !== -1) {
+        for (let r = 0; r < n; r++) {
+          for (let c2 = 0; c2 < n; c2++) {
+            if (c2 === c) continue;
+            if (regions[r][c2] === onlyReg && candidates[r][c2]) {
+              candidates[r][c2] = false;
+              progress = true;
+            }
+          }
+        }
+      }
     }
   }
 
-  return placedCount === n;
+  if (placedCount !== n) return null;
+
+  const sol = new Array(n).fill(-1);
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (placed[r][c]) sol[r] = c;
+    }
+  }
+  return sol;
 }
 
 export function generatePuzzle(size: number): Promise<TPuzzle> {
-  const maxAttempts = size <= 5 ? 200 : size <= 7 ? 2000 : 10000;
-  const batchSize = size <= 5 ? 200 : size <= 7 ? 100 : 50;
+  const maxAttempts = size <= 5 ? 500 : size <= 7 ? 5000 : 50000;
+  const batchSize = size <= 5 ? 500 : size <= 7 ? 500 : 1000;
 
   return new Promise((resolve, reject) => {
     let attempt = 0;
@@ -238,8 +318,8 @@ export function generatePuzzle(size: number): Promise<TPuzzle> {
       const end = Math.min(attempt + batchSize, maxAttempts);
       while (attempt < end) {
         const regions = generateRandomRegions(size);
-        const sol = findUniqueSolution(size, regions);
-        if (sol && canSolveLogically(size, regions)) {
+        const sol = solveLogically(size, regions);
+        if (sol) {
           const solution: boolean[][] = Array.from({ length: size }, () =>
             new Array(size).fill(false)
           );
