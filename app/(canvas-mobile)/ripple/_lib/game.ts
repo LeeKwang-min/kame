@@ -81,7 +81,6 @@ export function setupRipple(
   let pauseStart = 0;
 
   // Tutorial state
-  const TUTORIAL_STORAGE_KEY = 'ripple_tutorial_done';
   let tutorialStep = 0;
   let tutorialBlinkTime = 0;
   const TUTORIAL_GRID_SIZE = 3;
@@ -93,13 +92,6 @@ export function setupRipple(
     '파문이 퍼져서 모든 숫자가\n맞았습니다!',
     '준비 완료!\n이제 진짜 퍼즐을 풀어봅시다 🎉',
   ];
-  function isTutorialDone(): boolean {
-    try { return localStorage.getItem(TUTORIAL_STORAGE_KEY) === 'true'; } catch { return false; }
-  }
-  function markTutorialDone(): void {
-    try { localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true'); } catch { /* noop */ }
-  }
-
   // Animation state
   let cellAnims: TCellAnim[][] = [];
   let particles: TParticle[] = [];
@@ -122,6 +114,7 @@ export function setupRipple(
   // Button bounds
   type TButtonRect = { x: number; y: number; w: number; h: number };
   let resetButton: TButtonRect = { x: 0, y: 0, w: 0, h: 0 };
+  let guideButton: TButtonRect = { x: 0, y: 0, w: 0, h: 0 };
 
   // gameOverHud
   const gameOverCallbacks: TGameOverCallbacks = {
@@ -552,7 +545,6 @@ export function setupRipple(
   function advanceTutorial(): void {
     tutorialStep++;
     if (tutorialStep >= TUTORIAL_MESSAGES.length) {
-      markTutorialDone();
       state = 'start';
     }
   }
@@ -922,6 +914,30 @@ export function setupRipple(
     ctx.font = '11px sans-serif';
     ctx.fillText('파문 패턴 (8방향 확산)', CANVAS_WIDTH / 2, diagramY + diagramLines.length * 14 + 4);
 
+    // Guide button
+    const guideBtnW = 140;
+    const guideBtnH = 36;
+    const guideBtnX = CANVAS_WIDTH / 2 - guideBtnW / 2;
+    const guideBtnY = CANVAS_HEIGHT - 130;
+    guideButton = { x: guideBtnX, y: guideBtnY, w: guideBtnW, h: guideBtnH };
+
+    ctx.fillStyle = COLORS.hudBg;
+    ctx.beginPath();
+    ctx.roundRect(guideBtnX, guideBtnY, guideBtnW, guideBtnH, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = COLORS.accent;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(guideBtnX, guideBtnY, guideBtnW, guideBtnH, 8);
+    ctx.stroke();
+
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📖 가이드', CANVAS_WIDTH / 2, guideBtnY + guideBtnH / 2);
+
     // Start prompt
     ctx.fillStyle = COLORS.text;
     ctx.font = 'bold 18px sans-serif';
@@ -953,7 +969,7 @@ export function setupRipple(
     );
 
     ctx.fillText(
-      'S: 시작 | P: 일시정지 | R: 리셋',
+      'S: 시작 | P: 일시정지 | R: 리셋 | G: 가이드',
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT - 25,
     );
@@ -1360,7 +1376,7 @@ export function setupRipple(
     switch (e.code) {
       case 'KeyS':
         if (state === 'start') {
-          if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
+          startStage();
         } else if (state === 'paused') {
           pauseStart = performance.now();
           state = 'playing';
@@ -1404,6 +1420,11 @@ export function setupRipple(
           e.preventDefault();
         }
         break;
+      case 'KeyG':
+        if (state === 'start') {
+          startTutorial();
+        }
+        break;
       case 'Space':
       case 'Enter':
         if (state === 'tutorial') {
@@ -1442,7 +1463,13 @@ export function setupRipple(
     }
 
     if (state === 'start') {
-      if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
+      // Check guide button first
+      if (pos.x >= guideButton.x && pos.x <= guideButton.x + guideButton.w &&
+          pos.y >= guideButton.y && pos.y <= guideButton.y + guideButton.h) {
+        startTutorial();
+        return;
+      }
+      startStage();
       return;
     }
 
@@ -1492,7 +1519,13 @@ export function setupRipple(
     }
 
     if (state === 'start') {
-      if (!isTutorialDone()) { startTutorial(); } else { startStage(); }
+      // Check guide button first
+      if (pos.x >= guideButton.x && pos.x <= guideButton.x + guideButton.w &&
+          pos.y >= guideButton.y && pos.y <= guideButton.y + guideButton.h) {
+        startTutorial();
+        return;
+      }
+      startStage();
       return;
     }
 
