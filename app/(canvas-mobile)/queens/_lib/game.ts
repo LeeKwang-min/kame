@@ -106,17 +106,25 @@ export function setupQueens(
     '각 행에 퀸을 1개씩 배치하세요',
     '각 열에도 퀸은 1개만!',
     '같은 색 영역에도 퀸은 1개만!',
-    '퀸은 대각선으로 인접할 수 없습니다',
-    '직접 풀어보세요!',
-    '준비 완료!\n이제 진짜 퍼즐을 풀어봅시다 🎉',
+    '퀸끼리 인접(8방향)하면 안 돼요',
+    '이제 직접 풀어봐요!\n규칙을 떠올리며 풀어보세요',
+    '1행에 퀸을 놓아보세요!\n반짝이는 칸을 탭하세요',
+    '잘했어요! 2행도 놓아보세요',
+    '3행 차례예요!\n여기에 놓아보세요',
+    '마지막 퀸!\n여기에 놓으면 완성!',
+    '축하합니다! 🎉\n이제 진짜 퍼즐에 도전하세요',
   ];
 
-  // Fixed 4x4 tutorial puzzle
+  const TUTORIAL_GUIDED_TARGETS: [number, number][] = [
+    [0, 2], [1, 0], [2, 3], [3, 1],
+  ];
+
+  // 4x4 quadrant regions — used throughout the entire tutorial
   const TUTORIAL_REGIONS = [
     [0, 0, 1, 1],
-    [0, 2, 2, 1],
-    [3, 2, 2, 1],
-    [3, 3, 3, 2],
+    [0, 0, 1, 1],
+    [2, 2, 3, 3],
+    [2, 2, 3, 3],
   ];
   const TUTORIAL_SOLUTION: boolean[][] = [
     [false, false, true, false],
@@ -550,44 +558,21 @@ export function setupQueens(
       state = 'start';
       return;
     }
-    if (tutorialStep === 4) {
-      tutorialPlacedCount = 0;
-      tutorialBoard = Array.from({ length: TUTORIAL_GRID_SIZE }, () =>
-        Array.from({ length: TUTORIAL_GRID_SIZE }, () => 'empty' as TCellState),
-      );
-    }
   }
 
   function handleTutorialTap(row?: number, col?: number): void {
-    if (tutorialStep === 4) {
+    if (tutorialStep >= 5 && tutorialStep <= 8) {
       if (row === undefined || col === undefined) return;
       if (row < 0 || row >= TUTORIAL_GRID_SIZE || col < 0 || col >= TUTORIAL_GRID_SIZE) return;
 
-      const current = tutorialBoard[row][col];
-      if (current === 'empty') {
-        tutorialBoard[row][col] = 'cross';
-      } else if (current === 'cross') {
-        tutorialBoard[row][col] = 'queen';
-        tutorialPlacedCount++;
-      } else {
-        tutorialPlacedCount--;
-        tutorialBoard[row][col] = 'empty';
+      const [targetR, targetC] = TUTORIAL_GUIDED_TARGETS[tutorialStep - 5];
+      if (row === targetR && col === targetC) {
+        tutorialBoard[targetR][targetC] = 'queen';
+        advanceTutorial();
       }
-
-      if (tutorialPlacedCount === TUTORIAL_GRID_SIZE) {
-        let correct = true;
-        for (let r = 0; r < TUTORIAL_GRID_SIZE; r++) {
-          for (let c = 0; c < TUTORIAL_GRID_SIZE; c++) {
-            const shouldBeQueen = TUTORIAL_SOLUTION[r][c];
-            const isQueen = tutorialBoard[r][c] === 'queen';
-            if (shouldBeQueen !== isQueen) correct = false;
-          }
-        }
-        if (correct) advanceTutorial();
-      }
-    } else {
-      advanceTutorial();
+      return;
     }
+    advanceTutorial();
   }
 
   // --- Difficulty button bounds ---
@@ -655,8 +640,8 @@ export function setupQueens(
         state = 'start';
         return;
       }
-      if (tutorialStep === 4) {
-        // In practice mode, only Escape exits
+      if (tutorialStep >= 5 && tutorialStep <= 8) {
+        // In guided placement mode, only Escape exits
         return;
       }
       handleTutorialTap();
@@ -752,7 +737,7 @@ export function setupQueens(
     const pos = getCanvasPos(e.clientX, e.clientY);
 
     if (state === 'tutorial') {
-      if (tutorialStep === 4) {
+      if (tutorialStep >= 5 && tutorialStep <= 8) {
         const cellSize = 80;
         const gridW = TUTORIAL_GRID_SIZE * cellSize;
         const gridLeft = (CANVAS_WIDTH - gridW) / 2;
@@ -846,7 +831,7 @@ export function setupQueens(
     }
 
     if (state === 'tutorial') {
-      if (tutorialStep === 4) {
+      if (tutorialStep >= 5 && tutorialStep <= 8) {
         const cellSize = 80;
         const gridW = TUTORIAL_GRID_SIZE * cellSize;
         const gridLeft = (CANVAS_WIDTH - gridW) / 2;
@@ -1051,49 +1036,70 @@ export function setupQueens(
           }
         }
 
-        // Step 4: Interactive practice puzzle
+        // Step 4: Pulse all cells to introduce practice
         if (tutorialStep === 4) {
-          const cellState = tutorialBoard[r][c];
-          if (cellState === 'queen') {
+          const pulse = 0.2 + 0.4 * Math.abs(Math.sin(tutorialBlinkTime * 3));
+          ctx.strokeStyle = `rgba(255,107,157,${pulse})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 5);
+          ctx.stroke();
+        }
+
+        // Steps 5-8: Guided queen placement
+        if (tutorialStep >= 5 && tutorialStep <= 8) {
+          const isQueenHere = tutorialBoard[r][c] === 'queen';
+          const targetIdx = tutorialStep - 5;
+          const [targetR, targetC] = TUTORIAL_GUIDED_TARGETS[targetIdx];
+          const isTarget = r === targetR && c === targetC;
+
+          // Draw previously placed queens
+          if (isQueenHere) {
             drawPixelCrown(x + cellSize / 2, y + cellSize / 2, 24, COLORS.accent);
-          } else if (cellState === 'cross') {
-            ctx.strokeStyle = COLORS.textSecondary;
-            ctx.lineWidth = 2;
-            const pad = cellSize * 0.3;
-            ctx.beginPath();
-            ctx.moveTo(x + pad, y + pad);
-            ctx.lineTo(x + cellSize - pad, y + cellSize - pad);
-            ctx.moveTo(x + cellSize - pad, y + pad);
-            ctx.lineTo(x + pad, y + cellSize - pad);
-            ctx.stroke();
           }
 
-          // Pulse hint on first unsolved queen position
-          if (cellState === 'empty' && TUTORIAL_SOLUTION[r][c]) {
-            let isFirstHint = true;
-            for (let hr = 0; hr < TUTORIAL_GRID_SIZE; hr++) {
-              for (let hc = 0; hc < TUTORIAL_GRID_SIZE; hc++) {
-                if (hr === r && hc === c) { isFirstHint = true; break; }
-                if (TUTORIAL_SOLUTION[hr][hc] && tutorialBoard[hr][hc] !== 'queen') {
-                  isFirstHint = false;
-                  break;
-                }
+          // Draw X on cells blocked by placed queens
+          if (!isQueenHere && !isTarget) {
+            let blocked = false;
+            for (let qr = 0; qr < TUTORIAL_GRID_SIZE && !blocked; qr++) {
+              for (let qc = 0; qc < TUTORIAL_GRID_SIZE && !blocked; qc++) {
+                if (tutorialBoard[qr][qc] !== 'queen') continue;
+                if (qr === r) blocked = true;
+                else if (qc === c) blocked = true;
+                else if (TUTORIAL_REGIONS[qr][qc] === TUTORIAL_REGIONS[r][c]) blocked = true;
+                else if (Math.abs(qr - r) <= 1 && Math.abs(qc - c) <= 1) blocked = true;
               }
-              if (!isFirstHint) break;
             }
-            if (isFirstHint) {
-              const pulse2 = 0.2 + 0.4 * Math.abs(Math.sin(tutorialBlinkTime * 3));
-              ctx.strokeStyle = `rgba(255,107,157,${pulse2})`;
-              ctx.lineWidth = 3;
+            if (blocked) {
+              const pad = cellSize * 0.3;
+              ctx.strokeStyle = 'rgba(255,68,102,0.45)';
+              ctx.lineWidth = 2;
+              ctx.lineCap = 'round';
               ctx.beginPath();
-              ctx.roundRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 5);
+              ctx.moveTo(x + pad, y + pad);
+              ctx.lineTo(x + cellSize - pad, y + cellSize - pad);
               ctx.stroke();
+              ctx.beginPath();
+              ctx.moveTo(x + cellSize - pad, y + pad);
+              ctx.lineTo(x + pad, y + cellSize - pad);
+              ctx.stroke();
+              ctx.lineCap = 'butt';
             }
+          }
+
+          // Pulse the target cell for the current step
+          if (isTarget) {
+            const pulse2 = 0.2 + 0.4 * Math.abs(Math.sin(tutorialBlinkTime * 3));
+            ctx.strokeStyle = `rgba(255,107,157,${pulse2})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 5);
+            ctx.stroke();
           }
         }
 
-        // Step 5: Show solution with checkmarks
-        if (tutorialStep === 5) {
+        // Step 9: Show completed solution
+        if (tutorialStep === 9) {
           if (TUTORIAL_SOLUTION[r][c]) {
             drawPixelCrown(x + cellSize / 2, y + cellSize / 2, 24, COLORS.accent);
           }
@@ -1155,8 +1161,8 @@ export function setupQueens(
     // Prompt
     ctx.fillStyle = COLORS.textSecondary;
     ctx.font = '13px sans-serif';
-    if (tutorialStep === 4) {
-      ctx.fillText('퀸을 올바른 위치에 놓아보세요', CANVAS_WIDTH / 2, msgY + msgH - 15);
+    if (tutorialStep >= 5 && tutorialStep <= 8) {
+      ctx.fillText('반짝이는 셀을 탭하세요', CANVAS_WIDTH / 2, msgY + msgH - 15);
     } else {
       ctx.fillText('탭하여 계속 ▶', CANVAS_WIDTH / 2, msgY + msgH - 15);
     }
