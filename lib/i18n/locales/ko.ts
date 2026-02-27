@@ -63,6 +63,7 @@ export type Locale = {
   };
   category: {
     all: string;
+    featured: string;
     arcade: string;
     action: string;
     puzzle: string;
@@ -137,6 +138,7 @@ export const ko: Locale = {
   },
   category: {
     all: '전체',
+    featured: '추천',
     arcade: '아케이드',
     action: '액션',
     puzzle: '퍼즐',

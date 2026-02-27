@@ -9,18 +9,28 @@ import { useLocale } from '@/provider/LocaleProvider';
 interface IProps {
   search: string;
   setSearch: Dispatch<SetStateAction<string>>;
+  onSearchChange?: () => void;
 }
 
-function MainSearchBar({ search, setSearch }: IProps) {
+function MainSearchBar({ search, setSearch, onSearchChange }: IProps) {
   const { t } = useLocale();
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(debouncedSearch);
+      if (debouncedSearch && onSearchChange) {
+        onSearchChange();
+      }
     }, 500);
     return () => clearTimeout(timer);
-  }, [debouncedSearch, setSearch]);
+  }, [debouncedSearch, setSearch, onSearchChange]);
+
+  useEffect(() => {
+    if (search === '' && debouncedSearch !== '') {
+      setDebouncedSearch('');
+    }
+  }, [search]);
 
   return (
     <div className="relative flex-1 min-w-[200px]">

@@ -21,3 +21,29 @@ export type TFeaturedGame = {
     eng: string;
   };
 };
+
+export type TBannerItem =
+  | {
+      type: 'image';
+      src: string;
+      title: { kor: string; eng: string };
+      description: { kor: string; eng: string };
+      href?: string;
+      ctaText?: { kor: string; eng: string };
+    }
+  | {
+      type: 'card';
+      icon: string;
+      bgColor: string;
+      title: { kor: string; eng: string };
+      description: { kor: string; eng: string };
+      href?: string;
+      ctaText?: { kor: string; eng: string };
+    }
+  | {
+      type: 'announcement';
+      title: { kor: string; eng: string };
+      description: { kor: string; eng: string };
+      bgColor: string;
+      badge?: { kor: string; eng: string };
+    };

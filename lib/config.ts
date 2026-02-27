@@ -1,4 +1,4 @@
-import { TFeaturedGame, TMenu } from '@/@types/menus';
+import { TBannerItem, TFeaturedGame, TMenu } from '@/@types/menus';
 
 export const MENU_LIST: TMenu[] = [
   // Arcade
@@ -489,3 +489,51 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
     },
   },
 ];
+
+export const BANNER_ITEMS: TBannerItem[] = [
+  {
+    type: 'card',
+    icon: '🎮',
+    bgColor: 'from-cyan-900/50 to-purple-900/50',
+    title: { kor: '새로운 게임 출시!', eng: 'New Game Released!' },
+    description: {
+      kor: 'Random Defense가 추가되었습니다',
+      eng: 'Random Defense has been added',
+    },
+    href: '/randomdefense',
+    ctaText: { kor: '지금 플레이', eng: 'Play Now' },
+  },
+  {
+    type: 'card',
+    icon: '🏰',
+    bgColor: 'from-yellow-900/50 to-red-900/50',
+    title: { kor: '타워 블록 챌린지', eng: 'Tower Blocks Challenge' },
+    description: {
+      kor: '가장 높은 타워를 쌓아보세요!',
+      eng: 'Build the tallest tower!',
+    },
+    href: '/towerblocks',
+    ctaText: { kor: '도전하기', eng: 'Try Now' },
+  },
+  {
+    type: 'announcement',
+    title: { kor: 'KAME에 오신 것을 환영합니다', eng: 'Welcome to KAME' },
+    description: {
+      kor: '50개 이상의 미니게임을 즐겨보세요!',
+      eng: 'Enjoy 50+ mini games!',
+    },
+    bgColor: 'from-arcade-cyan/20 to-arcade-magenta/20',
+    badge: { kor: '환영', eng: 'Welcome' },
+  },
+];
+
+export const CATEGORY_TABS = [
+  { id: 'ALL', iconName: 'Dice5' as const },
+  { id: 'FEATURED', iconName: 'Star' as const },
+  { id: 'Arcade', iconName: 'Dice5' as const },
+  { id: 'Action', iconName: 'Gamepad2' as const },
+  { id: 'Puzzle', iconName: 'Puzzle' as const },
+  { id: 'Reflex', iconName: 'Zap' as const },
+  { id: 'Good Luck', iconName: 'Clover' as const },
+  { id: 'Utility', iconName: 'Wrench' as const },
+] as const;
