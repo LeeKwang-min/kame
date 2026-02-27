@@ -29,4 +29,4 @@ export const getCharacterSpritePath = (type: TCharacterType): string => {
 };
 
 // 배경 이미지 경로 (PNG로 교체 시 확장자만 변경)
-export const ROOM_BACKGROUND_PATH = '/characters/room-bg.png';
+export const ROOM_BACKGROUND_PATH = '/characters/room-bg-new.png';
