@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAME - Retro Arcade Game Platform</title>
+    <meta name="description" content="Play classic retro arcade games and modern mini-games on KAME. Insert coin to start your adventure now!">
+    <meta property="og:title" content="KAME - Retro Arcade Platform">
+    <meta property="og:description" content="Experience classic arcade games directly in your browser.">
+    <meta property="og:type" content="website">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="scanlines"></div>
+    
+    <main class="container">
+        <header class="hero">
+            <div class="logo-container">
+                <h1 class="logo attr-glitch" data-title="KAME">KAME</h1>
+                <p class="subtitle">RETRO ARCADE GAME PLATFORM</p>
+            </div>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <span class="icon">🕹️</span>
+                    <span>Classic & Modern Games</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🏆</span>
+                    <span>Global Leaderboards</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🌙</span>
+                    <span>Neon Dark Theme</span>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <a href="https://mini-kame.vercel.app/" class="cta-button">
+                    <span class="cta-text">PLAY NOW</span>
+                    <span class="insert-coin">INSERT COIN [1]</span>
+                </a>
+            </div>
+        </header>
+
+        <section class="game-showcase">
+            <h2 class="section-title">FEATURED GAMES</h2>
+            <div class="grid">
+                <div class="card tetris">
+                    <div class="card-inner">TETRIS</div>
+                </div>
+                <div class="card snake">
+                    <div class="card-inner">SNAKE</div>
+                </div>
+                <div class="card pacman">
+                    <div class="card-inner">PAC-MAN</div>
+                </div>
+                <div class="card space">
+                    <div class="card-inner">SPACE<br/>INVADERS</div>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Made with ❤️ for Retro Gamers.<br/>© 2026 KAME Developer</p>
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

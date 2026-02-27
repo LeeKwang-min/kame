@@ -32,7 +32,12 @@
       "Bash(timeout 15 yarn dev:*)",
       "Bash(netstat:*)",
       "Bash(ss:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(xargs cat:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git worktree:*)",
+      "Bash(tail:*)",
+      "Bash(cd:*)"
     ]
   }
 }

@@ -43,3 +43,6 @@ next-env.d.ts
 /lib/generated/prisma
 
 install.cmd
+
+# claude worktrees
+.claude/worktrees
