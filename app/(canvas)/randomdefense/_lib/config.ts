@@ -100,22 +100,22 @@ export const PARTICLE_LIFE = 0.8;
 export const SCREEN_SHAKE_DURATION = 0.3;
 export const SCREEN_SHAKE_INTENSITY = 5;
 
-// ─── Tier Colors ───
+// ─── Tier Colors (Cyberpunk Neon) ───
 export const TIER_COLORS: string[] = [
-  '#aaaaaa', // Tier 1 - Gray
-  '#22c55e', // Tier 2 - Green
-  '#3b82f6', // Tier 3 - Blue
-  '#a855f7', // Tier 4 - Purple
-  '#f59e0b', // Tier 5 - Gold
-  '#ef4444', // Tier 6 - Red
+  '#94a3b8', // Tier 1 - Slate/Silver
+  '#2dd4bf', // Tier 2 - Teal/Cyan
+  '#22d3ee', // Tier 3 - Sky Blue
+  '#c084fc', // Tier 4 - Purple
+  '#f472b6', // Tier 5 - Pink/Neon
+  '#ef4444', // Tier 6 - Red/Alert
 ];
 
 export const TIER_BORDER_COLORS: string[] = [
-  '#888888',
-  '#16a34a',
-  '#2563eb',
+  '#475569',
+  '#0d9488',
+  '#0891b2',
   '#9333ea',
-  '#d97706',
+  '#db2777',
   '#dc2626',
 ];
 

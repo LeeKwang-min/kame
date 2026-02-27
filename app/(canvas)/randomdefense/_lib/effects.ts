@@ -9,7 +9,7 @@ import {
 } from './config';
 import { TParticle, TFloatingText, TScreenShake } from './types';
 
-// ─── Summon Particles (circular burst, tier color) ───
+// ─── Summon Particles (Neon burst) ───
 
 export function spawnSummonParticles(
   x: number,
@@ -19,7 +19,7 @@ export function spawnSummonParticles(
   const particles: TParticle[] = [];
   for (let i = 0; i < SUMMON_PARTICLE_COUNT; i++) {
     const angle = (Math.PI * 2 * i) / SUMMON_PARTICLE_COUNT;
-    const speed = 80 + Math.random() * 60;
+    const speed = 100 + Math.random() * 80;
     particles.push({
       x,
       y,
@@ -27,15 +27,15 @@ export function spawnSummonParticles(
       vy: Math.sin(angle) * speed,
       life: PARTICLE_LIFE,
       maxLife: PARTICLE_LIFE,
-      size: 3 + Math.random() * 2,
+      size: 2 + Math.random() * 2,
       color,
-      gravity: 100,
+      gravity: 0, // No gravity for digital particles
     });
   }
   return particles;
 }
 
-// ─── Merge Particles (spiral + white glow) ───
+// ─── Merge Particles (Neon spiral + binary flash) ───
 
 export function spawnMergeParticles(
   x: number,
@@ -44,44 +44,44 @@ export function spawnMergeParticles(
 ): TParticle[] {
   const particles: TParticle[] = [];
 
-  // Spiral burst
+  // Spiral energy
   for (let i = 0; i < MERGE_PARTICLE_COUNT; i++) {
-    const angle = (Math.PI * 2 * i) / MERGE_PARTICLE_COUNT + i * 0.3;
-    const speed = 100 + Math.random() * 80;
+    const angle = (Math.PI * 2 * i) / MERGE_PARTICLE_COUNT + i * 0.4;
+    const speed = 120 + Math.random() * 100;
     particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      life: PARTICLE_LIFE * 1.2,
-      maxLife: PARTICLE_LIFE * 1.2,
-      size: 3 + Math.random() * 3,
+      life: PARTICLE_LIFE * 1.5,
+      maxLife: PARTICLE_LIFE * 1.5,
+      size: 2 + Math.random() * 2,
       color,
-      gravity: 50,
+      gravity: 10,
     });
   }
 
-  // White glow
-  for (let i = 0; i < 10; i++) {
+  // Cyan flash points
+  for (let i = 0; i < 12; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 30 + Math.random() * 40;
+    const speed = 40 + Math.random() * 60;
     particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      life: PARTICLE_LIFE * 0.8,
-      maxLife: PARTICLE_LIFE * 0.8,
-      size: 4 + Math.random() * 3,
-      color: '#ffffff',
-      gravity: 20,
+      life: PARTICLE_LIFE,
+      maxLife: PARTICLE_LIFE,
+      size: 3 + Math.random() * 2,
+      color: '#22d3ee',
+      gravity: 0,
     });
   }
 
   return particles;
 }
 
-// ─── Kill Particles (gravity drop) ───
+// ─── Kill Particles (Data fragmentation) ───
 
 export function spawnKillParticles(
   x: number,
@@ -91,23 +91,23 @@ export function spawnKillParticles(
   const particles: TParticle[] = [];
   for (let i = 0; i < KILL_PARTICLE_COUNT; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 50 + Math.random() * 80;
+    const speed = 60 + Math.random() * 60;
     particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 40,
-      life: PARTICLE_LIFE * 0.6,
-      maxLife: PARTICLE_LIFE * 0.6,
-      size: 2 + Math.random() * 2,
+      vy: Math.sin(angle) * speed,
+      life: PARTICLE_LIFE * 0.8,
+      maxLife: PARTICLE_LIFE * 0.8,
+      size: 1.5 + Math.random() * 1.5,
       color,
-      gravity: 300,
+      gravity: 0,
     });
   }
   return particles;
 }
 
-// ─── Boss Entry Particles (red/gold ring burst) ───
+// ─── Boss Entry Particles (Alert Pulse) ───
 
 export function spawnBossEntryParticles(
   x: number,
@@ -116,18 +116,18 @@ export function spawnBossEntryParticles(
   const particles: TParticle[] = [];
   for (let i = 0; i < BOSS_ENTRY_PARTICLE_COUNT; i++) {
     const angle = (Math.PI * 2 * i) / BOSS_ENTRY_PARTICLE_COUNT;
-    const speed = 120 + Math.random() * 80;
-    const color = i % 2 === 0 ? '#ef4444' : '#f59e0b';
+    const speed = 150 + Math.random() * 100;
+    const color = i % 2 === 0 ? '#ef4444' : '#22d3ee';
     particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      life: PARTICLE_LIFE * 1.5,
-      maxLife: PARTICLE_LIFE * 1.5,
-      size: 4 + Math.random() * 3,
+      life: PARTICLE_LIFE * 2.0,
+      maxLife: PARTICLE_LIFE * 2.0,
+      size: 3 + Math.random() * 2,
       color,
-      gravity: 30,
+      gravity: 0,
     });
   }
   return particles;
@@ -141,7 +141,7 @@ export function spawnGoldText(x: number, y: number, amount: number): TFloatingTe
     y: y - 20,
     text: `+${amount}G`,
     alpha: 1,
-    color: '#f59e0b',
+    color: '#fbbf24',
     life: 1.2,
     fontSize: 14,
   };
@@ -152,11 +152,11 @@ export function spawnWaveText(wave: number, canvasWidth: number): TFloatingText 
   return {
     x: canvasWidth / 2,
     y: 100,
-    text: isBoss ? `⚠ BOSS WAVE ${wave} ⚠` : `Wave ${wave}`,
+    text: isBoss ? `[!] THREAT DETECTED: BOSS WAVE ${wave} [!]` : `ACCESSING WAVE ${wave}`,
     alpha: 1,
-    color: isBoss ? '#ef4444' : '#ffffff',
+    color: isBoss ? '#ef4444' : '#22d3ee',
     life: 2.0,
-    fontSize: isBoss ? 32 : 24,
+    fontSize: isBoss ? 28 : 22,
   };
 }
 
@@ -164,11 +164,11 @@ export function spawnRushBonusText(x: number, y: number, amount: number): TFloat
   return {
     x,
     y: y - 20,
-    text: `RUSH +${amount}G`,
-    color: '#06b6d4', // cyan
+    text: `OVERCLOCK +${amount}G`,
+    color: '#22d3ee',
     alpha: 1,
     life: 1.5,
-    fontSize: 18,
+    fontSize: 16,
   };
 }
 
