@@ -24,6 +24,7 @@ import {
   WAVE_REWARD_INCREMENT,
   BOSS_WAVE_INTERVAL,
   MAX_ENEMIES_ON_SCREEN,
+  SPEED_OPTIONS,
   getPathCells,
 } from './config';
 import {
@@ -95,6 +96,7 @@ import {
   drawTopHud,
   drawPanel,
   drawDragGhost,
+  getSpeedButtonBounds,
 } from './renderer';
 import { createSoundSystem } from './sounds';
 
@@ -150,6 +152,9 @@ export function setupRandomDefense(
     spawnQueue: [],
     spawnIndex: 0,
   };
+
+  let speedIndex = 0;
+  let speedMultiplier: number = SPEED_OPTIONS[0];
 
   let lastTime = 0;
   let animationId = 0;
@@ -217,6 +222,11 @@ export function setupRandomDefense(
       }
     }
     return null;
+  }
+
+  function cycleSpeed() {
+    speedIndex = (speedIndex + 1) % SPEED_OPTIONS.length;
+    speedMultiplier = SPEED_OPTIONS[speedIndex];
   }
 
   // ─── Actions ───
@@ -509,7 +519,7 @@ export function setupRandomDefense(
     drawFloatingTexts(ctx, floatingTexts);
 
     // Top HUD
-    drawTopHud(ctx, waveState.wave, gold, score, enemies.length);
+    drawTopHud(ctx, waveState.wave, gold, score, enemies.length, speedMultiplier);
 
     // Right panel (no shake)
     ctx.restore();
@@ -537,6 +547,8 @@ export function setupRandomDefense(
     score = 0;
     gold = INITIAL_GOLD;
     summonCount = 0;
+    speedIndex = 0;
+    speedMultiplier = SPEED_OPTIONS[0];
     units = [];
     enemies = [];
     projectiles = [];
@@ -582,8 +594,9 @@ export function setupRandomDefense(
   // ─── Game Loop ───
 
   function gameLoop(timestamp: number) {
-    const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+    const rawDt = Math.min((timestamp - lastTime) / 1000, 0.05);
     lastTime = timestamp;
+    const dt = rawDt * speedMultiplier;
 
     update(dt);
     render();
@@ -664,6 +677,12 @@ export function setupRandomDefense(
           sounds.setMasterVolume(1.0);
         }
         break;
+      case 'Tab':
+        e.preventDefault();
+        if (state === 'playing') {
+          cycleSpeed();
+        }
+        break;
     }
   }
 
@@ -672,6 +691,15 @@ export function setupRandomDefense(
   function handleMouseDown(e: MouseEvent) {
     if (state !== 'playing') return;
     const pos = getCanvasPos(e.clientX, e.clientY);
+
+    // Speed button click
+    if (e.button === 0) {
+      const btn = getSpeedButtonBounds();
+      if (pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) {
+        cycleSpeed();
+        return;
+      }
+    }
 
     // Right click: sell selected unit
     if (e.button === 2) {

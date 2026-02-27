@@ -130,6 +130,9 @@ export const GROUND_ZONE_DURATION_PER_TIER = 0.5;
 // ─── Splash Balance ───
 export const SPLASH_MAX_TARGETS = 8;
 
+// ─── Speed Control ───
+export const SPEED_OPTIONS = [1, 2, 3] as const;
+
 // ─── Archetype Symbols ───
 export const ARCHETYPE_SYMBOLS: Record<string, string> = {
   shooter: '🎯',

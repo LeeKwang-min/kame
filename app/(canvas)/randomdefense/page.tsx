@@ -13,6 +13,7 @@ const controls = [
   { key: 'F', action: '다음 웨이브 강제 호출 (골드 보너스)' },
   { key: 'Drag', action: '유닛 이동 / 합성 / 위치 교환' },
   { key: 'Del / 우클릭', action: '유닛 매각' },
+  { key: 'Tab', action: '배속 전환 (1x → 2x → 3x)' },
   { key: '- / +', action: '볼륨 조절' },
   { key: 'M', action: '음소거 토글' },
 ];
@@ -21,16 +22,18 @@ function RandomDefensePage() {
   const { data: scores = [], isLoading } = useGetScores('randomdefense');
 
   return (
-    <section className="w-full h-full flex gap-6 items-start justify-center">
-      <aside className="shrink-0 w-72">
-        <ControlInfoTable controls={controls} />
-      </aside>
-      <div className="flex-1 h-full max-w-[1200px]">
+    <section className="w-full h-full flex flex-col items-center">
+      <div className="w-full max-w-[1200px]">
         <RandomDefense />
       </div>
-      <aside className="shrink-0 w-64">
-        <RankBoard data={scores} isLoading={isLoading} showCountry />
-      </aside>
+      <div className="w-full max-w-[1200px] flex gap-6 mt-6">
+        <div className="flex-1 min-w-0">
+          <ControlInfoTable controls={controls} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <RankBoard data={scores} isLoading={isLoading} showCountry />
+        </div>
+      </div>
     </section>
   );
 }

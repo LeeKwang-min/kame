@@ -625,12 +625,23 @@ export function drawFloatingTexts(ctx: CanvasRenderingContext2D, texts: TFloatin
 
 // ─── Top HUD Bar ───
 
+// ─── Speed Button Layout ───
+const SPEED_BTN_W = 70;
+const SPEED_BTN_H = 30;
+const SPEED_BTN_X = MAP_WIDTH - SPEED_BTN_W - 200;
+const SPEED_BTN_Y = 8;
+
+export function getSpeedButtonBounds() {
+  return { x: SPEED_BTN_X, y: SPEED_BTN_Y, w: SPEED_BTN_W, h: SPEED_BTN_H };
+}
+
 export function drawTopHud(
   ctx: CanvasRenderingContext2D,
   wave: number,
   gold: number,
   score: number,
   enemyCount: number,
+  speedMultiplier: number = 1,
 ): void {
   // Bar background
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -654,7 +665,26 @@ export function drawTopHud(
   ctx.fillStyle = '#ffffff';
   ctx.fillText(`Score: ${score}`, 340, cy);
 
+  // Speed button
+  const isActive = speedMultiplier > 1;
+  ctx.fillStyle = isActive ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255,255,255,0.1)';
+  roundRect(ctx, SPEED_BTN_X, SPEED_BTN_Y, SPEED_BTN_W, SPEED_BTN_H, 6);
+  ctx.fill();
+  ctx.strokeStyle = isActive ? '#60a5fa' : 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, SPEED_BTN_X, SPEED_BTN_Y, SPEED_BTN_W, SPEED_BTN_H, 6);
+  ctx.stroke();
+
+  const arrows = '▶'.repeat(speedMultiplier);
+  ctx.fillStyle = isActive ? '#60a5fa' : '#94a3b8';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${arrows} ${speedMultiplier}x`, SPEED_BTN_X + SPEED_BTN_W / 2, SPEED_BTN_Y + SPEED_BTN_H / 2);
+
   // Enemy count (danger meter)
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textBaseline = 'middle';
   const ratio = enemyCount / MAX_ENEMIES_ON_SCREEN;
   ctx.fillStyle = ratio > 0.8 ? '#ef4444' : ratio > 0.5 ? '#f59e0b' : '#22c55e';
   ctx.textAlign = 'right';
