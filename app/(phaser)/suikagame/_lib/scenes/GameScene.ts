@@ -1,0 +1,448 @@
+import Phaser from 'phaser';
+import {
+  FRUIT_CONFIG,
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  WALL_THICKNESS,
+  CONTAINER_TOP,
+  CONTAINER_LEFT,
+  CONTAINER_RIGHT,
+  CONTAINER_BOTTOM,
+  DROP_Y,
+  DROP_MIN_X,
+  DROP_MAX_X,
+  DEADLINE_GRACE_MS,
+  DROP_COOLDOWN_MS,
+  MAX_DROP_LEVEL,
+  PHYSICS_CONFIG,
+} from '../config';
+import { TSuikaCallbacks } from '../types';
+
+interface FruitEntry {
+  body: MatterJS.BodyType;
+  image: Phaser.GameObjects.Image;
+  text: Phaser.GameObjects.Text;
+  level: number;
+}
+
+export class GameScene extends Phaser.Scene {
+  // Fruit tracking
+  private fruitMap: Map<number, FruitEntry> = new Map();
+
+  // Game state
+  private score: number = 0;
+  private currentLevel: number = 0;
+  private nextLevel: number = 0;
+  private dropX: number = GAME_WIDTH / 2;
+  private canDrop: boolean = true;
+  private dropCooldownTimer: number = 0;
+  private isGameOver: boolean = false;
+  private hasStarted: boolean = false;
+
+  // Deadline tracking
+  private deadlineTimer: number = 0;
+
+  // Visual elements
+  private previewCircle!: Phaser.GameObjects.Arc;
+  private previewEmoji!: Phaser.GameObjects.Text;
+  private guideLine!: Phaser.GameObjects.Line;
+  private deadlineLine!: Phaser.GameObjects.Graphics;
+
+  // Container walls (stored for category filtering)
+  private wallCategory: number = 0;
+  private fruitCategory: number = 0;
+
+  // Input
+  private keyLeft!: Phaser.Input.Keyboard.Key | null;
+  private keyRight!: Phaser.Input.Keyboard.Key | null;
+  private keySpace!: Phaser.Input.Keyboard.Key | null;
+
+  // Merging lock to prevent double-merging
+  private mergingBodies: Set<number> = new Set();
+
+  constructor() {
+    super({ key: 'GameScene' });
+  }
+
+  create() {
+    this.resetState();
+    this.createContainer();
+    this.createDeadline();
+    this.createPreview();
+    this.setupInput();
+    this.setupCollisions();
+    this.callGameStart();
+    this.prepareNextFruit();
+  }
+
+  private resetState() {
+    this.fruitMap = new Map();
+    this.mergingBodies = new Set();
+    this.score = 0;
+    this.currentLevel = 0;
+    this.nextLevel = Phaser.Math.Between(0, MAX_DROP_LEVEL);
+    this.dropX = GAME_WIDTH / 2;
+    this.canDrop = true;
+    this.dropCooldownTimer = 0;
+    this.isGameOver = false;
+    this.hasStarted = false;
+    this.deadlineTimer = 0;
+  }
+
+  private callGameStart() {
+    const callbacks = this.registry.get('callbacks') as TSuikaCallbacks | undefined;
+    if (callbacks?.onGameStart) {
+      callbacks.onGameStart().catch((err) => {
+        console.error('Failed to create game session:', err);
+      });
+    }
+  }
+
+  // --- Container (walls & floor) ---
+
+  private createContainer() {
+    const wallColor = 0x8b7355;
+    const floorColor = 0x6b5b45;
+
+    // Left wall
+    const leftWallX = CONTAINER_LEFT - WALL_THICKNESS / 2;
+    const wallHeight = CONTAINER_BOTTOM - CONTAINER_TOP;
+    const wallCenterY = CONTAINER_TOP + wallHeight / 2;
+
+    this.matter.add.rectangle(leftWallX, wallCenterY, WALL_THICKNESS, wallHeight, {
+      isStatic: true,
+      label: 'leftWall',
+    });
+    this.add
+      .rectangle(leftWallX, wallCenterY, WALL_THICKNESS, wallHeight, wallColor)
+      .setDepth(1);
+
+    // Right wall
+    const rightWallX = CONTAINER_RIGHT + WALL_THICKNESS / 2;
+    this.matter.add.rectangle(rightWallX, wallCenterY, WALL_THICKNESS, wallHeight, {
+      isStatic: true,
+      label: 'rightWall',
+    });
+    this.add
+      .rectangle(rightWallX, wallCenterY, WALL_THICKNESS, wallHeight, wallColor)
+      .setDepth(1);
+
+    // Floor
+    const floorY = CONTAINER_BOTTOM + WALL_THICKNESS / 2;
+    const floorWidth = CONTAINER_RIGHT - CONTAINER_LEFT + WALL_THICKNESS * 2;
+    this.matter.add.rectangle(GAME_WIDTH / 2, floorY, floorWidth, WALL_THICKNESS, {
+      isStatic: true,
+      label: 'floor',
+    });
+    this.add
+      .rectangle(GAME_WIDTH / 2, floorY, floorWidth, WALL_THICKNESS, floorColor)
+      .setDepth(1);
+  }
+
+  // --- Deadline ---
+
+  private createDeadline() {
+    this.deadlineLine = this.add.graphics();
+    this.deadlineLine.setDepth(2);
+    this.drawDeadline(0xcc3333, 0.4);
+  }
+
+  private drawDeadline(color: number, alpha: number) {
+    this.deadlineLine.clear();
+    this.deadlineLine.lineStyle(2, color, alpha);
+
+    const dashLength = 10;
+    const gapLength = 8;
+    let x = CONTAINER_LEFT;
+    while (x < CONTAINER_RIGHT) {
+      const endX = Math.min(x + dashLength, CONTAINER_RIGHT);
+      this.deadlineLine.lineBetween(x, CONTAINER_TOP, endX, CONTAINER_TOP);
+      x += dashLength + gapLength;
+    }
+  }
+
+  // --- Preview (drop indicator) ---
+
+  private createPreview() {
+    // Guide line (vertical dashed effect via a thin line)
+    this.guideLine = this.add
+      .line(0, 0, 0, 0, 0, 0, 0xffffff, 0.15)
+      .setOrigin(0, 0)
+      .setDepth(0);
+
+    // Preview circle
+    const fruit = FRUIT_CONFIG[this.currentLevel];
+    this.previewCircle = this.add
+      .circle(this.dropX, DROP_Y, fruit.radius, fruit.color, 0.4)
+      .setDepth(3);
+
+    // Preview emoji
+    this.previewEmoji = this.add
+      .text(this.dropX, DROP_Y, fruit.emoji, {
+        fontSize: `${Math.max(fruit.radius * 0.8, 12)}px`,
+      })
+      .setOrigin(0.5)
+      .setAlpha(0.6)
+      .setDepth(3);
+  }
+
+  private updatePreview() {
+    const fruit = FRUIT_CONFIG[this.currentLevel];
+    this.previewCircle.setPosition(this.dropX, DROP_Y);
+    this.previewCircle.setRadius(fruit.radius);
+    this.previewCircle.setFillStyle(fruit.color, 0.4);
+
+    this.previewEmoji.setPosition(this.dropX, DROP_Y);
+    this.previewEmoji.setText(fruit.emoji);
+    this.previewEmoji.setFontSize(Math.max(fruit.radius * 0.8, 12));
+
+    // Guide line from preview down to container
+    this.guideLine.setTo(this.dropX, DROP_Y + fruit.radius, this.dropX, CONTAINER_TOP);
+  }
+
+  // --- Input ---
+
+  private setupInput() {
+    // Keyboard
+    if (this.input.keyboard) {
+      this.keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+      this.keyRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+      this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    } else {
+      this.keyLeft = null;
+      this.keyRight = null;
+      this.keySpace = null;
+    }
+
+    // Pointer (mouse & touch)
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (this.isGameOver) return;
+      this.dropX = Phaser.Math.Clamp(pointer.x, DROP_MIN_X, DROP_MAX_X);
+    });
+
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (this.isGameOver) return;
+      this.dropX = Phaser.Math.Clamp(pointer.x, DROP_MIN_X, DROP_MAX_X);
+      this.dropFruit();
+    });
+  }
+
+  // --- Fruit spawning ---
+
+  private spawnFruit(x: number, y: number, level: number, isDropped: boolean = false): FruitEntry | null {
+    if (level >= FRUIT_CONFIG.length) return null;
+
+    const fruit = FRUIT_CONFIG[level];
+    const textureKey = fruit.texture || `fruit_${level}`;
+
+    // Create the image
+    const image = this.add.image(x, y, textureKey);
+    image.setDisplaySize(fruit.radius * 2, fruit.radius * 2);
+    image.setDepth(2);
+
+    // Create Matter.js body
+    const body = this.matter.add.circle(x, y, fruit.radius, {
+      restitution: PHYSICS_CONFIG.restitution,
+      friction: PHYSICS_CONFIG.friction,
+      frictionStatic: PHYSICS_CONFIG.frictionStatic,
+      density: PHYSICS_CONFIG.density,
+      label: `fruit_${level}`,
+      plugin: { isFruit: true, level },
+    });
+
+    // Emoji text overlay
+    const text = this.add
+      .text(x, y, fruit.emoji, {
+        fontSize: `${Math.max(fruit.radius * 0.8, 12)}px`,
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
+
+    const entry: FruitEntry = { body, image, text, level };
+    this.fruitMap.set(body.id, entry);
+
+    return entry;
+  }
+
+  private dropFruit() {
+    if (!this.canDrop || this.isGameOver) return;
+
+    this.hasStarted = true;
+    this.canDrop = false;
+    this.dropCooldownTimer = DROP_COOLDOWN_MS;
+
+    this.spawnFruit(this.dropX, DROP_Y, this.currentLevel, true);
+
+    // Score event for UIScene
+    this.events.emit('updateScore', this.score);
+
+    this.prepareNextFruit();
+  }
+
+  private prepareNextFruit() {
+    this.currentLevel = this.nextLevel;
+    this.nextLevel = Phaser.Math.Between(0, MAX_DROP_LEVEL);
+    this.events.emit('updateNext', this.nextLevel);
+    this.updatePreview();
+  }
+
+  // --- Collision / Merging ---
+
+  private setupCollisions() {
+    this.matter.world.on(
+      'collisionstart',
+      (event: Phaser.Physics.Matter.Events.CollisionStartEvent) => {
+        for (const pair of event.pairs) {
+          this.handleCollision(pair.bodyA, pair.bodyB);
+        }
+      }
+    );
+  }
+
+  private handleCollision(bodyA: MatterJS.BodyType, bodyB: MatterJS.BodyType) {
+    const fruitA = this.fruitMap.get(bodyA.id);
+    const fruitB = this.fruitMap.get(bodyB.id);
+
+    if (!fruitA || !fruitB) return;
+    if (fruitA.level !== fruitB.level) return;
+
+    // Prevent double-merging
+    if (this.mergingBodies.has(bodyA.id) || this.mergingBodies.has(bodyB.id)) return;
+    this.mergingBodies.add(bodyA.id);
+    this.mergingBodies.add(bodyB.id);
+
+    const level = fruitA.level;
+    const midX = (bodyA.position.x + bodyB.position.x) / 2;
+    const midY = (bodyA.position.y + bodyB.position.y) / 2;
+
+    // Remove both fruits
+    this.removeFruit(bodyA.id);
+    this.removeFruit(bodyB.id);
+
+    // Add score
+    const nextLevel = level + 1;
+    if (nextLevel < FRUIT_CONFIG.length) {
+      this.score += FRUIT_CONFIG[nextLevel].score;
+    } else {
+      // Max level merge (watermelon + watermelon): extra score, no new fruit
+      this.score += FRUIT_CONFIG[level].score * 2;
+    }
+    this.events.emit('updateScore', this.score);
+
+    // Spawn next level fruit (unless max)
+    if (nextLevel < FRUIT_CONFIG.length) {
+      // Use a short delay to avoid physics engine issues
+      this.time.delayedCall(10, () => {
+        this.spawnFruit(midX, midY, nextLevel);
+      });
+    }
+  }
+
+  private removeFruit(bodyId: number) {
+    const entry = this.fruitMap.get(bodyId);
+    if (!entry) return;
+
+    this.matter.world.remove(entry.body);
+    entry.image.destroy();
+    entry.text.destroy();
+    this.fruitMap.delete(bodyId);
+    this.mergingBodies.delete(bodyId);
+  }
+
+  // --- Deadline check ---
+
+  private checkDeadline(delta: number) {
+    if (!this.hasStarted || this.isGameOver) return;
+
+    let hasViolation = false;
+
+    for (const [, entry] of this.fruitMap) {
+      const body = entry.body;
+      const speed = Math.sqrt(body.velocity.x ** 2 + body.velocity.y ** 2);
+
+      // Only check settled fruits (low speed)
+      if (speed > 0.5) continue;
+
+      // Check if any part of the fruit is above the deadline
+      const fruitTop = body.position.y - FRUIT_CONFIG[entry.level].radius;
+      if (fruitTop < CONTAINER_TOP) {
+        hasViolation = true;
+        break;
+      }
+    }
+
+    if (hasViolation) {
+      this.deadlineTimer += delta;
+      // Visual warning: make deadline line more visible
+      const warningProgress = Math.min(this.deadlineTimer / DEADLINE_GRACE_MS, 1);
+      this.drawDeadline(0xff0000, 0.4 + warningProgress * 0.6);
+
+      if (this.deadlineTimer >= DEADLINE_GRACE_MS) {
+        this.gameOver();
+      }
+    } else {
+      if (this.deadlineTimer > 0) {
+        this.deadlineTimer = 0;
+        this.drawDeadline(0xcc3333, 0.4);
+      }
+    }
+  }
+
+  // --- Game Over ---
+
+  private gameOver() {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
+
+    // Hide preview
+    this.previewCircle.setVisible(false);
+    this.previewEmoji.setVisible(false);
+    this.guideLine.setVisible(false);
+
+    // Stop UIScene and start GameOverScene
+    this.scene.stop('UIScene');
+    this.scene.launch('GameOverScene', { score: this.score });
+  }
+
+  // --- Update loop ---
+
+  update(_time: number, delta: number) {
+    if (this.isGameOver) return;
+
+    // Drop cooldown
+    if (!this.canDrop) {
+      this.dropCooldownTimer -= delta;
+      if (this.dropCooldownTimer <= 0) {
+        this.canDrop = true;
+        this.dropCooldownTimer = 0;
+      }
+    }
+
+    // Keyboard input for dropper movement
+    const moveSpeed = 5;
+    if (this.keyLeft?.isDown) {
+      this.dropX = Math.max(this.dropX - moveSpeed, DROP_MIN_X);
+    }
+    if (this.keyRight?.isDown) {
+      this.dropX = Math.min(this.dropX + moveSpeed, DROP_MAX_X);
+    }
+    if (this.keySpace && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+      this.dropFruit();
+    }
+
+    // Update preview position
+    this.updatePreview();
+
+    // Sync fruit visuals with physics bodies
+    for (const [, entry] of this.fruitMap) {
+      const { body, image, text } = entry;
+      image.setPosition(body.position.x, body.position.y);
+      image.setRotation(body.angle);
+      text.setPosition(body.position.x, body.position.y);
+      text.setRotation(body.angle);
+    }
+
+    // Deadline check
+    this.checkDeadline(delta);
+  }
+}
