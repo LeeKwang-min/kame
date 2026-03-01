@@ -101,8 +101,8 @@ export class GameScene extends Phaser.Scene {
   // --- Container (walls & floor) ---
 
   private createContainer() {
-    const wallColor = 0x8b7355;
-    const floorColor = 0x6b5b45;
+    const wallColor = 0xd4a574;
+    const floorColor = 0xc4955a;
 
     // Left wall
     const leftWallX = CONTAINER_LEFT - WALL_THICKNESS / 2;
@@ -144,7 +144,7 @@ export class GameScene extends Phaser.Scene {
   private createDeadline() {
     this.deadlineLine = this.add.graphics();
     this.deadlineLine.setDepth(2);
-    this.drawDeadline(0xcc3333, 0.4);
+    this.drawDeadline(0xe74c3c, 0.35);
   }
 
   private drawDeadline(color: number, alpha: number) {
@@ -166,7 +166,7 @@ export class GameScene extends Phaser.Scene {
   private createPreview() {
     // Guide line (vertical dashed effect via a thin line)
     this.guideLine = this.add
-      .line(0, 0, 0, 0, 0, 0, 0xffffff, 0.15)
+      .line(0, 0, 0, 0, 0, 0, 0xc4955a, 0.3)
       .setOrigin(0, 0)
       .setDepth(0);
 
@@ -383,7 +383,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       if (this.deadlineTimer > 0) {
         this.deadlineTimer = 0;
-        this.drawDeadline(0xcc3333, 0.4);
+        this.drawDeadline(0xe74c3c, 0.35);
       }
     }
   }

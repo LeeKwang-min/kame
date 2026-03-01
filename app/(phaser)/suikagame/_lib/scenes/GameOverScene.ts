@@ -22,14 +22,14 @@ export class GameOverScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
 
-    // Semi-transparent overlay
-    this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7).setDepth(20);
+    // Semi-transparent warm overlay
+    this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x5D4037, 0.75).setDepth(20);
 
     // "GAME OVER" title
     this.add
       .text(cx, cy - 100, 'GAME OVER', {
         fontSize: '40px',
-        color: '#ffffff',
+        color: '#FFF8E7',
         fontFamily: 'monospace',
         fontStyle: 'bold',
       })
@@ -40,7 +40,7 @@ export class GameOverScene extends Phaser.Scene {
     this.add
       .text(cx, cy - 40, `Score: ${this.finalScore}`, {
         fontSize: '28px',
-        color: '#f1c40f',
+        color: '#FFD54F',
         fontFamily: 'monospace',
       })
       .setOrigin(0.5)
@@ -51,7 +51,7 @@ export class GameOverScene extends Phaser.Scene {
       const saveBtn = this.add
         .text(cx, cy + 30, '[ SAVE ]', {
           fontSize: '22px',
-          color: '#2ecc71',
+          color: '#81C784',
           fontFamily: 'monospace',
         })
         .setOrigin(0.5)
@@ -78,7 +78,7 @@ export class GameOverScene extends Phaser.Scene {
       const skipBtn = this.add
         .text(cx, cy + 70, '[ SKIP ]', {
           fontSize: '18px',
-          color: '#aaaaaa',
+          color: '#BCAAA4',
           fontFamily: 'monospace',
         })
         .setOrigin(0.5)
@@ -94,7 +94,7 @@ export class GameOverScene extends Phaser.Scene {
     this.add
       .text(cx, cy + 130, 'Press R to restart', {
         fontSize: '16px',
-        color: '#888888',
+        color: '#D7CCC8',
         fontFamily: 'monospace',
       })
       .setOrigin(0.5)
@@ -103,7 +103,7 @@ export class GameOverScene extends Phaser.Scene {
     const restartLabel = this.add
       .text(cx, cy + 160, 'or tap here', {
         fontSize: '14px',
-        color: '#666666',
+        color: '#BCAAA4',
         fontFamily: 'monospace',
       })
       .setOrigin(0.5)

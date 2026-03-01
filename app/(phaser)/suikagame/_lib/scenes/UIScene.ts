@@ -15,7 +15,7 @@ export class UIScene extends Phaser.Scene {
     this.scoreText = this.add
       .text(GAME_WIDTH / 2, 20, 'Score: 0', {
         fontSize: '24px',
-        color: '#ffffff',
+        color: '#5D4037',
         fontFamily: 'monospace',
         fontStyle: 'bold',
       })
@@ -26,7 +26,7 @@ export class UIScene extends Phaser.Scene {
     this.add
       .text(GAME_WIDTH - 60, 15, 'NEXT', {
         fontSize: '14px',
-        color: '#aaaaaa',
+        color: '#8D6E63',
         fontFamily: 'monospace',
       })
       .setOrigin(0.5, 0)

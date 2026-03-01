@@ -27,6 +27,7 @@ function SuikaGame() {
       parent: containerRef.current,
       width: GAME_WIDTH,
       height: GAME_HEIGHT,
+      backgroundColor: '#FFF8E7',
       scene: [BootScene, GameScene, UIScene, GameOverScene],
       physics: {
         default: 'matter',
@@ -80,7 +81,7 @@ function SuikaGame() {
     <div className="w-full h-full flex justify-center">
       <div
         ref={containerRef}
-        className="w-full max-w-[480px] aspect-[480/720] border border-white/20 rounded-2xl shadow-lg overflow-hidden"
+        className="w-full max-w-[480px] aspect-[480/720] border-2 border-amber-300/60 rounded-2xl shadow-lg overflow-hidden"
       />
     </div>
   );

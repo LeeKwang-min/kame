@@ -23,20 +23,20 @@ export class BootScene extends Phaser.Scene {
 
     const loadingText = this.add.text(centerX, centerY - 50, 'Loading...', {
       fontSize: '24px',
-      color: '#ffffff',
+      color: '#8D6E63',
       fontFamily: 'monospace',
     });
     loadingText.setOrigin(0.5);
 
     const progressBarBg = this.add.graphics();
-    progressBarBg.fillStyle(0x222222, 1);
+    progressBarBg.fillStyle(0xe8d5b7, 1);
     progressBarBg.fillRect(centerX - 150, centerY, 300, 30);
 
     const progressBar = this.add.graphics();
 
     this.load.on('progress', (value: number) => {
       progressBar.clear();
-      progressBar.fillStyle(0x2ecc71, 1);
+      progressBar.fillStyle(0xf39c12, 1);
       progressBar.fillRect(centerX - 145, centerY + 5, 290 * value, 20);
     });
 
@@ -70,7 +70,7 @@ export class BootScene extends Phaser.Scene {
       );
 
       // Border
-      graphics.lineStyle(2, 0xffffff, 0.3);
+      graphics.lineStyle(2, 0x000000, 0.1);
       graphics.strokeCircle(center, center, fruit.radius - 1);
 
       graphics.generateTexture(key, size, size);
