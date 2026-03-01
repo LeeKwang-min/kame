@@ -15,7 +15,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { GAME_META } from './_lib/config';
 
 const SuikaGame = dynamic(() => import('./_components/suikagame'), {
   ssr: false,
@@ -29,7 +28,7 @@ const controls = [
 
 function SuikaGamePage() {
   const { data: session, status } = useSession();
-  const { data: scores = [], isLoading } = useGetScores(GAME_META.id);
+  const { data: scores = [], isLoading } = useGetScores('suikagame');
 
   return (
     <section className="w-full h-full flex flex-col xl:flex-row gap-4 xl:gap-6 items-center xl:items-start justify-center">

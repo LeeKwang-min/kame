@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { useSession } from 'next-auth/react';
 import { useCreateScore, useGameSession } from '@/service/scores';
-import { GAME_META, GAME_WIDTH, GAME_HEIGHT, PHYSICS_CONFIG } from '../_lib/config';
+import { GAME_WIDTH, GAME_HEIGHT, PHYSICS_CONFIG } from '../_lib/config';
 import { BootScene } from '../_lib/scenes/BootScene';
 import { GameScene } from '../_lib/scenes/GameScene';
 import { UIScene } from '../_lib/scenes/UIScene';
@@ -15,8 +15,8 @@ function SuikaGame() {
   const gameRef = useRef<Phaser.Game | null>(null);
   const sessionTokenRef = useRef<string | null>(null);
   const { data: session } = useSession();
-  const { mutateAsync: saveScore } = useCreateScore(GAME_META.id);
-  const { mutateAsync: createSession } = useGameSession(GAME_META.id);
+  const { mutateAsync: saveScore } = useCreateScore('suikagame');
+  const { mutateAsync: createSession } = useGameSession('suikagame');
   const isLoggedIn = !!session;
 
   useEffect(() => {
@@ -58,7 +58,7 @@ function SuikaGame() {
       onScoreSave: async (score: number) => {
         if (!sessionTokenRef.current) return { saved: false };
         const result = await saveScore({
-          gameType: GAME_META.id,
+          gameType: 'suikagame',
           score: Math.floor(score),
           sessionToken: sessionTokenRef.current,
         });
