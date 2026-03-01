@@ -1,4 +1,5 @@
 import {
+  CELL_SIZE,
   PROJECTILE_SPEED,
   GROUND_ZONE_BASE_DURATION,
   GROUND_ZONE_DURATION_PER_TIER,
@@ -25,8 +26,8 @@ export function findTarget(
     if (enemy.hp <= 0) continue;
     const dx = enemy.x - unit.x;
     const dy = enemy.y - unit.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist > unit.def.range * unit.buffMultiplier) continue;
+    const dist = Math.max(Math.abs(dx), Math.abs(dy));
+    if (dist > unit.def.range * CELL_SIZE * unit.buffMultiplier) continue;
 
     // Furthest on path = higher pathIndex, or same index but higher progress
     const progress = enemy.pathIndex * 10000 + enemy.pathProgress;
@@ -80,7 +81,7 @@ export function createGroundZone(
     id: nextGroundZoneId++,
     x: target.x,
     y: target.y,
-    radius: unit.def.slowRadius ?? 80,
+    radius: (unit.def.slowRadius ?? 2) * CELL_SIZE,
     damage: unit.def.damage * unit.buffMultiplier,
     slowAmount: unit.def.slowAmount ?? 0.3,
     duration,
@@ -227,14 +228,14 @@ export function applyBuffAuras(units: TPlacedUnit[]): void {
   for (const buffer of units) {
     if (buffer.def.archetype !== 'buffer' || !buffer.def.buffRadius) continue;
 
-    const radius = buffer.def.buffRadius;
+    const halfSize = buffer.def.buffRadius! * CELL_SIZE;
     const mult = buffer.def.buffMultiplier ?? 1;
 
     for (const unit of units) {
       if (unit.id === buffer.id) continue;
       const dx = unit.x - buffer.x;
       const dy = unit.y - buffer.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= radius) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) <= halfSize) {
         // Take the best buff
         unit.buffMultiplier = Math.max(unit.buffMultiplier, mult);
       }
@@ -248,14 +249,14 @@ export function applySlowAuras(units: TPlacedUnit[], enemies: TEnemy[]): void {
   for (const unit of units) {
     if (unit.def.archetype !== 'slow' || !unit.def.slowRadius) continue;
 
-    const radius = unit.def.slowRadius * unit.buffMultiplier;
+    const halfSize = unit.def.slowRadius! * CELL_SIZE * unit.buffMultiplier;
     const amount = (unit.def.slowAmount ?? 0) * 0.5; // passive aura is weaker (ground zones are primary)
 
     for (const enemy of enemies) {
       if (enemy.hp <= 0) continue;
       const dx = enemy.x - unit.x;
       const dy = enemy.y - unit.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= radius) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) <= halfSize) {
         enemy.slowAmount = Math.max(enemy.slowAmount, amount);
         enemy.slowTimer = Math.max(enemy.slowTimer, 0.2);
       }
@@ -269,14 +270,14 @@ export function applyDebuffAuras(units: TPlacedUnit[], enemies: TEnemy[]): void 
   for (const unit of units) {
     if (unit.def.archetype !== 'debuffer' || !unit.def.debuffRadius) continue;
 
-    const radius = unit.def.debuffRadius * unit.buffMultiplier;
+    const halfSize = unit.def.debuffRadius! * CELL_SIZE * unit.buffMultiplier;
     const amount = unit.def.debuffAmount ?? 0;
 
     for (const enemy of enemies) {
       if (enemy.hp <= 0) continue;
       const dx = enemy.x - unit.x;
       const dy = enemy.y - unit.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= radius) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) <= halfSize) {
         enemy.debuffAmount = Math.max(enemy.debuffAmount, amount);
         enemy.debuffTimer = Math.max(enemy.debuffTimer, 0.2);
       }

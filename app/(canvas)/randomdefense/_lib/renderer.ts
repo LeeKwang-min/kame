@@ -288,25 +288,22 @@ export function drawUnit(
 
   // Buffer aura range
   if (def.archetype === 'buffer' && def.buffRadius) {
-    ctx.beginPath();
-    ctx.arc(x, y, def.buffRadius, 0, Math.PI * 2);
+    const halfSize = def.buffRadius * CELL_SIZE;
     ctx.fillStyle = 'rgba(255, 215, 0, 0.05)';
-    ctx.fill();
+    ctx.fillRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
     ctx.strokeStyle = 'rgba(255, 215, 0, 0.15)';
     ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.strokeRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
   }
 
   // Debuffer aura range
   if (def.archetype === 'debuffer' && def.debuffRadius) {
-    const auraRadius = def.debuffRadius * unit.buffMultiplier;
-    ctx.beginPath();
-    ctx.arc(x, y, auraRadius, 0, Math.PI * 2);
+    const halfSize = def.debuffRadius * unit.buffMultiplier * CELL_SIZE;
     ctx.fillStyle = 'rgba(168, 85, 247, 0.05)';
-    ctx.fill();
+    ctx.fillRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
     ctx.strokeStyle = 'rgba(168, 85, 247, 0.15)';
     ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.strokeRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
   }
 
   // Buff glow (base ring + pulse)
@@ -407,17 +404,16 @@ export function drawUnit(
     ctx.lineWidth = 2;
     ctx.strokeRect(x - halfCell + 2, y - halfCell + 2, CELL_SIZE - 4, CELL_SIZE - 4);
 
-    // Range circle
-    ctx.beginPath();
-    ctx.arc(x, y, def.range, 0, Math.PI * 2);
+    // Range rectangle
+    const rangeHalf = def.range * CELL_SIZE;
     ctx.strokeStyle = 'rgba(255,255,255,0.25)';
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 5]);
-    ctx.stroke();
+    ctx.strokeRect(x - rangeHalf, y - rangeHalf, rangeHalf * 2, rangeHalf * 2);
     ctx.setLineDash([]);
 
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    ctx.fill();
+    ctx.fillRect(x - rangeHalf, y - rangeHalf, rangeHalf * 2, rangeHalf * 2);
   }
 
   ctx.restore();
@@ -538,30 +534,21 @@ export function drawGroundZone(ctx: CanvasRenderingContext2D, zone: TGroundZone,
 export function drawSlowField(ctx: CanvasRenderingContext2D, unit: TPlacedUnit, time: number): void {
   const { x, y, def } = unit;
   if (def.archetype !== 'slow' || !def.slowRadius) return;
-  const auraRadius = def.slowRadius * unit.buffMultiplier;
+  const halfSize = def.slowRadius * unit.buffMultiplier * CELL_SIZE;
 
   ctx.save();
 
-  const grad = ctx.createRadialGradient(x, y, 0, x, y, auraRadius);
-  grad.addColorStop(0, 'rgba(96, 165, 250, 0.08)');
-  grad.addColorStop(0.5, 'rgba(147, 197, 253, 0.04)');
-  grad.addColorStop(1, 'rgba(96, 165, 250, 0.0)');
-  ctx.beginPath();
-  ctx.arc(x, y, auraRadius, 0, Math.PI * 2);
-  ctx.fillStyle = grad;
-  ctx.fill();
+  // Subtle blue fill
+  ctx.fillStyle = 'rgba(96, 165, 250, 0.06)';
+  ctx.fillRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
 
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(time * 0.0004);
-  ctx.beginPath();
-  ctx.arc(0, 0, auraRadius - 2, 0, Math.PI * 2);
+  // Animated dashed border (marching ants effect)
   ctx.strokeStyle = 'rgba(147, 197, 253, 0.2)';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([3, 7]);
-  ctx.stroke();
+  ctx.lineDashOffset = -time * 0.02;
+  ctx.strokeRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
   ctx.setLineDash([]);
-  ctx.restore();
 
   ctx.restore();
 }
@@ -895,7 +882,7 @@ export function drawPanel(
     py += 20;
     ctx.fillText(`FREQ: ${def.attackSpeed.toFixed(1)}Hz`, px, py);
     py += 20;
-    ctx.fillText(`RANGE: ${def.range}nm`, px, py);
+    ctx.fillText(`RANGE: ${def.range * CELL_SIZE}nm`, px, py);
     py += 20;
 
     if (selectedUnit.buffMultiplier > 1) {
@@ -915,7 +902,7 @@ export function drawPanel(
       py += 20;
     }
     if (def.slowRadius) {
-      ctx.fillText(`STASIS RAD: ${def.slowRadius}nm`, px, py);
+      ctx.fillText(`STASIS RAD: ${def.slowRadius * CELL_SIZE}nm`, px, py);
       py += 20;
     }
     if (def.debuffAmount) {

@@ -31,7 +31,6 @@ function makeUnitDefs(): TUnitDef[] {
     for (const arch of archetypes) {
       const baseDmg = 20 * Math.pow(2.5, tierIdx);
       const baseAtkSpd = 1.0;
-      const baseRange = 120;
 
       const def: TUnitDef = {
         id: `${arch}_t${tier}`,
@@ -40,7 +39,7 @@ function makeUnitDefs(): TUnitDef[] {
         archetype: arch,
         damage: Math.round(baseDmg * getArchDamageMult(arch)),
         attackSpeed: baseAtkSpd * getArchSpeedMult(arch),
-        range: baseRange + getArchRangeBonus(arch) + tier * 5,
+        range: getArchRange(arch, tier),
         color: TIER_COLORS[tierIdx],
         symbol: ARCHETYPE_SYMBOLS[arch],
       };
@@ -52,17 +51,17 @@ function makeUnitDefs(): TUnitDef[] {
       }
       if (arch === 'slow') {
         def.slowAmount = 0.25 + tier * 0.05;
-        def.slowRadius = 100 + tier * 15;
+        def.slowRadius = getAuraRange(tier);
         def.damage = Math.round(baseDmg * 0.08);
       }
       if (arch === 'buffer') {
-        def.buffRadius = 100 + tier * 15;
+        def.buffRadius = getAuraRange(tier);
         def.buffMultiplier = 1.15 + tier * 0.10;
         def.damage = Math.round(baseDmg * 0.5);
       }
       if (arch === 'debuffer') {
         def.debuffAmount = 0.1 + tier * 0.05;
-        def.debuffRadius = 100 + tier * 15;
+        def.debuffRadius = getAuraRange(tier);
         def.damage = Math.round(baseDmg * 0.8);
       }
 
@@ -93,14 +92,22 @@ function getArchSpeedMult(arch: TArchetype): number {
   }
 }
 
-function getArchRangeBonus(arch: TArchetype): number {
-  switch (arch) {
-    case 'shooter': return 30;
-    case 'splash': return 0;
-    case 'slow': return 20;
-    case 'buffer': return 0;
-    case 'debuffer': return 10;
-  }
+function getArchRange(arch: TArchetype, tier: number): number {
+  // Cell-based attack ranges (Chebyshev distance)
+  const ranges: Record<TArchetype, number[]> = {
+    shooter:  [3, 3, 3, 3, 4, 4], // longest range
+    splash:   [2, 2, 3, 3, 3, 3],
+    slow:     [3, 3, 3, 3, 3, 3],
+    buffer:   [2, 2, 3, 3, 3, 3],
+    debuffer: [3, 3, 3, 3, 3, 3],
+  };
+  return ranges[arch][tier - 1];
+}
+
+function getAuraRange(tier: number): number {
+  // Cell-based aura ranges
+  const ranges = [2, 2, 3, 3, 4, 4];
+  return ranges[tier - 1];
 }
 
 export const ALL_UNITS: TUnitDef[] = makeUnitDefs();

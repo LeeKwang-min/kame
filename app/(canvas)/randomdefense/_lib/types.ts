@@ -9,17 +9,17 @@ export type TUnitDef = {
   archetype: TArchetype;
   damage: number;
   attackSpeed: number; // attacks per second
-  range: number; // pixels
+  range: number; // cells (grid units) — Chebyshev distance
   color: string;
   symbol: string;
   // Archetype-specific
-  splashRadius?: number;
+  splashRadius?: number; // pixels (stays circular)
   slowAmount?: number; // 0-1, multiplier
-  slowRadius?: number; // aura radius (px)
-  buffRadius?: number;
+  slowRadius?: number; // cells (grid units) — aura range
+  buffRadius?: number; // cells (grid units) — aura range
   buffMultiplier?: number; // damage multiplier for nearby allies
   debuffAmount?: number; // 0-1, damage amplification
-  debuffRadius?: number; // aura radius (px)
+  debuffRadius?: number; // cells (grid units) — aura range
 };
 
 // ─── Placed Unit (instance on the grid) ───
