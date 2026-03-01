@@ -525,12 +525,24 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
 export const BANNER_ITEMS: TBannerItem[] = [
   {
     type: 'card',
-    icon: '🎮',
-    bgColor: 'from-cyan-900/50 to-purple-900/50',
+    icon: '🍉',
+    bgColor: 'from-green-900/50 to-yellow-900/50',
     title: { kor: '새로운 게임 출시!', eng: 'New Game Released!' },
     description: {
-      kor: '솔리테어가 추가되었습니다',
-      eng: 'Solitaire has been added',
+      kor: '같은 과일을 합쳐 수박을 만들어보세요!',
+      eng: 'Merge same fruits to make a watermelon!',
+    },
+    href: '/suikagame',
+    ctaText: { kor: '지금 플레이', eng: 'Play Now' },
+  },
+  {
+    type: 'card',
+    icon: '🎮',
+    bgColor: 'from-cyan-900/50 to-purple-900/50',
+    title: { kor: '솔리테어', eng: 'Solitaire' },
+    description: {
+      kor: '클래식 카드 게임을 즐겨보세요',
+      eng: 'Enjoy the classic card game',
     },
     href: '/solitaire',
     ctaText: { kor: '지금 플레이', eng: 'Play Now' },
