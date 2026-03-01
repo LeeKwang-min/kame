@@ -46,13 +46,14 @@ export class GameOverScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(21);
 
-    // Save / Skip buttons (only if logged in)
     if (callbacks?.isLoggedIn) {
+      // 로그인 유저: SAVE / SKIP 버튼
       const saveBtn = this.add
-        .text(cx, cy + 30, '[ SAVE ]', {
+        .text(cx, cy + 20, '[ SAVE SCORE ]', {
           fontSize: '22px',
           color: '#81C784',
           fontFamily: 'monospace',
+          fontStyle: 'bold',
         })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
@@ -62,32 +63,39 @@ export class GameOverScene extends Phaser.Scene {
         if (this.isSaving || this.hasSaved) return;
         this.isSaving = true;
         saveBtn.setText('Saving...');
-        saveBtn.setColor('#888888');
+        saveBtn.setColor('#D7CCC8');
         try {
           await callbacks.onScoreSave(this.finalScore);
           this.hasSaved = true;
           saveBtn.setText('Saved!');
-          saveBtn.setColor('#aaaaaa');
+          saveBtn.setColor('#A5D6A7');
         } catch {
           saveBtn.setText('Failed - Tap to retry');
-          saveBtn.setColor('#e74c3c');
+          saveBtn.setColor('#EF9A9A');
           this.isSaving = false;
         }
       });
 
-      const skipBtn = this.add
-        .text(cx, cy + 70, '[ SKIP ]', {
+      this.add
+        .text(cx, cy + 65, '[ SKIP ]', {
           fontSize: '18px',
           color: '#BCAAA4',
           fontFamily: 'monospace',
         })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
+        .setDepth(21)
+        .on('pointerdown', () => this.restartGame());
+    } else {
+      // 비로그인 유저: 로그인 안내
+      this.add
+        .text(cx, cy + 20, 'Log in to save your score!', {
+          fontSize: '16px',
+          color: '#FFCC80',
+          fontFamily: 'monospace',
+        })
+        .setOrigin(0.5)
         .setDepth(21);
-
-      skipBtn.on('pointerdown', () => {
-        this.restartGame();
-      });
     }
 
     // Restart instructions

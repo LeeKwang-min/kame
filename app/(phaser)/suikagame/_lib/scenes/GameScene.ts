@@ -11,7 +11,6 @@ import {
   DROP_Y,
   DROP_MIN_X,
   DROP_MAX_X,
-  DEADLINE_GRACE_MS,
   DROP_COOLDOWN_MS,
   MAX_DROP_LEVEL,
   PHYSICS_CONFIG,
@@ -34,19 +33,21 @@ export class GameScene extends Phaser.Scene {
   private currentLevel: number = 0;
   private nextLevel: number = 0;
   private dropX: number = GAME_WIDTH / 2;
-  private canDrop: boolean = true;
+  private canDrop: boolean = false;
   private dropCooldownTimer: number = 0;
   private isGameOver: boolean = false;
   private hasStarted: boolean = false;
+  private isWaitingToStart: boolean = true;
 
-  // Deadline tracking
-  private deadlineTimer: number = 0;
+  // Deadline tracking — 드롭 직후 잠시 체크 안 함
+  private dropGraceTimer: number = 0;
 
   // Visual elements
   private previewCircle!: Phaser.GameObjects.Arc;
   private previewEmoji!: Phaser.GameObjects.Text;
   private guideLine!: Phaser.GameObjects.Line;
   private deadlineLine!: Phaser.GameObjects.Graphics;
+  private startOverlay!: Phaser.GameObjects.Container;
 
   // Container walls (stored for category filtering)
   private wallCategory: number = 0;
@@ -71,8 +72,8 @@ export class GameScene extends Phaser.Scene {
     this.createPreview();
     this.setupInput();
     this.setupCollisions();
-    this.callGameStart();
     this.prepareNextFruit();
+    this.showStartScreen();
   }
 
   private resetState() {
@@ -82,11 +83,82 @@ export class GameScene extends Phaser.Scene {
     this.currentLevel = 0;
     this.nextLevel = Phaser.Math.Between(0, MAX_DROP_LEVEL);
     this.dropX = GAME_WIDTH / 2;
-    this.canDrop = true;
+    this.canDrop = false;
     this.dropCooldownTimer = 0;
     this.isGameOver = false;
     this.hasStarted = false;
-    this.deadlineTimer = 0;
+    this.isWaitingToStart = true;
+    this.dropGraceTimer = 0;
+  }
+
+  // --- Start Screen ---
+
+  private showStartScreen() {
+    const cx = GAME_WIDTH / 2;
+    const cy = GAME_HEIGHT / 2 - 40;
+
+    this.startOverlay = this.add.container(0, 0).setDepth(50);
+
+    // 반투명 배경
+    const bg = this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xFFF8E7, 0.85);
+    this.startOverlay.add(bg);
+
+    // 타이틀
+    const title = this.add.text(cx, cy - 80, '🍉 수박 게임', {
+      fontSize: '36px', color: '#5D4037', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5);
+    this.startOverlay.add(title);
+
+    // 규칙 설명
+    const rules = this.add.text(cx, cy, '같은 과일을 합쳐서\n더 큰 과일을 만들어보세요!', {
+      fontSize: '16px', color: '#8D6E63', fontFamily: 'monospace', align: 'center',
+      lineSpacing: 8,
+    }).setOrigin(0.5);
+    this.startOverlay.add(rules);
+
+    // 시작 안내
+    const startText = this.add.text(cx, cy + 80, 'Click / Tap to Start', {
+      fontSize: '20px', color: '#D4A574', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5);
+    this.startOverlay.add(startText);
+
+    // 깜빡이는 효과
+    this.tweens.add({
+      targets: startText,
+      alpha: 0.3,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    // 키보드 조작 안내
+    const controlsText = this.add.text(cx, cy + 130, '← → : 이동  |  Space : 드롭', {
+      fontSize: '13px', color: '#BCAAA4', fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    this.startOverlay.add(controlsText);
+
+    // 미리보기 숨기기
+    this.previewCircle.setVisible(false);
+    this.previewEmoji.setVisible(false);
+    this.guideLine.setVisible(false);
+  }
+
+  private startGame() {
+    if (!this.isWaitingToStart) return;
+    this.isWaitingToStart = false;
+    this.canDrop = true;
+    this.hasStarted = false;
+
+    // 시작 화면 제거
+    this.startOverlay.destroy();
+
+    // 미리보기 표시
+    this.previewCircle.setVisible(true);
+    this.previewEmoji.setVisible(true);
+    this.guideLine.setVisible(true);
+    this.updatePreview();
+
+    this.callGameStart();
   }
 
   private callGameStart() {
@@ -104,27 +176,30 @@ export class GameScene extends Phaser.Scene {
     const wallColor = 0xd4a574;
     const floorColor = 0xc4955a;
 
-    // Left wall
+    // Left wall — 물리 벽은 화면 상단(0)부터 바닥까지, 시각적 벽은 CONTAINER_TOP부터만
     const leftWallX = CONTAINER_LEFT - WALL_THICKNESS / 2;
-    const wallHeight = CONTAINER_BOTTOM - CONTAINER_TOP;
-    const wallCenterY = CONTAINER_TOP + wallHeight / 2;
+    const physicsWallHeight = CONTAINER_BOTTOM;
+    const physicsWallCenterY = physicsWallHeight / 2;
 
-    this.matter.add.rectangle(leftWallX, wallCenterY, WALL_THICKNESS, wallHeight, {
+    this.matter.add.rectangle(leftWallX, physicsWallCenterY, WALL_THICKNESS, physicsWallHeight, {
       isStatic: true,
       label: 'leftWall',
     });
+
+    const visibleWallHeight = CONTAINER_BOTTOM - CONTAINER_TOP;
+    const visibleWallCenterY = CONTAINER_TOP + visibleWallHeight / 2;
     this.add
-      .rectangle(leftWallX, wallCenterY, WALL_THICKNESS, wallHeight, wallColor)
+      .rectangle(leftWallX, visibleWallCenterY, WALL_THICKNESS, visibleWallHeight, wallColor)
       .setDepth(1);
 
-    // Right wall
+    // Right wall — 동일하게 물리 벽은 상단까지 연장
     const rightWallX = CONTAINER_RIGHT + WALL_THICKNESS / 2;
-    this.matter.add.rectangle(rightWallX, wallCenterY, WALL_THICKNESS, wallHeight, {
+    this.matter.add.rectangle(rightWallX, physicsWallCenterY, WALL_THICKNESS, physicsWallHeight, {
       isStatic: true,
       label: 'rightWall',
     });
     this.add
-      .rectangle(rightWallX, wallCenterY, WALL_THICKNESS, wallHeight, wallColor)
+      .rectangle(rightWallX, visibleWallCenterY, WALL_THICKNESS, visibleWallHeight, wallColor)
       .setDepth(1);
 
     // Floor
@@ -216,12 +291,16 @@ export class GameScene extends Phaser.Scene {
 
     // Pointer (mouse & touch)
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (this.isGameOver) return;
+      if (this.isGameOver || this.isWaitingToStart) return;
       this.dropX = Phaser.Math.Clamp(pointer.x, DROP_MIN_X, DROP_MAX_X);
     });
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (this.isGameOver) return;
+      if (this.isWaitingToStart) {
+        this.startGame();
+        return;
+      }
       this.dropX = Phaser.Math.Clamp(pointer.x, DROP_MIN_X, DROP_MAX_X);
       this.dropFruit();
     });
@@ -270,6 +349,7 @@ export class GameScene extends Phaser.Scene {
     this.hasStarted = true;
     this.canDrop = false;
     this.dropCooldownTimer = DROP_COOLDOWN_MS;
+    this.dropGraceTimer = 800; // 드롭 직후 0.8초간 데드라인 체크 유예
 
     this.spawnFruit(this.dropX, DROP_Y, this.currentLevel, true);
 
@@ -354,36 +434,25 @@ export class GameScene extends Phaser.Scene {
   private checkDeadline(delta: number) {
     if (!this.hasStarted || this.isGameOver) return;
 
-    let hasViolation = false;
+    // 드롭 직후 짧은 유예 (과일이 낙하 시작하기 전)
+    if (this.dropGraceTimer > 0) {
+      this.dropGraceTimer -= delta;
+      return;
+    }
 
     for (const [, entry] of this.fruitMap) {
       const body = entry.body;
       const speed = Math.sqrt(body.velocity.x ** 2 + body.velocity.y ** 2);
 
-      // Only check settled fruits (low speed)
-      if (speed > 0.5) continue;
+      // 아직 빠르게 움직이는 과일은 제외 (낙하/합성 반동 중)
+      if (speed > 1) continue;
 
-      // Check if any part of the fruit is above the deadline
+      // 과일 상단이 데드라인을 넘었으면 즉시 게임 오버
       const fruitTop = body.position.y - FRUIT_CONFIG[entry.level].radius;
       if (fruitTop < CONTAINER_TOP) {
-        hasViolation = true;
-        break;
-      }
-    }
-
-    if (hasViolation) {
-      this.deadlineTimer += delta;
-      // Visual warning: make deadline line more visible
-      const warningProgress = Math.min(this.deadlineTimer / DEADLINE_GRACE_MS, 1);
-      this.drawDeadline(0xff0000, 0.4 + warningProgress * 0.6);
-
-      if (this.deadlineTimer >= DEADLINE_GRACE_MS) {
+        this.drawDeadline(0xff0000, 1);
         this.gameOver();
-      }
-    } else {
-      if (this.deadlineTimer > 0) {
-        this.deadlineTimer = 0;
-        this.drawDeadline(0xe74c3c, 0.35);
+        return;
       }
     }
   }
@@ -407,7 +476,7 @@ export class GameScene extends Phaser.Scene {
   // --- Update loop ---
 
   update(_time: number, delta: number) {
-    if (this.isGameOver) return;
+    if (this.isGameOver || this.isWaitingToStart) return;
 
     // Drop cooldown
     if (!this.canDrop) {
