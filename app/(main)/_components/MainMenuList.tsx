@@ -59,7 +59,7 @@ function MainMenuList({ keyword, category, isMobile }: IProps) {
     if (featuredMenus.length === 0) return <MainMenuListEmpty />;
 
     return (
-      <div className="w-full grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {featuredMenus.map((menu) => (
           <GameCard key={menu.name.eng} menu={menu} />
         ))}
@@ -71,7 +71,7 @@ function MainMenuList({ keyword, category, isMobile }: IProps) {
   if (category !== 'ALL') {
     const allMenus: TMenu[] = categories.flatMap((cat) => menus?.[cat] || []);
     return (
-      <div className="w-full grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {allMenus.map((menu) => (
           <GameCard key={menu.name.eng} menu={menu} />
         ))}
@@ -94,7 +94,7 @@ function MainMenuList({ keyword, category, isMobile }: IProps) {
             {CATEGORY_ICON[cat as keyof typeof CATEGORY_ICON]}
             {cat}
           </h3>
-          <div className="w-full grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {menus?.[cat]?.map((menu) => (
               <GameCard key={menu.name.eng} menu={menu} />
             ))}

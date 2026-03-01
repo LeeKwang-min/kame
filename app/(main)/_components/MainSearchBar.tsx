@@ -41,7 +41,7 @@ function MainSearchBar({ search, setSearch, onSearchChange }: IProps) {
         value={debouncedSearch}
         onChange={(e) => setDebouncedSearch(e.target.value)}
         className={cn(
-          'w-full h-10 pl-10 pr-4 rounded-lg',
+          'w-full h-9 sm:h-10 pl-9 sm:pl-10 pr-3 sm:pr-4 rounded-lg text-sm',
           'bg-arcade-surface border-arcade-border',
           'text-arcade-text placeholder:text-arcade-text/40',
           'focus:border-arcade-cyan focus:ring-arcade-cyan/20',

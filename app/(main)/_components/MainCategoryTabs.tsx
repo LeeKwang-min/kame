@@ -74,7 +74,7 @@ function MainCategoryTabs({ category, setCategory }: IProps) {
               data-tab-id={tab.id}
               onClick={() => setCategory(tab.id)}
               className={cn(
-                'flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium',
+                'flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium',
                 'transition-colors duration-200 relative whitespace-nowrap',
                 'rounded-t-lg',
                 isActive

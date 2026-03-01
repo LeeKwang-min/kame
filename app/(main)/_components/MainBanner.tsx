@@ -67,7 +67,7 @@ function MainBanner() {
 
   return (
     <div
-      className="relative w-full select-none group/banner"
+      className="relative w-full select-none group/banner py-2 sm:py-3"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -82,7 +82,7 @@ function MainBanner() {
 
       {/* Dot indicators */}
       {total > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex items-center justify-center gap-2 mt-2 sm:mt-3">
           {BANNER_ITEMS.map((_, i) => (
             <button
               key={i}
@@ -122,7 +122,7 @@ function BannerSlide({
     <div
       className={cn(
         'relative w-full rounded-xl overflow-hidden',
-        'h-[160px] lg:h-[200px]',
+        'h-[160px] sm:h-[170px] lg:h-[200px]',
         'border border-arcade-border/60',
         'hover:border-arcade-cyan/30',
         'transition-[border-color,box-shadow] duration-500',
@@ -166,7 +166,7 @@ function BannerSlide({
       {/* Content with fade transition */}
       <div
         className={cn(
-          'relative z-10 h-full flex items-center px-6 lg:px-10',
+          'relative z-10 h-full flex items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-5 lg:py-6',
           'transition-opacity duration-500',
           isTransitioning ? 'opacity-0' : 'opacity-100',
         )}
@@ -186,10 +186,10 @@ function BannerSlide({
             </span>
           )}
 
-          <h2 className="text-lg lg:text-2xl font-bold text-white tracking-tight">
+          <h2 className="text-base sm:text-lg lg:text-2xl font-bold text-white tracking-tight">
             {title}
           </h2>
-          <p className="text-sm lg:text-base text-white/60 max-w-md leading-relaxed">
+          <p className="text-xs sm:text-sm lg:text-base text-white/60 max-w-md leading-relaxed line-clamp-2">
             {description}
           </p>
 
@@ -198,8 +198,8 @@ function BannerSlide({
             item.ctaText && (
               <span
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-4 py-1.5 mt-1',
-                  'rounded-lg text-sm font-bold',
+                  'inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 mt-1',
+                  'rounded-lg text-xs sm:text-sm font-bold',
                   'bg-arcade-cyan/15 text-arcade-cyan',
                   'border border-arcade-cyan/25',
                   'hover:bg-arcade-cyan/25 hover:border-arcade-cyan/40',

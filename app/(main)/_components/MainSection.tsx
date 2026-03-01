@@ -24,7 +24,7 @@ function MainSection() {
   return (
     <div className="flex gap-6 grow">
       <LoginSidebar className="hidden lg:flex" />
-      <div className="flex flex-col gap-4 grow">
+      <div className="flex flex-col gap-3 sm:gap-4 grow min-w-0">
         <MainBanner />
         <MainSearchBar
           search={search}
