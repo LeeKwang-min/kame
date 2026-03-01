@@ -303,6 +303,15 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
+      kor: '솔리테어',
+      eng: 'Solitaire',
+    },
+    href: '/solitaire',
+    category: 'Puzzle',
+    platform: 'both',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },

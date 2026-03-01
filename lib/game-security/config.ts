@@ -47,6 +47,7 @@ export const GAME_SECURITY_CONFIG: Record<
   blockpuzzle: { maxScore: 100000, minPlayTimeSeconds: 10 },
   queens: { maxScore: 1800, minPlayTimeSeconds: 15 },
   ripple: { maxScore: 1500, minPlayTimeSeconds: 10 },
+  solitaire: { maxScore: 10000, minPlayTimeSeconds: 30 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

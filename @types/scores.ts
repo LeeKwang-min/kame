@@ -45,7 +45,8 @@ export type TGameType =
   | 'downwell'
   | 'blockpuzzle'
   | 'queens'
-  | 'ripple';
+  | 'ripple'
+  | 'solitaire';
 
 export type TScore = {
   id: string;

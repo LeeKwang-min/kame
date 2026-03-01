@@ -46,6 +46,7 @@ import {
   LayoutGrid as BlockGrid,
   Crown,
   Waves,
+  Spade,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -99,6 +100,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/blockpuzzle': BlockGrid,
   '/queens': Crown,
   '/ripple': Waves,
+  '/solitaire': Spade,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
