@@ -15,14 +15,3 @@ export type TPile = {
   index: number;
   cards: TCard[];
 };
-
-export type TAnimation = {
-  card: TCard;
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-  progress: number;
-  duration: number;
-  onComplete?: () => void;
-};

@@ -117,7 +117,6 @@ export const setupSolitaire = (
   let elapsedSec = 0;
   let score = 0;
   let drawMode: TDrawMode = DEFAULT_DRAW_MODE;
-  let selectedCard: { pile: TPile; cardIndex: number } | null = null;
   let hasWon = false;
 
   // --- Game Over HUD ---
@@ -187,7 +186,6 @@ export const setupSolitaire = (
 
     waste.cards = [];
     foundations.forEach(f => (f.cards = []));
-    selectedCard = null;
     hasWon = false;
   };
 
@@ -416,7 +414,6 @@ export const setupSolitaire = (
     lastTime = 0;
     elapsedSec = 0;
     score = 0;
-    selectedCard = null;
     hasWon = false;
     autoCompleteActive = false;
     autoCompleteTimer = 0;
@@ -956,12 +953,11 @@ export const setupSolitaire = (
     if (!hasWon) return;
 
     ctx.save();
-    // The gameOverHud will handle the overlay, but we add a "YOU WIN" message
     ctx.fillStyle = '#4ade80';
-    ctx.font = 'bold 20px sans-serif';
+    ctx.font = 'bold 24px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // This will be under the game over HUD overlay
+    ctx.fillText('YOU WIN!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 120);
     ctx.restore();
   };
 
