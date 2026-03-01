@@ -41,7 +41,11 @@
       "Bash(gh auth:*)",
       "Bash(lsof:*)",
       "Bash(kill 63138:*)",
-      "Bash(yarn dev:*)"
+      "Bash(yarn dev:*)",
+      "Bash(xargs:*)",
+      "WebFetch(domain:namu.wiki)",
+      "Bash(git log:*)",
+      "Bash(git:*)"
     ]
   }
 }

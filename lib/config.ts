@@ -513,6 +513,13 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
       eng: 'The classic Klondike Solitaire card game',
     },
   },
+  {
+    href: '/suikagame',
+    description: {
+      kor: '같은 과일을 합쳐 수박을 만들어보세요!',
+      eng: 'Merge same fruits to make a watermelon!',
+    },
+  },
 ];
 
 export const BANNER_ITEMS: TBannerItem[] = [
