@@ -46,7 +46,8 @@ export type TGameType =
   | 'blockpuzzle'
   | 'queens'
   | 'ripple'
-  | 'solitaire';
+  | 'solitaire'
+  | 'suikagame';
 
 export type TScore = {
   id: string;

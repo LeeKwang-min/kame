@@ -312,6 +312,15 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
+      kor: '수박 게임',
+      eng: 'Watermelon Game',
+    },
+    href: '/suikagame',
+    category: 'Puzzle',
+    platform: 'both',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },
@@ -497,6 +506,13 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
       eng: 'Slash flying fruits with your blade',
     },
   },
+  {
+    href: '/solitaire',
+    description: {
+      kor: '클래식 카드 게임, 클론다이크 솔리테어',
+      eng: 'The classic Klondike Solitaire card game',
+    },
+  },
 ];
 
 export const BANNER_ITEMS: TBannerItem[] = [
@@ -506,10 +522,10 @@ export const BANNER_ITEMS: TBannerItem[] = [
     bgColor: 'from-cyan-900/50 to-purple-900/50',
     title: { kor: '새로운 게임 출시!', eng: 'New Game Released!' },
     description: {
-      kor: 'Random Defense가 추가되었습니다',
-      eng: 'Random Defense has been added',
+      kor: '솔리테어가 추가되었습니다',
+      eng: 'Solitaire has been added',
     },
-    href: '/randomdefense',
+    href: '/solitaire',
     ctaText: { kor: '지금 플레이', eng: 'Play Now' },
   },
   {
