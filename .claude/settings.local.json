@@ -45,7 +45,10 @@
       "Bash(xargs:*)",
       "WebFetch(domain:namu.wiki)",
       "Bash(git log:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(done)",
+      "Bash(npx playwright:*)",
+      "Bash(python3:*)"
     ]
   }
 }
