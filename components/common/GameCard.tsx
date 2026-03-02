@@ -48,6 +48,7 @@ import {
   Waves,
   Spade,
   Cherry,
+  CupSoda,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -105,6 +106,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/suikagame': Cherry,
   '/tapempire': Crown,
   '/cookiebakery': Cookie,
+  '/lemonadestand': CupSoda,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

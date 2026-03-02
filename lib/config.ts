@@ -345,6 +345,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
+  {
+    name: {
+      kor: '레모네이드 가판대',
+      eng: 'Lemonade Stand',
+    },
+    href: '/lemonadestand',
+    category: 'Idle',
+    platform: 'both',
+  },
   // Reflex
   {
     name: {

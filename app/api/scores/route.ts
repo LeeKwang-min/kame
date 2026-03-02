@@ -56,6 +56,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'suikagame',
   'tapempire',
   'cookiebakery',
+  'lemonadestand',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

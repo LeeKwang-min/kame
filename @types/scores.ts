@@ -49,7 +49,8 @@ export type TGameType =
   | 'solitaire'
   | 'suikagame'
   | 'tapempire'
-  | 'cookiebakery';
+  | 'cookiebakery'
+  | 'lemonadestand';
 
 export type TScore = {
   id: string;
