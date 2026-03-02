@@ -533,7 +533,18 @@ export const setupLemonadeStand = (
         } else if (c.state === 'buying') {
           c.timer -= dt;
           if (c.timer <= 0) {
-            // Try to sell
+            // Try to sell (mixer auto-buys ingredients if affordable)
+            if (!canMakeLemonade() && upgrades.mixer) {
+              // Auto-buy missing ingredients
+              for (const ingredient of INGREDIENTS) {
+                while (stock[ingredient.id] < (ingredient.id === 'lemon' ? lemonRatio : ingredient.id === 'sugar' ? sugarRatio : iceRatio) && gold >= ingredient.buyCost) {
+                  const newAmount = Math.min(stock[ingredient.id] + ingredient.buyAmount, ingredient.maxStock);
+                  if (newAmount === stock[ingredient.id]) break;
+                  gold -= ingredient.buyCost;
+                  stock[ingredient.id] = newAmount;
+                }
+              }
+            }
             if (canMakeLemonade()) {
               makeLemonade();
               const saleGold = price;
