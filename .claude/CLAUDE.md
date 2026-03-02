@@ -130,7 +130,7 @@ export const GAME_META: TGameMeta = {
 - `platform`: 지원 플랫폼 (`'web'` | `'mobile'` | `'both'`)
 - `touchControls`: 모바일 터치 조작 방식 (`'swipe'` | `'tap'` | `'joystick'` | `'drag'` | `'none'`)
 - `orientation`: 권장 화면 방향 (`'portrait'` | `'landscape'` | `'any'`)
-- `category`: 게임 카테고리 (`'arcade'` | `'action'` | `'puzzle'` | `'reflex'` | `'luck'`)
+- `category`: 게임 카테고리 (`'arcade'` | `'action'` | `'puzzle'` | `'reflex'` | `'luck'` | `'idle'`)
 - `difficulty`: 난이도 방식 (`'progressive'` | `'fixed'` | `'selectable'`)
 
 ### 터치 컨트롤 타입별 설명
@@ -498,7 +498,7 @@ export const GAME_META: TGameMeta = {
   platform: 'both',
   touchControls: '[swipe|tap|joystick|drag]',
   orientation: '[portrait|landscape|any]',
-  category: '[arcade|action|puzzle|reflex|luck]',
+  category: '[arcade|action|puzzle|reflex|luck|idle]',
   difficulty: '[progressive|fixed|selectable]',
 };
 
@@ -737,7 +737,7 @@ export const GAME_META: TGameMeta = {
   platform: '[web|both]',
   touchControls: '[swipe|tap|joystick|drag|none]',
   orientation: '[portrait|landscape|any]',
-  category: '[arcade|action|puzzle|reflex|luck]',
+  category: '[arcade|action|puzzle|reflex|luck|idle]',
   difficulty: '[progressive|fixed|selectable]',
 };
 
@@ -938,6 +938,33 @@ public/
 4. **`app/api/game-session/route.ts`** - `VALID_GAME_TYPES`에 추가
 5. **`app/api/scores/route.ts`** - `VALID_GAME_TYPES`에 추가
 6. **`lib/game-security/config.ts`** - 보안 설정 추가
+
+---
+
+## 새 카테고리 추가 시 필수 수정 파일
+
+새 게임 카테고리를 추가할 때 다음 **6개 파일을 반드시 수정**:
+
+1. **`@types/game-meta.ts`** - `TGameCategory`에 새 카테고리 추가
+2. **`lib/config.ts`** - `CATEGORY_TABS`에 탭 추가 (id, iconName)
+3. **`app/(main)/_components/MainCategoryTabs.tsx`** - `TAB_ICONS`에 아이콘 매핑 추가, `TABS`에 탭 항목 추가 (labelKey 포함)
+4. **`lib/i18n/locales/ko.ts`** - `Locale` 타입의 `category`에 키 추가 + 한국어 번역 추가
+5. **`lib/i18n/locales/en.ts`** - 영어 번역 추가
+6. **해당 게임의 `_lib/config.ts`** - `GAME_META.category`를 새 카테고리로 변경
+
+### 현재 카테고리 목록
+
+| 카테고리 ID | 아이콘 | 한국어 | 영어 |
+|------------|--------|--------|------|
+| ALL | Dice5 | 전체 | All |
+| FEATURED | Star | 추천 | Featured |
+| Arcade | Dice5 | 아케이드 | Arcade |
+| Action | Gamepad2 | 액션 | Action |
+| Puzzle | Puzzle | 퍼즐 | Puzzle |
+| Reflex | Zap | 반응 | Reflex |
+| Idle | TrendingUp | 아이들 | Idle |
+| Good Luck | Clover | 행운 | Good Luck |
+| Utility | Wrench | 유틸리티 | Utility |
 
 ---
 
