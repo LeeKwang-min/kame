@@ -104,6 +104,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/solitaire': Spade,
   '/suikagame': Cherry,
   '/tapempire': Crown,
+  '/cookiebakery': Cookie,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

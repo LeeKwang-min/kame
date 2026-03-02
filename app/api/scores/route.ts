@@ -55,6 +55,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'solitaire',
   'suikagame',
   'tapempire',
+  'cookiebakery',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

@@ -48,7 +48,8 @@ export type TGameType =
   | 'ripple'
   | 'solitaire'
   | 'suikagame'
-  | 'tapempire';
+  | 'tapempire'
+  | 'cookiebakery';
 
 export type TScore = {
   id: string;

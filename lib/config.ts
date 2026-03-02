@@ -336,6 +336,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
+  {
+    name: {
+      kor: '쿠키 공장',
+      eng: 'Cookie Bakery',
+    },
+    href: '/cookiebakery',
+    category: 'Idle',
+    platform: 'both',
+  },
   // Reflex
   {
     name: {
