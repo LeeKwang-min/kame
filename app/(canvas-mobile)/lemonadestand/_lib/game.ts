@@ -369,8 +369,6 @@ export const setupLemonadeStand = (
 
     if (!isStarted) return;
 
-    const padding = 15;
-
     // Recipe area - price +/- buttons and ratio +/- buttons
     if (pos.y >= LAYOUT.recipeAreaTop && pos.y < LAYOUT.recipeAreaTop + LAYOUT.recipeAreaHeight) {
       handleRecipeTouch(pos.x, pos.y);
@@ -438,8 +436,6 @@ export const setupLemonadeStand = (
 
       // Each section has a [-] and [+] button
       const sectionLeft = padding + sectionIndex * sectionW;
-      const btnMinusX = sectionLeft + 40;
-      const btnPlusX = sectionLeft + sectionW - 20;
 
       if (sectionIndex === 0) {
         if (x < sectionLeft + sectionW / 2) adjustRatio('lemon', -1);
