@@ -327,6 +327,15 @@ export const MENU_LIST: TMenu[] = [
     href: '/randomdefense',
     category: 'Arcade',
   },
+  {
+    name: {
+      kor: '탭 제국',
+      eng: 'Tap Empire',
+    },
+    href: '/tapempire',
+    category: 'Action',
+    platform: 'both',
+  },
   // Reflex
   {
     name: {
@@ -520,19 +529,26 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
       eng: 'Merge same fruits to make a watermelon!',
     },
   },
+  {
+    href: '/tapempire',
+    description: {
+      kor: '3분 안에 최대한 큰 제국을 건설하세요!',
+      eng: 'Build the biggest empire in 3 minutes!',
+    },
+  },
 ];
 
 export const BANNER_ITEMS: TBannerItem[] = [
   {
     type: 'card',
-    icon: '🍉',
-    bgColor: 'from-green-900/50 to-yellow-900/50',
+    icon: '👑',
+    bgColor: 'from-yellow-900/50 to-amber-900/50',
     title: { kor: '새로운 게임 출시!', eng: 'New Game Released!' },
     description: {
-      kor: '같은 과일을 합쳐 수박을 만들어보세요!',
-      eng: 'Merge same fruits to make a watermelon!',
+      kor: '3분 안에 최대한 큰 제국을 건설하세요!',
+      eng: 'Build the biggest empire in 3 minutes!',
     },
-    href: '/suikagame',
+    href: '/tapempire',
     ctaText: { kor: '지금 플레이', eng: 'Play Now' },
   },
   {

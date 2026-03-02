@@ -103,6 +103,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/ripple': Waves,
   '/solitaire': Spade,
   '/suikagame': Cherry,
+  '/tapempire': Crown,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

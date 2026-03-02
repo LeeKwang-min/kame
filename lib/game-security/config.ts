@@ -49,6 +49,7 @@ export const GAME_SECURITY_CONFIG: Record<
   ripple: { maxScore: 1500, minPlayTimeSeconds: 10 },
   solitaire: { maxScore: 10000, minPlayTimeSeconds: 30 },
   suikagame: { maxScore: 50000, minPlayTimeSeconds: 10 },
+  tapempire: { maxScore: 10000000, minPlayTimeSeconds: 60 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },
