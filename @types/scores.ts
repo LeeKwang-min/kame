@@ -51,7 +51,8 @@ export type TGameType =
   | 'tapempire'
   | 'cookiebakery'
   | 'lemonadestand'
-  | 'dungeonmerchant';
+  | 'dungeonmerchant'
+  | 'stocktrader';
 
 export type TScore = {
   id: string;

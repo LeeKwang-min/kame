@@ -57,6 +57,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'cookiebakery',
   'lemonadestand',
   'dungeonmerchant',
+  'stocktrader',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

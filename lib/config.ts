@@ -363,6 +363,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
+  {
+    name: {
+      kor: '주식왕',
+      eng: 'Stock Trader',
+    },
+    href: '/stocktrader',
+    category: 'Idle',
+    platform: 'both',
+  },
   // Reflex
   {
     name: {
