@@ -354,6 +354,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
+  {
+    name: {
+      kor: '던전 상인',
+      eng: 'Dungeon Merchant',
+    },
+    href: '/dungeonmerchant',
+    category: 'Idle',
+    platform: 'both',
+  },
   // Reflex
   {
     name: {

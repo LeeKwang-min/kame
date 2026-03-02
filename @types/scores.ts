@@ -50,7 +50,8 @@ export type TGameType =
   | 'suikagame'
   | 'tapempire'
   | 'cookiebakery'
-  | 'lemonadestand';
+  | 'lemonadestand'
+  | 'dungeonmerchant';
 
 export type TScore = {
   id: string;

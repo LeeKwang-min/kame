@@ -107,6 +107,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/tapempire': Crown,
   '/cookiebakery': Cookie,
   '/lemonadestand': CupSoda,
+  '/dungeonmerchant': Sword,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
