@@ -6,7 +6,7 @@ export type TTouchControls = 'swipe' | 'tap' | 'joystick' | 'drag' | 'none';
 
 export type TGameOrientation = 'portrait' | 'landscape' | 'any';
 
-export type TGameCategory = 'arcade' | 'action' | 'puzzle' | 'reflex' | 'luck';
+export type TGameCategory = 'arcade' | 'action' | 'puzzle' | 'reflex' | 'luck' | 'idle';
 
 export type TGameDifficulty = 'progressive' | 'fixed' | 'selectable';
 

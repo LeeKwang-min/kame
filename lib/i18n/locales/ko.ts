@@ -68,6 +68,7 @@ export type Locale = {
     action: string;
     puzzle: string;
     reflex: string;
+    idle: string;
     goodLuck: string;
     utility: string;
   };
@@ -143,6 +144,7 @@ export const ko: Locale = {
     action: '액션',
     puzzle: '퍼즐',
     reflex: '반응',
+    idle: '아이들',
     goodLuck: '행운',
     utility: '유틸리티',
   },

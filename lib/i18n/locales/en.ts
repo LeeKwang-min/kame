@@ -70,6 +70,7 @@ export const en: Locale = {
     action: 'Action',
     puzzle: 'Puzzle',
     reflex: 'Reflex',
+    idle: 'Idle',
     goodLuck: 'Good Luck',
     utility: 'Utility',
   },

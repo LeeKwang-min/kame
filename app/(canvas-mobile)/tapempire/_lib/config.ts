@@ -8,12 +8,12 @@ export const GAME_META: TGameMeta = {
   platform: 'both',
   touchControls: 'tap',
   orientation: 'portrait',
-  category: 'action',
+  category: 'idle',
   difficulty: 'progressive',
 };
 
 export const CANVAS_SIZE = 620;
-export const GAME_DURATION = 180;
+export const GAME_DURATION = 600;
 
 export const COLORS = {
   bg: '#0f1923',

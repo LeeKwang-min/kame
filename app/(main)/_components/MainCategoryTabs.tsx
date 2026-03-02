@@ -8,6 +8,7 @@ import {
   LucideIcon,
   Puzzle,
   Star,
+  TrendingUp,
   Wrench,
   Zap,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ const TAB_ICONS: Record<string, LucideIcon> = {
   Gamepad2,
   Puzzle,
   Zap,
+  TrendingUp,
   Clover,
   Wrench,
 };
@@ -31,6 +33,7 @@ const TABS = [
   { id: 'Action', iconName: 'Gamepad2', labelKey: 'action' as const },
   { id: 'Puzzle', iconName: 'Puzzle', labelKey: 'puzzle' as const },
   { id: 'Reflex', iconName: 'Zap', labelKey: 'reflex' as const },
+  { id: 'Idle', iconName: 'TrendingUp', labelKey: 'idle' as const },
   { id: 'Good Luck', iconName: 'Clover', labelKey: 'goodLuck' as const },
   { id: 'Utility', iconName: 'Wrench', labelKey: 'utility' as const },
 ];

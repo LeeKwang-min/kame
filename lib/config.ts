@@ -333,7 +333,7 @@ export const MENU_LIST: TMenu[] = [
       eng: 'Tap Empire',
     },
     href: '/tapempire',
-    category: 'Action',
+    category: 'Idle',
     platform: 'both',
   },
   // Reflex
@@ -594,6 +594,7 @@ export const CATEGORY_TABS = [
   { id: 'Action', iconName: 'Gamepad2' as const },
   { id: 'Puzzle', iconName: 'Puzzle' as const },
   { id: 'Reflex', iconName: 'Zap' as const },
+  { id: 'Idle', iconName: 'TrendingUp' as const },
   { id: 'Good Luck', iconName: 'Clover' as const },
   { id: 'Utility', iconName: 'Wrench' as const },
 ] as const;
