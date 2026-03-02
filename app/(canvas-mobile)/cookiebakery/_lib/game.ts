@@ -216,7 +216,7 @@ export const setupCookieBakery = (
     prestigePoints += newPoints;
     totalPrestigeResets++;
 
-    // Reset cookies, producers, recipes (but NOT timer, NOT allTimeTotalCookies, NOT prestige points)
+    // Reset cookies, producers (but NOT timer, NOT allTimeTotalCookies, NOT prestige points, NOT recipes)
     cookies = 0;
     totalCookies = 0;
     tapPower = 1;
@@ -224,7 +224,7 @@ export const setupCookieBakery = (
     producerStates = PRODUCERS.map(() => ({ count: 0 }));
     unlockedProducers = PRODUCERS.map(() => false);
     unlockedProducers[0] = true;
-    unlockedRecipes = RECIPES.map(() => false);
+    // Recipes persist across prestige resets (earned via allTimeTotalCookies)
     floatingTexts = [];
     tapScale = 1;
   };
@@ -448,9 +448,9 @@ export const setupCookieBakery = (
         }
       }
 
-      // 레시피 잠금 해제 확인
+      // 레시피 잠금 해제 확인 (allTimeTotalCookies 기준 — 프레스티지 후에도 유지)
       for (let i = 0; i < RECIPES.length; i++) {
-        if (!unlockedRecipes[i] && totalCookies >= RECIPES[i].milestone) {
+        if (!unlockedRecipes[i] && allTimeTotalCookies >= RECIPES[i].milestone) {
           unlockedRecipes[i] = true;
         }
       }
@@ -587,7 +587,7 @@ export const setupCookieBakery = (
     if (nextRecipeIdx >= 0) {
       // Progress bar
       const milestone = RECIPES[nextRecipeIdx].milestone;
-      const progress = Math.min(totalCookies / milestone, 1);
+      const progress = Math.min(allTimeTotalCookies / milestone, 1);
       if (progress > 0) {
         drawRoundRect(ctx, padding, y, barWidth * progress, h, 4);
         ctx.fillStyle = COLORS.recipeBar;
