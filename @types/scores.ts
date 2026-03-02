@@ -52,7 +52,8 @@ export type TGameType =
   | 'cookiebakery'
   | 'lemonadestand'
   | 'dungeonmerchant'
-  | 'stocktrader';
+  | 'stocktrader'
+  | 'spacecolony';
 
 export type TScore = {
   id: string;

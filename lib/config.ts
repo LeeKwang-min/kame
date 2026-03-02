@@ -372,6 +372,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
+  {
+    name: {
+      kor: '우주 식민지',
+      eng: 'Space Colony',
+    },
+    href: '/spacecolony',
+    category: 'Idle',
+    platform: 'both',
+  },
   // Reflex
   {
     name: {

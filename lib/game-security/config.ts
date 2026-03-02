@@ -54,6 +54,7 @@ export const GAME_SECURITY_CONFIG: Record<
   lemonadestand: { maxScore: 100000000, minPlayTimeSeconds: 120 },
   dungeonmerchant: { maxScore: 200000000, minPlayTimeSeconds: 120 },
   stocktrader: { maxScore: 1000000000, minPlayTimeSeconds: 120 },
+  spacecolony: { maxScore: 100000000, minPlayTimeSeconds: 120 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

@@ -109,6 +109,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/lemonadestand': CupSoda,
   '/dungeonmerchant': Sword,
   '/stocktrader': TrendingUp,
+  '/spacecolony': Rocket,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
