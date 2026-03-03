@@ -7,7 +7,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '테트릭스',
       eng: 'Tetrix',
     },
-    href: '/tetris',
+    href: '/tetrix',
     category: 'Arcade',
     platform: 'both',
   },
@@ -24,7 +24,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '팩 메이즈',
       eng: 'Pac Maze',
     },
-    href: '/pacman',
+    href: '/pacmaze',
     category: 'Arcade',
   },
   {
@@ -40,7 +40,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '벽돌 깨기',
       eng: 'Brick Out',
     },
-    href: '/breakout',
+    href: '/brickout',
     category: 'Arcade',
   },
   {
@@ -48,7 +48,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '탁구',
       eng: 'Paddle Rally',
     },
-    href: '/pong',
+    href: '/paddlerally',
     category: 'Arcade',
   },
   {
@@ -64,7 +64,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '스페이스 레이더',
       eng: 'Space Raiders',
     },
-    href: '/spaceinvaders',
+    href: '/spaceraiders',
     category: 'Arcade',
   },
   {
@@ -72,7 +72,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '미사일 가드',
       eng: 'Missile Guard',
     },
-    href: '/missilecommand',
+    href: '/missileguard',
     category: 'Arcade',
   },
   {
@@ -98,7 +98,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '플래피 윙즈',
       eng: 'Flappy Wings',
     },
-    href: '/flappybird',
+    href: '/flappywings',
     category: 'Action',
   },
   {
@@ -114,7 +114,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '두들 홉',
       eng: 'Doodle Hop',
     },
-    href: '/doodle',
+    href: '/doodlehop',
     category: 'Action',
   },
   {
@@ -122,7 +122,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '길건너기',
       eng: 'Road Cross',
     },
-    href: '/crossyroad',
+    href: '/roadcross',
     category: 'Action',
   },
   {
@@ -130,7 +130,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '끝없는 계단',
       eng: 'Endless Stairs',
     },
-    href: '/stairs',
+    href: '/endlessstairs',
     category: 'Action',
     platform: 'both',
   },
@@ -180,7 +180,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '드롭 웰',
       eng: 'Drop Well',
     },
-    href: '/downwell',
+    href: '/dropwell',
     category: 'Action',
   },
   {
@@ -188,7 +188,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '헥사 스핀',
       eng: 'Hexa Spin',
     },
-    href: '/superhexagon',
+    href: '/hexaspin',
     category: 'Action',
     platform: 'both',
   },
@@ -272,7 +272,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '젤리 팝',
       eng: 'Jelly Pop',
     },
-    href: '/puyopuyo',
+    href: '/jellypop',
     category: 'Puzzle',
   },
   {
@@ -404,7 +404,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '후르츠 슬래시',
       eng: 'Fruit Slash',
     },
-    href: '/fruitninja',
+    href: '/fruitslash',
     category: 'Reflex',
   },
   {
@@ -420,7 +420,7 @@ export const MENU_LIST: TMenu[] = [
       kor: '컬러 메모리',
       eng: 'Color Memory',
     },
-    href: '/simon',
+    href: '/colormemory',
     category: 'Reflex',
   },
   // {
@@ -493,7 +493,7 @@ export const MENU_LIST: TMenu[] = [
 
 export const FEATURED_GAMES: TFeaturedGame[] = [
   {
-    href: '/tetris',
+    href: '/tetrix',
     description: {
       kor: '블록을 쌓아 줄을 완성하는 클래식 퍼즐 게임',
       eng: 'Stack blocks and clear lines in this classic puzzle',
@@ -521,7 +521,7 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
     },
   },
   {
-    href: '/stairs',
+    href: '/endlessstairs',
     description: {
       kor: '끝없이 이어지는 계단을 올라가세요',
       eng: 'Climb the never-ending stairs',
@@ -563,7 +563,7 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
     },
   },
   {
-    href: '/fruitninja',
+    href: '/fruitslash',
     description: {
       kor: '날아오는 과일을 칼로 베어내는 액션 게임',
       eng: 'Slash flying fruits with your blade',
@@ -588,6 +588,13 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
     description: {
       kor: '3분 안에 최대한 큰 제국을 건설하세요!',
       eng: 'Build the biggest empire in 3 minutes!',
+    },
+  },
+  {
+    href: '/hexaspin',
+    description: {
+      kor: '회전하는 육각형 속에서 살아남으세요!',
+      eng: 'Survive inside the spinning hexagon!',
     },
   },
 ];
