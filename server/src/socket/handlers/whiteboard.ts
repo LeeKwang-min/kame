@@ -28,6 +28,7 @@ export function registerWhiteboardHandlers(
   socket.on('draw:clear', () => {
     const room = roomManager.findRoomByPlayer(socket.id);
     if (!room || room.gameType !== 'whiteboard') return;
+    if (room.hostId !== socket.id) return;
 
     room.gameState = { strokes: [] } as TWhiteboardState;
     io.to(room.id).emit('draw:clear');

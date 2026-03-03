@@ -10,9 +10,10 @@ type TProps = {
   onUndo: () => void;
   remoteStrokes: TStroke[];
   myId: string;
+  isHost: boolean;
 };
 
-function WhiteboardCanvas({ onStroke, onClear, onUndo, remoteStrokes, myId }: TProps) {
+function WhiteboardCanvas({ onStroke, onClear, onUndo, remoteStrokes, myId, isHost }: TProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
@@ -180,12 +181,14 @@ function WhiteboardCanvas({ onStroke, onClear, onUndo, remoteStrokes, myId }: TP
           >
             되돌리기
           </button>
-          <button
-            onClick={onClear}
-            className="px-3 py-1.5 text-sm border border-red-800 rounded-lg text-red-400 hover:bg-red-900/20 transition"
-          >
-            전체 지우기
-          </button>
+          {isHost && (
+            <button
+              onClick={onClear}
+              className="px-3 py-1.5 text-sm border border-red-800 rounded-lg text-red-400 hover:bg-red-900/20 transition"
+            >
+              전체 지우기
+            </button>
+          )}
         </div>
       </div>
 

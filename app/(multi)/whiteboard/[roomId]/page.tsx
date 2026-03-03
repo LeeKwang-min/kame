@@ -95,6 +95,7 @@ function WhiteboardRoomPage() {
   }, [emit, router]);
 
   const myId = socket.current?.id || '';
+  const isHost = room ? room.hostId === myId : false;
 
   if (error) {
     return (
@@ -149,6 +150,7 @@ function WhiteboardRoomPage() {
             onUndo={handleUndo}
             remoteStrokes={strokes}
             myId={myId}
+            isHost={isHost}
           />
         </div>
       </section>
@@ -172,6 +174,7 @@ function WhiteboardRoomPage() {
           onUndo={handleUndo}
           remoteStrokes={strokes}
           myId={myId}
+          isHost={isHost}
         />
       </div>
       <aside className="shrink-0 w-56">{playerListContent}</aside>
