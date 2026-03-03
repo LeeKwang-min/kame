@@ -331,146 +331,16 @@ export const setupLemonadeStand = (
     if (e.code === 'ArrowRight') { adjustPrice(1); return; }
   };
 
-  // --- Touch events ---
+  // --- Pointer events ---
 
-  const getTouchPos = (touch: Touch) => {
+  const getCanvasPos = (clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = CANVAS_SIZE / rect.width;
     const scaleY = CANVAS_SIZE / rect.height;
     return {
-      x: (touch.clientX - rect.left) * scaleX,
-      y: (touch.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
-  };
-
-  const handleTouchStart = (e: TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (!touch) return;
-
-    const pos = getTouchPos(touch);
-
-    if (!isStarted && !isLoading && !isGameOver) {
-      startGame();
-      return;
-    }
-
-    if (isPaused) {
-      isPaused = false;
-      lastTime = 0;
-      return;
-    }
-
-    if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
-      if (handled) return;
-      return;
-    }
-
-    if (!isStarted) return;
-
-    // Recipe area - price +/- buttons and ratio +/- buttons
-    if (pos.y >= LAYOUT.recipeAreaTop && pos.y < LAYOUT.recipeAreaTop + LAYOUT.recipeAreaHeight) {
-      handleRecipeTouch(pos.x, pos.y);
-      return;
-    }
-
-    // Tab area
-    if (pos.y >= LAYOUT.tabAreaTop && pos.y < LAYOUT.tabAreaTop + LAYOUT.tabAreaHeight) {
-      const halfW = CANVAS_SIZE / 2;
-      if (pos.x < halfW) {
-        activeTab = 'ingredients';
-      } else {
-        activeTab = 'upgrades';
-      }
-      return;
-    }
-
-    // List area
-    if (pos.y >= LAYOUT.listAreaTop && pos.y < LAYOUT.listAreaTop + LAYOUT.listAreaHeight) {
-      if (activeTab === 'ingredients') {
-        const rowH = 55;
-        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
-        if (rowIndex >= 0 && rowIndex < INGREDIENTS.length) {
-          buyIngredient(rowIndex);
-        }
-      } else {
-        const rowH = 36;
-        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
-        if (rowIndex >= 0 && rowIndex < UPGRADES.length) {
-          buyUpgrade(rowIndex);
-        }
-      }
-      return;
-    }
-  };
-
-  const getMousePos = (e: MouseEvent) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_SIZE / rect.width;
-    const scaleY = CANVAS_SIZE / rect.height;
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
-    };
-  };
-
-  const handleMouseDown = (e: MouseEvent) => {
-    const pos = getMousePos(e);
-
-    if (!isStarted && !isLoading && !isGameOver) {
-      startGame();
-      return;
-    }
-
-    if (isPaused) {
-      isPaused = false;
-      lastTime = 0;
-      return;
-    }
-
-    if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
-      if (handled) return;
-      return;
-    }
-
-    if (!isStarted) return;
-
-    // Recipe area - price +/- buttons and ratio +/- buttons
-    if (pos.y >= LAYOUT.recipeAreaTop && pos.y < LAYOUT.recipeAreaTop + LAYOUT.recipeAreaHeight) {
-      handleRecipeTouch(pos.x, pos.y);
-      return;
-    }
-
-    // Tab area
-    if (pos.y >= LAYOUT.tabAreaTop && pos.y < LAYOUT.tabAreaTop + LAYOUT.tabAreaHeight) {
-      const halfW = CANVAS_SIZE / 2;
-      if (pos.x < halfW) {
-        activeTab = 'ingredients';
-      } else {
-        activeTab = 'upgrades';
-      }
-      return;
-    }
-
-    // List area
-    if (pos.y >= LAYOUT.listAreaTop && pos.y < LAYOUT.listAreaTop + LAYOUT.listAreaHeight) {
-      if (activeTab === 'ingredients') {
-        const rowH = 55;
-        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
-        if (rowIndex >= 0 && rowIndex < INGREDIENTS.length) {
-          buyIngredient(rowIndex);
-        }
-      } else {
-        const rowH = 36;
-        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
-        if (rowIndex >= 0 && rowIndex < UPGRADES.length) {
-          buyUpgrade(rowIndex);
-        }
-      }
-      return;
-    }
   };
 
   const handleRecipeTouch = (x: number, y: number) => {
@@ -516,6 +386,72 @@ export const setupLemonadeStand = (
         else adjustRatio('ice', 1);
       }
     }
+  };
+
+  const handlePointerDown = (pos: { x: number; y: number }) => {
+    if (!isStarted && !isLoading && !isGameOver) {
+      startGame();
+      return;
+    }
+
+    if (isPaused) {
+      isPaused = false;
+      lastTime = 0;
+      return;
+    }
+
+    if (isGameOver) {
+      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
+      return;
+    }
+
+    if (!isStarted) return;
+
+    // Recipe area - price +/- buttons and ratio +/- buttons
+    if (pos.y >= LAYOUT.recipeAreaTop && pos.y < LAYOUT.recipeAreaTop + LAYOUT.recipeAreaHeight) {
+      handleRecipeTouch(pos.x, pos.y);
+      return;
+    }
+
+    // Tab area
+    if (pos.y >= LAYOUT.tabAreaTop && pos.y < LAYOUT.tabAreaTop + LAYOUT.tabAreaHeight) {
+      const halfW = CANVAS_SIZE / 2;
+      if (pos.x < halfW) {
+        activeTab = 'ingredients';
+      } else {
+        activeTab = 'upgrades';
+      }
+      return;
+    }
+
+    // List area
+    if (pos.y >= LAYOUT.listAreaTop && pos.y < LAYOUT.listAreaTop + LAYOUT.listAreaHeight) {
+      if (activeTab === 'ingredients') {
+        const rowH = 55;
+        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
+        if (rowIndex >= 0 && rowIndex < INGREDIENTS.length) {
+          buyIngredient(rowIndex);
+        }
+      } else {
+        const rowH = 36;
+        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
+        if (rowIndex >= 0 && rowIndex < UPGRADES.length) {
+          buyUpgrade(rowIndex);
+        }
+      }
+      return;
+    }
+  };
+
+  const handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    handlePointerDown(getCanvasPos(touch.clientX, touch.clientY));
+  };
+
+  const handleMouseDown = (e: MouseEvent) => {
+    handlePointerDown(getCanvasPos(e.clientX, e.clientY));
   };
 
   // --- Game logic update ---

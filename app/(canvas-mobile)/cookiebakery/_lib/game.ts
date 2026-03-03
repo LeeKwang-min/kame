@@ -335,160 +335,88 @@ export const setupCookieBakery = (
     }
   };
 
-  // --- 터치 이벤트 ---
+  // --- 포인터 이벤트 (터치 + 마우스 공용) ---
 
-  const getTouchPos = (touch: Touch) => {
+  const getCanvasPos = (clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = CANVAS_SIZE / rect.width;
     const scaleY = CANVAS_SIZE / rect.height;
     return {
-      x: (touch.clientX - rect.left) * scaleX,
-      y: (touch.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
+  };
+
+  const handlePointerDown = (pos: { x: number; y: number }) => {
+    // 게임 시작 전이면 클릭/터치로 시작
+    if (!isStarted && !isLoading && !isGameOver) {
+      startGame();
+      return;
+    }
+
+    // 일시정지 상태이면 클릭/터치로 재개
+    if (isPaused) {
+      isPaused = false;
+      lastTime = 0;
+      return;
+    }
+
+    // 게임 오버 상태: SAVE/SKIP/재시작 처리
+    if (isGameOver) {
+      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(allTimeTotalCookies));
+      return;
+    }
+
+    if (!isStarted) return;
+
+    // 탭 영역 (쿠키 탭)
+    if (
+      pos.y >= LAYOUT.tapAreaTop &&
+      pos.y <= LAYOUT.tapAreaTop + LAYOUT.tapAreaHeight
+    ) {
+      doTap();
+      return;
+    }
+
+    // 생산기 리스트
+    if (
+      pos.y >= LAYOUT.producerListTop &&
+      pos.y <
+        LAYOUT.producerListTop + PRODUCERS.length * LAYOUT.producerRowHeight
+    ) {
+      const rowIndex = Math.floor(
+        (pos.y - LAYOUT.producerListTop) / LAYOUT.producerRowHeight,
+      );
+      if (rowIndex >= 0 && rowIndex < PRODUCERS.length) {
+        buyProducer(rowIndex);
+      }
+      return;
+    }
+
+    // 업그레이드 바
+    if (
+      pos.y >= LAYOUT.upgradeBarTop &&
+      pos.y <= LAYOUT.upgradeBarTop + LAYOUT.upgradeBarHeight
+    ) {
+      const halfWidth = CANVAS_SIZE / 2;
+      if (pos.x < halfWidth) {
+        upgradeTapPower();
+      } else {
+        doPrestige();
+      }
+      return;
+    }
   };
 
   const handleTouchStart = (e: TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
     if (!touch) return;
-
-    const pos = getTouchPos(touch);
-
-    // 게임 시작 전이면 터치로 시작
-    if (!isStarted && !isLoading && !isGameOver) {
-      startGame();
-      return;
-    }
-
-    // 일시정지 상태이면 터치로 재개
-    if (isPaused) {
-      isPaused = false;
-      lastTime = 0;
-      return;
-    }
-
-    // 게임 오버 상태: 터치로 SAVE/SKIP/재시작 처리
-    if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(allTimeTotalCookies));
-      if (handled) return;
-      return;
-    }
-
-    if (!isStarted) return;
-
-    // 탭 영역 터치 (쿠키 탭)
-    if (
-      pos.y >= LAYOUT.tapAreaTop &&
-      pos.y <= LAYOUT.tapAreaTop + LAYOUT.tapAreaHeight
-    ) {
-      doTap();
-      return;
-    }
-
-    // 생산기 리스트 터치
-    if (
-      pos.y >= LAYOUT.producerListTop &&
-      pos.y <
-        LAYOUT.producerListTop + PRODUCERS.length * LAYOUT.producerRowHeight
-    ) {
-      const rowIndex = Math.floor(
-        (pos.y - LAYOUT.producerListTop) / LAYOUT.producerRowHeight,
-      );
-      if (rowIndex >= 0 && rowIndex < PRODUCERS.length) {
-        buyProducer(rowIndex);
-      }
-      return;
-    }
-
-    // 업그레이드 바 터치
-    if (
-      pos.y >= LAYOUT.upgradeBarTop &&
-      pos.y <= LAYOUT.upgradeBarTop + LAYOUT.upgradeBarHeight
-    ) {
-      const halfWidth = CANVAS_SIZE / 2;
-      if (pos.x < halfWidth) {
-        upgradeTapPower();
-      } else {
-        doPrestige();
-      }
-      return;
-    }
-  };
-
-  // --- 마우스 이벤트 ---
-
-  const getMousePos = (e: MouseEvent) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_SIZE / rect.width;
-    const scaleY = CANVAS_SIZE / rect.height;
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
-    };
+    handlePointerDown(getCanvasPos(touch.clientX, touch.clientY));
   };
 
   const handleMouseDown = (e: MouseEvent) => {
-    const pos = getMousePos(e);
-
-    // 게임 시작 전이면 클릭으로 시작
-    if (!isStarted && !isLoading && !isGameOver) {
-      startGame();
-      return;
-    }
-
-    // 일시정지 상태이면 클릭으로 재개
-    if (isPaused) {
-      isPaused = false;
-      lastTime = 0;
-      return;
-    }
-
-    // 게임 오버 상태: 클릭으로 SAVE/SKIP/재시작 처리
-    if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(allTimeTotalCookies));
-      if (handled) return;
-      return;
-    }
-
-    if (!isStarted) return;
-
-    // 탭 영역 클릭 (쿠키 탭)
-    if (
-      pos.y >= LAYOUT.tapAreaTop &&
-      pos.y <= LAYOUT.tapAreaTop + LAYOUT.tapAreaHeight
-    ) {
-      doTap();
-      return;
-    }
-
-    // 생산기 리스트 클릭
-    if (
-      pos.y >= LAYOUT.producerListTop &&
-      pos.y <
-        LAYOUT.producerListTop + PRODUCERS.length * LAYOUT.producerRowHeight
-    ) {
-      const rowIndex = Math.floor(
-        (pos.y - LAYOUT.producerListTop) / LAYOUT.producerRowHeight,
-      );
-      if (rowIndex >= 0 && rowIndex < PRODUCERS.length) {
-        buyProducer(rowIndex);
-      }
-      return;
-    }
-
-    // 업그레이드 바 클릭
-    if (
-      pos.y >= LAYOUT.upgradeBarTop &&
-      pos.y <= LAYOUT.upgradeBarTop + LAYOUT.upgradeBarHeight
-    ) {
-      const halfWidth = CANVAS_SIZE / 2;
-      if (pos.x < halfWidth) {
-        upgradeTapPower();
-      } else {
-        doPrestige();
-      }
-      return;
-    }
+    handlePointerDown(getCanvasPos(e.clientX, e.clientY));
   };
 
   // --- 게임 로직 업데이트 ---

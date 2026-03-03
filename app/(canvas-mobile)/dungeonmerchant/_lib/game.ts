@@ -441,33 +441,17 @@ export const setupDungeonMerchant = (
 
   // --- Touch events ---
 
-  const getTouchPos = (touch: Touch) => {
+  const getCanvasPos = (clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = CANVAS_SIZE / rect.width;
     const scaleY = CANVAS_SIZE / rect.height;
     return {
-      x: (touch.clientX - rect.left) * scaleX,
-      y: (touch.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
   };
 
-  const getMousePos = (e: MouseEvent) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_SIZE / rect.width;
-    const scaleY = CANVAS_SIZE / rect.height;
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
-    };
-  };
-
-  const handleTouchStart = (e: TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (!touch) return;
-
-    const pos = getTouchPos(touch);
-
+  const handlePointerDown = (pos: { x: number; y: number }) => {
     if (!isStarted && !isLoading && !isGameOver) {
       startGame();
       return;
@@ -480,8 +464,7 @@ export const setupDungeonMerchant = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
-      if (handled) return;
+      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
       return;
     }
 
@@ -556,95 +539,15 @@ export const setupDungeonMerchant = (
     }
   };
 
+  const handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    handlePointerDown(getCanvasPos(touch.clientX, touch.clientY));
+  };
+
   const handleMouseDown = (e: MouseEvent) => {
-    const pos = getMousePos(e);
-
-    if (!isStarted && !isLoading && !isGameOver) {
-      startGame();
-      return;
-    }
-
-    if (isPaused) {
-      isPaused = false;
-      lastTime = 0;
-      return;
-    }
-
-    if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
-      if (handled) return;
-      return;
-    }
-
-    if (!isStarted) return;
-
-    // Crafting bar area - click to speed up
-    if (
-      pos.y >= LAYOUT.craftingBarTop &&
-      pos.y <= LAYOUT.craftingBarTop + LAYOUT.craftingBarHeight
-    ) {
-      speedUpCrafting();
-      return;
-    }
-
-    // Shop area - click to speed up crafting too
-    if (
-      pos.y >= LAYOUT.shopAreaTop &&
-      pos.y <= LAYOUT.shopAreaTop + LAYOUT.shopAreaHeight
-    ) {
-      speedUpCrafting();
-      return;
-    }
-
-    // Tab area
-    if (
-      pos.y >= LAYOUT.tabAreaTop &&
-      pos.y <= LAYOUT.tabAreaTop + LAYOUT.tabAreaHeight
-    ) {
-      const tabWidth = (CANVAS_SIZE - 30) / 3;
-      const tabIndex = Math.floor((pos.x - 15) / tabWidth);
-      if (tabIndex === 0) currentTab = 'resources';
-      else if (tabIndex === 1) currentTab = 'crafting';
-      else if (tabIndex === 2) currentTab = 'shop';
-      listScrollOffset = 0;
-      return;
-    }
-
-    // List area
-    if (
-      pos.y >= LAYOUT.listAreaTop &&
-      pos.y <= LAYOUT.listAreaTop + LAYOUT.listAreaHeight
-    ) {
-      const relY = pos.y - LAYOUT.listAreaTop + listScrollOffset;
-      const rowHeight = 50;
-
-      if (currentTab === 'resources') {
-        const rowIndex = Math.floor(relY / rowHeight);
-        if (rowIndex >= 0 && rowIndex < RESOURCE_BUILDINGS.length) {
-          upgradeBuilding(rowIndex);
-        }
-      } else if (currentTab === 'crafting') {
-        const rowIndex = Math.floor(relY / rowHeight);
-        if (rowIndex >= 0 && rowIndex < RECIPES.length) {
-          startCrafting(rowIndex);
-        }
-      } else if (currentTab === 'shop') {
-        const rowIndex = Math.floor(relY / rowHeight);
-        if (rowIndex >= 0 && rowIndex < SHOP_UPGRADES.length) {
-          buyShopUpgrade(rowIndex);
-        }
-      }
-      return;
-    }
-
-    // Upgrade bar
-    if (
-      pos.y >= LAYOUT.upgradeBarTop &&
-      pos.y <= LAYOUT.upgradeBarTop + LAYOUT.upgradeBarHeight
-    ) {
-      speedUpCrafting();
-      return;
-    }
+    handlePointerDown(getCanvasPos(e.clientX, e.clientY));
   };
 
   // --- Update ---
