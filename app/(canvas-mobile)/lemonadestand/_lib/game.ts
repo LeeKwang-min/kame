@@ -405,6 +405,74 @@ export const setupLemonadeStand = (
     }
   };
 
+  const getMousePos = (e: MouseEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_SIZE / rect.width;
+    const scaleY = CANVAS_SIZE / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleMouseDown = (e: MouseEvent) => {
+    const pos = getMousePos(e);
+
+    if (!isStarted && !isLoading && !isGameOver) {
+      startGame();
+      return;
+    }
+
+    if (isPaused) {
+      isPaused = false;
+      lastTime = 0;
+      return;
+    }
+
+    if (isGameOver) {
+      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
+      if (handled) return;
+      return;
+    }
+
+    if (!isStarted) return;
+
+    // Recipe area - price +/- buttons and ratio +/- buttons
+    if (pos.y >= LAYOUT.recipeAreaTop && pos.y < LAYOUT.recipeAreaTop + LAYOUT.recipeAreaHeight) {
+      handleRecipeTouch(pos.x, pos.y);
+      return;
+    }
+
+    // Tab area
+    if (pos.y >= LAYOUT.tabAreaTop && pos.y < LAYOUT.tabAreaTop + LAYOUT.tabAreaHeight) {
+      const halfW = CANVAS_SIZE / 2;
+      if (pos.x < halfW) {
+        activeTab = 'ingredients';
+      } else {
+        activeTab = 'upgrades';
+      }
+      return;
+    }
+
+    // List area
+    if (pos.y >= LAYOUT.listAreaTop && pos.y < LAYOUT.listAreaTop + LAYOUT.listAreaHeight) {
+      if (activeTab === 'ingredients') {
+        const rowH = 55;
+        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
+        if (rowIndex >= 0 && rowIndex < INGREDIENTS.length) {
+          buyIngredient(rowIndex);
+        }
+      } else {
+        const rowH = 36;
+        const rowIndex = Math.floor((pos.y - LAYOUT.listAreaTop) / rowH);
+        if (rowIndex >= 0 && rowIndex < UPGRADES.length) {
+          buyUpgrade(rowIndex);
+        }
+      }
+      return;
+    }
+  };
+
   const handleRecipeTouch = (x: number, y: number) => {
     const padding = 15;
     const areaW = CANVAS_SIZE - padding * 2;
@@ -1137,10 +1205,12 @@ export const setupLemonadeStand = (
   resize();
   window.addEventListener('keydown', onKeyDown);
   canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('mousedown', handleMouseDown);
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
+    canvas.removeEventListener('mousedown', handleMouseDown);
   };
 };
