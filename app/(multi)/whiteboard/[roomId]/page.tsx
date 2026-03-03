@@ -28,6 +28,7 @@ function WhiteboardRoomPage() {
   const [strokes, setStrokes] = useState<TStroke[]>([]);
   const [error, setError] = useState<string | null>(null);
   const joinedRef = useRef(false);
+  const closedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
@@ -43,12 +44,17 @@ function WhiteboardRoomPage() {
       sessionStorage.getItem('whiteboard:playerName') || session?.user?.name || '익명';
     emit('room:join', { roomId: params.roomId, playerName });
     emit('draw:request-sync');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, emit, params.roomId, authStatus]);
 
+  useEffect(() => {
     return () => {
-      emit('room:leave');
-      joinedRef.current = false;
+      if (joinedRef.current) {
+        emit('room:leave');
+        joinedRef.current = false;
+      }
     };
-  }, [isConnected, emit, params.roomId, authStatus, session]);
+  }, [emit]);
 
   useEffect(() => {
     const offJoined = on('room:joined', (data: { room: TRoomDetail }) => {
@@ -77,7 +83,7 @@ function WhiteboardRoomPage() {
     );
     const offClosed = on('room:closed', () => {
       setError('방이 닫혔습니다.');
-      setTimeout(() => router.push('/whiteboard'), 2000);
+      closedTimerRef.current = setTimeout(() => router.push('/whiteboard'), 2000);
     });
     const offError = on('room:error', (data: { message: string }) => {
       setError(data.message);
@@ -92,6 +98,7 @@ function WhiteboardRoomPage() {
       offPlayerLeft();
       offClosed();
       offError();
+      if (closedTimerRef.current) clearTimeout(closedTimerRef.current);
     };
   }, [on, router]);
 

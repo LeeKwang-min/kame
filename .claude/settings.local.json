@@ -48,7 +48,12 @@
       "Bash(git:*)",
       "Bash(done)",
       "Bash(npx playwright:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "WebFetch(domain:mini-kame.vercel.app)",
+      "Bash(fi)",
+      "Bash(mkdir:*)",
+      "Bash(npx jest:*)",
+      "Bash(rm:*)"
     ]
   }
 }

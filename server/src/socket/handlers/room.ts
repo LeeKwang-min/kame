@@ -83,7 +83,6 @@ export function registerRoomHandlers(
     socket.emit('room:left');
 
     if (room.isEmpty()) {
-      io.to(room.id).emit('room:closed');
       roomManager.removeRoom(room.id);
     } else {
       io.to(room.id).emit('room:player-left', {

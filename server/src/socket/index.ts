@@ -17,7 +17,6 @@ export function initializeSocket(io: Server): void {
       if (room) {
         room.removePlayer(socket.id);
         if (room.isEmpty()) {
-          io.to(room.id).emit('room:closed');
           roomManager.removeRoom(room.id);
         } else {
           io.to(room.id).emit('room:player-left', {
