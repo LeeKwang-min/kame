@@ -16,12 +16,14 @@ export function initializeSocket(io: Server): void {
       const room = roomManager.findRoomByPlayer(socket.id);
       if (room) {
         room.removePlayer(socket.id);
-        io.to(room.id).emit('room:player-left', {
-          playerId: socket.id,
-          room: room.toDetail(),
-        });
         if (room.isEmpty()) {
+          io.to(room.id).emit('room:closed');
           roomManager.removeRoom(room.id);
+        } else {
+          io.to(room.id).emit('room:player-left', {
+            playerId: socket.id,
+            room: room.toDetail(),
+          });
         }
       }
       console.log(`[Socket] Disconnected: ${socket.id}`);

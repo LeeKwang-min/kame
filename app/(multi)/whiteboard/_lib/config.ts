@@ -1,3 +1,16 @@
+import { TGameMeta } from '@/@types/game-meta';
+
+export const GAME_META: TGameMeta = {
+  id: 'whiteboard',
+  title: '멀티 칠판',
+  engine: 'canvas',
+  platform: 'both',
+  touchControls: 'drag',
+  orientation: 'landscape',
+  category: 'multiplayer',
+  difficulty: 'fixed',
+};
+
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
 
