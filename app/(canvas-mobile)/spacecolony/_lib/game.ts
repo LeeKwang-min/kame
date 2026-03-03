@@ -412,6 +412,73 @@ export const setupSpaceColony = (
     }
   };
 
+  // --- Mouse Events ---
+
+  const getMousePos = (e: MouseEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_SIZE / rect.width;
+    const scaleY = CANVAS_SIZE / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleMouseDown = (e: MouseEvent) => {
+    const pos = getMousePos(e);
+
+    if (!isStarted && !isLoading && !isGameOver) {
+      startGame();
+      return;
+    }
+
+    if (isPaused) {
+      isPaused = false;
+      lastTime = 0;
+      return;
+    }
+
+    if (isGameOver) {
+      const handled = gameOverHud.onTouchStart(pos.x, pos.y, calculateScore());
+      if (handled) return;
+      return;
+    }
+
+    if (!isStarted) return;
+
+    // Tab buttons
+    if (pos.y >= LAYOUT.tabAreaTop && pos.y < LAYOUT.tabAreaTop + LAYOUT.tabAreaHeight) {
+      const tabWidth = (CANVAS_SIZE - 30) / 3;
+      const tabIndex = Math.floor((pos.x - 15) / tabWidth);
+      if (tabIndex === 0) { currentTab = 'build'; listScrollOffset = 0; }
+      else if (tabIndex === 1) { currentTab = 'research'; listScrollOffset = 0; }
+      else if (tabIndex === 2) { currentTab = 'info'; listScrollOffset = 0; }
+      return;
+    }
+
+    // List area
+    if (pos.y >= LAYOUT.listAreaTop && pos.y < LAYOUT.listAreaTop + LAYOUT.listAreaHeight) {
+      if (currentTab === 'build') {
+        const rowHeight = 33;
+        const relY = pos.y - LAYOUT.listAreaTop + listScrollOffset;
+        const rowIndex = Math.floor(relY / rowHeight);
+        if (rowIndex >= 0 && rowIndex < BUILDINGS.length) {
+          buyBuilding(rowIndex);
+        }
+      } else if (currentTab === 'research') {
+        const rowHeight = 52;
+        const relY = pos.y - LAYOUT.listAreaTop + listScrollOffset;
+        const rowIndex = Math.floor(relY / rowHeight);
+        if (rowIndex >= 0 && rowIndex < TECHS.length) {
+          if (!techUnlocked[rowIndex]) {
+            selectTech(rowIndex);
+          }
+        }
+      }
+      return;
+    }
+  };
+
   // --- Touch Events ---
 
   const getTouchPos = (touch: Touch) => {
@@ -1114,10 +1181,12 @@ export const setupSpaceColony = (
   resize();
   window.addEventListener('keydown', onKeyDown);
   canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('mousedown', handleMouseDown);
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
+    canvas.removeEventListener('mousedown', handleMouseDown);
   };
 };
