@@ -404,6 +404,92 @@ export const setupStockTrader = (
     }
   };
 
+  // --- mouse ---
+
+  const getMousePos = (e: MouseEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_SIZE / rect.width;
+    const scaleY = CANVAS_SIZE / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleMouseDown = (e: MouseEvent) => {
+    const pos = getMousePos(e);
+
+    if (!isStarted && !isLoading && !isGameOver) {
+      startGame();
+      return;
+    }
+
+    if (isPaused) {
+      isPaused = false;
+      lastTime = 0;
+      return;
+    }
+
+    if (isGameOver) {
+      const handled = gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(getNetWorth()));
+      if (handled) return;
+      return;
+    }
+
+    if (!isStarted) return;
+
+    // Stock list click
+    if (
+      pos.y >= LAYOUT.stockListTop &&
+      pos.y <= LAYOUT.stockListTop + LAYOUT.stockListHeight
+    ) {
+      const padding = 10;
+      const cardW = (CANVAS_SIZE - padding * 2 - (STOCKS.length - 1) * 6) / STOCKS.length;
+      for (let i = 0; i < STOCKS.length; i++) {
+        const cx = padding + i * (cardW + 6);
+        if (pos.x >= cx && pos.x <= cx + cardW && unlockedStocks[i]) {
+          selectedStock = i;
+          return;
+        }
+      }
+      return;
+    }
+
+    // Trade area click
+    if (
+      pos.y >= LAYOUT.tradeAreaTop &&
+      pos.y <= LAYOUT.tradeAreaTop + LAYOUT.tradeAreaHeight
+    ) {
+      const padding = 10;
+      const areaW = CANVAS_SIZE - padding * 2;
+
+      // Quantity buttons row (top 35px of trade area)
+      if (pos.y < LAYOUT.tradeAreaTop + 35) {
+        const qBtnW = areaW / QUANTITIES.length;
+        for (let i = 0; i < QUANTITIES.length; i++) {
+          const qx = padding + i * qBtnW;
+          if (pos.x >= qx && pos.x <= qx + qBtnW) {
+            selectedQuantityIdx = i;
+            return;
+          }
+        }
+        return;
+      }
+
+      // Buy/Sell buttons row (bottom 40px of trade area)
+      if (pos.x < CANVAS_SIZE / 2) {
+        // Buy button
+        tradeMode = 'buy';
+        executeTrade();
+      } else {
+        // Sell button
+        tradeMode = 'sell';
+        executeTrade();
+      }
+      return;
+    }
+  };
+
   // --- touch ---
 
   const getTouchPos = (touch: Touch) => {
@@ -1123,10 +1209,12 @@ export const setupStockTrader = (
   resize();
   window.addEventListener('keydown', onKeyDown);
   canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('mousedown', handleMouseDown);
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
+    canvas.removeEventListener('mousedown', handleMouseDown);
   };
 };
