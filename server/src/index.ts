@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { config } from './config';
+import { initializeSocket, roomManager } from './socket';
 
 const app = express();
 const httpServer = createServer(app);
@@ -14,6 +15,12 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.get('/rooms/:gameType', (req, res) => {
+  const gameType = req.params.gameType as any;
+  const rooms = roomManager.getRoomsByType(gameType);
+  res.json(rooms.map((r) => r.toInfo()));
+});
+
 const io = new Server(httpServer, {
   cors: {
     origin: config.corsOrigin,
@@ -21,15 +28,8 @@ const io = new Server(httpServer, {
   },
 });
 
-io.on('connection', (socket) => {
-  console.log(`[Socket] Connected: ${socket.id}`);
-  socket.on('disconnect', () => {
-    console.log(`[Socket] Disconnected: ${socket.id}`);
-  });
-});
+initializeSocket(io);
 
 httpServer.listen(config.port, () => {
   console.log(`[Server] Running on port ${config.port}`);
 });
-
-export { io };

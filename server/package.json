@@ -2,7 +2,7 @@
   "name": "kame-server",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/index.js",
+  "main": "dist/server/src/index.js",
   "license": "MIT",
   "engines": {
     "node": ">=20"
@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/server/src/index.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
