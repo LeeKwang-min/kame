@@ -9,6 +9,7 @@ import {
   Puzzle,
   Star,
   TrendingUp,
+  Users,
   Wrench,
   Zap,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const TAB_ICONS: Record<string, LucideIcon> = {
   TrendingUp,
   Clover,
   Wrench,
+  Users,
 };
 
 const TABS = [
@@ -36,6 +38,7 @@ const TABS = [
   { id: 'Idle', iconName: 'TrendingUp', labelKey: 'idle' as const },
   { id: 'Good Luck', iconName: 'Clover', labelKey: 'goodLuck' as const },
   { id: 'Utility', iconName: 'Wrench', labelKey: 'utility' as const },
+  { id: 'Multiplayer', iconName: 'Users', labelKey: 'multiplayer' as const },
 ];
 
 interface IProps {

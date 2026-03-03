@@ -71,6 +71,7 @@ export type Locale = {
     idle: string;
     goodLuck: string;
     utility: string;
+    multiplayer: string;
   };
 };
 
@@ -147,5 +148,6 @@ export const ko: Locale = {
     idle: '아이들',
     goodLuck: '행운',
     utility: '유틸리티',
+    multiplayer: '멀티플레이',
   },
 };

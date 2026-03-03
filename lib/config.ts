@@ -507,6 +507,16 @@ export const MENU_LIST: TMenu[] = [
     href: '/wheel',
     category: 'Utility',
   },
+  // Multiplayer
+  {
+    name: {
+      kor: '멀티 칠판',
+      eng: 'Multi Whiteboard',
+    },
+    href: '/whiteboard',
+    category: 'Multiplayer',
+    platform: 'both',
+  },
 ];
 
 export const FEATURED_GAMES: TFeaturedGame[] = [
@@ -676,4 +686,5 @@ export const CATEGORY_TABS = [
   { id: 'Idle', iconName: 'TrendingUp' as const },
   { id: 'Good Luck', iconName: 'Clover' as const },
   { id: 'Utility', iconName: 'Wrench' as const },
+  { id: 'Multiplayer', iconName: 'Users' as const },
 ] as const;

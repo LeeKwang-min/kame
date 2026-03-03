@@ -73,5 +73,6 @@ export const en: Locale = {
     idle: 'Idle',
     goodLuck: 'Good Luck',
     utility: 'Utility',
+    multiplayer: 'Multiplayer',
   },
 };
