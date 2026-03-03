@@ -617,7 +617,9 @@ export const setupKRacing = (
   const renderCar = () => {
     ctx.save();
     ctx.translate(car.x, car.y);
-    ctx.rotate(car.angle);
+    // car.angle=0 means moving right; car body is drawn facing up (-Y),
+    // so rotate by +π/2 to align the visual front with movement direction.
+    ctx.rotate(car.angle + Math.PI / 2);
 
     const halfW = CAR_WIDTH / 2;
     const halfH = CAR_HEIGHT / 2;

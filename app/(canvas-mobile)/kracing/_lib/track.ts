@@ -1,8 +1,8 @@
 import {
   TRACK_CENTER_X,
   TRACK_CENTER_Y,
-  TRACK_RADIUS_X,
-  TRACK_RADIUS_Y,
+  TRACK_STRAIGHT_LENGTH,
+  TRACK_CORNER_RADIUS,
   TRACK_SEGMENTS,
   TRACK_WIDTH,
   WALL_PUSH_DISTANCE,
@@ -12,29 +12,69 @@ import { TTrackPoint } from './types';
 /**
  * Generate the track centerline as an array of waypoints.
  *
- * The ellipse is centered at (TRACK_CENTER_X, TRACK_CENTER_Y) with
- * radii TRACK_RADIUS_X and TRACK_RADIUS_Y.
+ * Shape: stadium / rounded rectangle with two straight sections
+ * and two semicircular corners.
  *
  * Direction is CLOCKWISE in screen coordinates (y-down), starting
- * from the bottom center of the ellipse.
+ * from the bottom center of the track.
  *
- * Math:
- *   angle = pi/2 - t   where t goes 0 -> 2*pi
- *   At t=0: angle=pi/2 -> (cos(pi/2), sin(pi/2)) = (0, 1) -> bottom center
- *   As t increases slightly: angle < pi/2 -> cos > 0 -> moves right
- *   So the path goes bottom -> right -> top -> left -> bottom (clockwise).
+ * Path order:
+ *   1. Bottom straight (right half): center → right
+ *   2. Right semicircle: bottom-right → top-right
+ *   3. Top straight: right → left
+ *   4. Left semicircle: top-left → bottom-left
+ *   5. Bottom straight (left half): left → center
  */
 export function generateTrackCenterline(): TTrackPoint[] {
   const points: TTrackPoint[] = [];
 
-  for (let i = 0; i < TRACK_SEGMENTS; i++) {
-    const t = (i / TRACK_SEGMENTS) * Math.PI * 2;
-    const angle = Math.PI / 2 - t;
+  const cx = TRACK_CENTER_X;
+  const cy = TRACK_CENTER_Y;
+  const hs = TRACK_STRAIGHT_LENGTH / 2;
+  const r = TRACK_CORNER_RADIUS;
 
-    points.push({
-      x: TRACK_CENTER_X + TRACK_RADIUS_X * Math.cos(angle),
-      y: TRACK_CENTER_Y + TRACK_RADIUS_Y * Math.sin(angle),
-    });
+  const curveLen = Math.PI * r;
+  const totalLen = 2 * TRACK_STRAIGHT_LENGTH + 2 * curveLen;
+
+  for (let i = 0; i < TRACK_SEGMENTS; i++) {
+    const dist = (i / TRACK_SEGMENTS) * totalLen;
+    let x: number, y: number;
+
+    const s1 = hs;
+    const s2 = s1 + curveLen;
+    const s3 = s2 + TRACK_STRAIGHT_LENGTH;
+    const s4 = s3 + curveLen;
+
+    if (dist < s1) {
+      // Bottom straight right half: (cx, cy+r) → (cx+hs, cy+r)
+      x = cx + (dist / hs) * hs;
+      y = cy + r;
+    } else if (dist < s2) {
+      // Right semicircle: clockwise from bottom to top
+      const cd = dist - s1;
+      const angle = Math.PI / 2 - (cd / curveLen) * Math.PI;
+      x = cx + hs + r * Math.cos(angle);
+      y = cy + r * Math.sin(angle);
+    } else if (dist < s3) {
+      // Top straight: (cx+hs, cy-r) → (cx-hs, cy-r)
+      const sd = dist - s2;
+      x = cx + hs - (sd / TRACK_STRAIGHT_LENGTH) * TRACK_STRAIGHT_LENGTH;
+      y = cy - r;
+    } else if (dist < s4) {
+      // Left semicircle: clockwise from top to bottom
+      const cd = dist - s3;
+      const angle = -Math.PI / 2 - (cd / curveLen) * Math.PI;
+      x = cx - hs + r * Math.cos(angle);
+      y = cy + r * Math.sin(angle);
+    } else {
+      // Bottom straight left half: (cx-hs, cy+r) → (cx, cy+r)
+      const sd = dist - s4;
+      const remaining = totalLen - s4;
+      x = cx - hs + (sd / remaining) * hs;
+      y = cy + r;
+    }
+
+    points.push({ x, y });
   }
 
   return points;

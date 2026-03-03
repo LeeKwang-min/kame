@@ -34,8 +34,8 @@ export const DRIFT_TRAIL_MAX = 60;
 export const TRACK_WIDTH = 70;
 export const TRACK_CENTER_X = 310;
 export const TRACK_CENTER_Y = 310;
-export const TRACK_RADIUS_X = 220;
-export const TRACK_RADIUS_Y = 170;
+export const TRACK_STRAIGHT_LENGTH = 200;
+export const TRACK_CORNER_RADIUS = 120;
 export const TRACK_SEGMENTS = 120;
 
 // Wall collision
