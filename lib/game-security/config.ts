@@ -2,7 +2,7 @@ import { TGameType } from '@/@types/scores';
 
 export const GAME_SECURITY_CONFIG: Record<
   TGameType,
-  { maxScore: number; minPlayTimeSeconds: number }
+  { maxScore: number; minPlayTimeSeconds: number; lowerIsBetter?: boolean }
 > = {
   // 아케이드
   dodge: { maxScore: 100000, minPlayTimeSeconds: 5 },

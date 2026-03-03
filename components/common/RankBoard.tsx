@@ -20,6 +20,7 @@ interface IProps {
   className?: string;
   showCountry?: boolean;
   isLoading?: boolean;
+  formatScore?: (score: number) => string;
 }
 
 function RankBoard({
@@ -27,6 +28,7 @@ function RankBoard({
   className,
   showCountry = false,
   isLoading = false,
+  formatScore,
 }: IProps) {
   return (
     <div className={cn('w-full max-w-md mx-auto', className)}>
@@ -84,7 +86,7 @@ function RankBoard({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-right font-mono text-arcade-text">
-                      {item.score.toLocaleString()}
+                      {formatScore ? formatScore(item.score) : item.score.toLocaleString()}
                     </td>
                   </tr>
                 ))}

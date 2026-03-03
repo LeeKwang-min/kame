@@ -91,9 +91,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const config = GAME_SECURITY_CONFIG[gameType];
+    const orderDirection = config?.lowerIsBetter ? ('asc' as const) : ('desc' as const);
+
     const scores = await prisma.score.findMany({
       where: { gameType },
-      orderBy: { score: 'desc' },
+      orderBy: { score: orderDirection },
       take: 10,
       select: {
         initials: true,
@@ -237,13 +240,18 @@ export async function POST(request: NextRequest) {
         userId: authSession.user.id,
         gameType,
       },
-      orderBy: { score: 'desc' },
+      orderBy: { score: config.lowerIsBetter ? 'asc' : 'desc' },
     });
 
     const newScoreValue = Math.floor(score);
 
-    // 기존 점수가 있고, 새 점수가 더 낮거나 같으면 저장하지 않음
-    if (existingScore && newScoreValue <= existingScore.score) {
+    // lowerIsBetter: 새 점수가 같거나 더 크면 저장 안 함 (더 빠른 시간만 저장)
+    // 일반: 새 점수가 같거나 더 작으면 저장 안 함 (더 높은 점수만 저장)
+    const isNotBetter = config.lowerIsBetter
+      ? existingScore && newScoreValue >= existingScore.score
+      : existingScore && newScoreValue <= existingScore.score;
+
+    if (isNotBetter) {
       // 세션은 사용 처리
       await prisma.gameSession.update({
         where: { id: gameSession.id },
@@ -253,8 +261,10 @@ export async function POST(request: NextRequest) {
       return Response.json(
         {
           error: 'SCORE_NOT_HIGHER',
-          message: `Your best score is ${existingScore.score}. New score must be higher to save.`,
-          currentBest: existingScore.score,
+          message: config.lowerIsBetter
+            ? `Your best time is ${existingScore!.score}ms. New time must be faster to save.`
+            : `Your best score is ${existingScore!.score}. New score must be higher to save.`,
+          currentBest: existingScore!.score,
         },
         { status: 200 },
       );
