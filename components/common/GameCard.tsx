@@ -51,6 +51,7 @@ import {
   CupSoda,
   Hexagon,
   Car,
+  Pencil,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -117,6 +118,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/kracing2': Car,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
+  '/whiteboard': Pencil,
 };
 
 interface IProps {
