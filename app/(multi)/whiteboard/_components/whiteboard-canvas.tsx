@@ -19,8 +19,8 @@ function WhiteboardCanvas({ onStroke, onClear, onUndo, remoteStrokes, myId }: TP
   const currentPointsRef = useRef<TStrokePoint[]>([]);
   const allStrokesRef = useRef<TStroke[]>([]);
 
-  const [color, setColor] = useState(COLORS[0]);
-  const [brushSize, setBrushSize] = useState(BRUSH_SIZES[1]);
+  const [color, setColor] = useState<string>(COLORS[0]);
+  const [brushSize, setBrushSize] = useState<number>(BRUSH_SIZES[1]);
 
   const redrawAll = useCallback(() => {
     const canvas = canvasRef.current;
