@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Noto_Sans, Space_Mono } from 'next/font/google';
 import './globals.css';
 import ScreenReaderInfo from '@/components/common/ScreenReaderInfo';
@@ -9,6 +9,8 @@ import { LocaleProvider } from '@/provider/LocaleProvider';
 import { ThemeProvider } from '@/provider/ThemeProvider';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/next';
+import { SITE_URL, SITE_NAME } from '@/lib/constants';
+import JsonLd from '@/components/common/JsonLd';
 
 const mono = Space_Mono({
   variable: '--font-geist-mono',
@@ -23,14 +25,22 @@ const notoSans = Noto_Sans({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#0f1729',
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://kame.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Kame - 무료 웹 게임 모음',
     template: '%s | Kame',
   },
   description:
-    'Kame에서 테트리스, 스네이크, 플래피버드 등 30개 이상의 무료 웹 게임을 즐겨보세요. 회원가입 없이 PC와 모바일에서 바로 플레이할 수 있습니다.',
+    'Kame에서 테트리스, 스네이크, 플래피버드 등 50개 이상의 무료 웹 게임을 즐겨보세요. 회원가입 없이 PC와 모바일에서 바로 플레이할 수 있습니다.',
   keywords: [
     'Kame',
     '웹 게임',
@@ -50,15 +60,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     title: 'Kame - 무료 웹 게임 모음',
-    description: '30개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요!',
-    url: 'https://kame.vercel.app',
-    siteName: 'Kame',
+    description: '50개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요!',
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: 'ko_KR',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Kame - 무료 웹 게임 모음',
-    description: '30개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요!',
+    description: '50개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요!',
   },
   robots: {
     index: true,
@@ -72,11 +82,21 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: '9oM1xvolPm8iYB1TtZJN0qd4KnZ6zON12JxnxHVsZnQ', // Google Search Console 인증 코드
+    google: '9oM1xvolPm8iYB1TtZJN0qd4KnZ6zON12JxnxHVsZnQ',
   },
   other: {
-    'naver-site-verification': '5b8437f0f4be0489bc5a5933ddc308a4f2967fb2', // 네이버 서치어드바이저 인증 코드
+    'naver-site-verification': '5b8437f0f4be0489bc5a5933ddc308a4f2967fb2',
   },
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: SITE_URL,
+  description:
+    '50개 이상의 무료 웹 게임을 브라우저에서 즐겨보세요. 회원가입 없이 PC와 모바일에서 바로 플레이할 수 있습니다.',
+  inLanguage: ['ko', 'en'],
 };
 
 export default function RootLayout({
@@ -88,6 +108,7 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body
         className={`${notoSans.className} ${notoSans.variable} ${mono.className} ${mono.variable} antialiased`}>
+        <JsonLd data={websiteJsonLd} />
         <ScreenReaderInfo />
         <ThemeProvider>
           <AuthProvider>

@@ -1,9 +1,15 @@
 import KameHeader from '@/components/common/KameHeader';
+import JsonLd from '@/components/common/JsonLd';
+import { getGameMetadata, getGameJsonLd } from '@/lib/seo';
+
+export const metadata = getGameMetadata('/spacecolony');
+const jsonLd = getGameJsonLd('/spacecolony');
 
 function SpaceColonyLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="w-full h-screen px-4 xl:px-6 py-4 flex flex-col gap-4 xl:gap-10 items-center">
-      <KameHeader title="우주 식민지" />
+      {jsonLd && <JsonLd data={jsonLd} />}
+      <KameHeader title="Space Colony" />
       <section className="w-full h-full">{children}</section>
     </main>
   );

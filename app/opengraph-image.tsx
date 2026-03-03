@@ -130,7 +130,7 @@ export default async function Image() {
             fontSize: 20,
             color: '#c4b5fd',
           }}>
-          30+ 무료 게임 | 브라우저에서 바로 플레이
+          50+ 무료 게임 | 브라우저에서 바로 플레이
         </div>
       </div>
     ),
