@@ -55,6 +55,7 @@ export const GAME_SECURITY_CONFIG: Record<
   dungeonmerchant: { maxScore: 200000000, minPlayTimeSeconds: 120 },
   stocktrader: { maxScore: 1000000000, minPlayTimeSeconds: 120 },
   spacecolony: { maxScore: 100000000, minPlayTimeSeconds: 120 },
+  superhexagon: { maxScore: 100000, minPlayTimeSeconds: 3 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

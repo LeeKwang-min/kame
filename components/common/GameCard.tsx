@@ -49,6 +49,7 @@ import {
   Spade,
   Cherry,
   CupSoda,
+  Hexagon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -110,6 +111,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/dungeonmerchant': Sword,
   '/stocktrader': TrendingUp,
   '/spacecolony': Rocket,
+  '/superhexagon': Hexagon,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

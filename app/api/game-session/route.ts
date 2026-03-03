@@ -59,6 +59,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'dungeonmerchant',
   'stocktrader',
   'spacecolony',
+  'superhexagon',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

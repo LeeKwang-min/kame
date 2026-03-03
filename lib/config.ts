@@ -183,6 +183,15 @@ export const MENU_LIST: TMenu[] = [
     href: '/downwell',
     category: 'Action',
   },
+  {
+    name: {
+      kor: '슈퍼 헥사곤',
+      eng: 'Super Hexagon',
+    },
+    href: '/superhexagon',
+    category: 'Action',
+    platform: 'both',
+  },
   // Puzzle
   {
     name: {

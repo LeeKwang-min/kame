@@ -53,7 +53,8 @@ export type TGameType =
   | 'lemonadestand'
   | 'dungeonmerchant'
   | 'stocktrader'
-  | 'spacecolony';
+  | 'spacecolony'
+  | 'superhexagon';
 
 export type TScore = {
   id: string;
