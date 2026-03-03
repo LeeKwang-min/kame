@@ -54,7 +54,8 @@ export type TGameType =
   | 'dungeonmerchant'
   | 'stocktrader'
   | 'spacecolony'
-  | 'superhexagon';
+  | 'superhexagon'
+  | 'kracing';
 
 export type TScore = {
   id: string;

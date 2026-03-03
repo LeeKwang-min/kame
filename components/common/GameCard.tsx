@@ -50,6 +50,7 @@ import {
   Cherry,
   CupSoda,
   Hexagon,
+  Car,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
@@ -112,6 +113,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/stocktrader': TrendingUp,
   '/spacecolony': Rocket,
   '/hexaspin': Hexagon,
+  '/kracing': Car,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };
@@ -145,7 +147,7 @@ function GameCard({ menu }: IProps) {
   }
 
   return (
-    <Link href={menu.href} target={menu.target ?? '_self'}>
+    <Link href={menu.href} target={menu.target ?? '_self'} aria-label={gameName}>
       <div
         className={cn(
           'group relative flex flex-col items-center justify-center',
@@ -165,6 +167,7 @@ function GameCard({ menu }: IProps) {
           )}
         />
         <Icon
+          aria-hidden="true"
           className={cn(
             'w-12 h-12 mb-2 relative z-10',
             'text-arcade-cyan/70',

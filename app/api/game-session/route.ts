@@ -60,6 +60,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'stocktrader',
   'spacecolony',
   'superhexagon',
+  'kracing',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

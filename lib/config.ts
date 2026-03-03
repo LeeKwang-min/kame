@@ -83,6 +83,15 @@ export const MENU_LIST: TMenu[] = [
     href: '/bubbleshooter',
     category: 'Arcade',
   },
+  {
+    name: {
+      kor: 'K-레이싱',
+      eng: 'K-Racing',
+    },
+    href: '/kracing',
+    category: 'Arcade',
+    platform: 'both',
+  },
   // Action
   {
     name: {
