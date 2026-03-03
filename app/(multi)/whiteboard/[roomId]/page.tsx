@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useSocket } from '@/hooks/use-socket';
 import { useIsMobile } from '@/hooks/use-mobile';
 import WhiteboardCanvas from '../_components/whiteboard-canvas';
@@ -19,6 +20,7 @@ import {
 function WhiteboardRoomPage() {
   const params = useParams<{ roomId: string }>();
   const router = useRouter();
+  const { data: session, status: authStatus } = useSession();
   const { socket, isConnected, emit, on } = useSocket();
   const isMobile = useIsMobile();
 
@@ -28,13 +30,25 @@ function WhiteboardRoomPage() {
   const joinedRef = useRef(false);
 
   useEffect(() => {
-    if (!isConnected || joinedRef.current) return;
+    if (authStatus === 'unauthenticated') {
+      router.replace('/whiteboard');
+    }
+  }, [authStatus, router]);
+
+  useEffect(() => {
+    if (!isConnected || joinedRef.current || authStatus !== 'authenticated') return;
     joinedRef.current = true;
 
-    const playerName = sessionStorage.getItem('whiteboard:playerName') || '익명';
+    const playerName =
+      sessionStorage.getItem('whiteboard:playerName') || session?.user?.name || '익명';
     emit('room:join', { roomId: params.roomId, playerName });
     emit('draw:request-sync');
-  }, [isConnected, emit, params.roomId]);
+
+    return () => {
+      emit('room:leave');
+      joinedRef.current = false;
+    };
+  }, [isConnected, emit, params.roomId, authStatus, session]);
 
   useEffect(() => {
     const offJoined = on('room:joined', (data: { room: TRoomDetail }) => {
@@ -90,12 +104,23 @@ function WhiteboardRoomPage() {
   }, [emit]);
   const handleUndo = useCallback(() => emit('draw:undo'), [emit]);
   const handleLeave = useCallback(() => {
-    emit('room:leave');
     router.push('/whiteboard');
-  }, [emit, router]);
+  }, [router]);
 
   const myId = socket.current?.id || '';
   const isHost = room ? room.hostId === myId : false;
+
+  if (authStatus === 'loading') {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-arcade-muted">로딩 중...</p>
+      </div>
+    );
+  }
+
+  if (authStatus === 'unauthenticated') {
+    return null;
+  }
 
   if (error) {
     return (
