@@ -269,6 +269,7 @@ export const setupKRacing = (
   };
 
   // --- Touch events ---
+  // 캔버스 내부 좌표 변환 (게임 오버 HUD 버튼 등에 사용)
   const getTouchPos = (touch: Touch) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = CANVAS_WIDTH / rect.width;
@@ -277,6 +278,26 @@ export const setupKRacing = (
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
     };
+  };
+
+  // 모바일 CSS rotate(90deg) 감지: 캔버스의 rect 비율로 판단
+  const isRotated = () => {
+    const rect = canvas.getBoundingClientRect();
+    // 논리 크기는 800x500(가로>세로)인데, 화면에서 세로>가로이면 회전된 상태
+    return rect.height > rect.width * 1.2;
+  };
+
+  // 게임 플레이 중 터치 방향 판단 (화면 좌표 기준)
+  const getTouchSide = (touch: Touch): 'left' | 'right' => {
+    if (isRotated()) {
+      // 모바일(90도 회전 상태): 화면 위쪽=좌회전, 아래쪽=우회전
+      const rect = canvas.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      return touch.clientY < midY ? 'left' : 'right';
+    }
+    // 데스크탑: 캔버스 좌반=좌회전, 우반=우회전
+    const pos = getTouchPos(touch);
+    return pos.x < CANVAS_WIDTH / 2 ? 'left' : 'right';
   };
 
   const updateTouchInput = () => {
@@ -315,10 +336,9 @@ export const setupKRacing = (
     // Racing / countdown: register touch zones
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
-      const pos = getTouchPos(touch);
-      const halfW = CANVAS_WIDTH / 2;
+      const side = getTouchSide(touch);
 
-      if (pos.x < halfW) {
+      if (side === 'left') {
         touches.left = true;
         touches.leftId = touch.identifier;
       } else {
