@@ -11,8 +11,9 @@ export const GAME_META: TGameMeta = {
   difficulty: 'fixed',
 };
 
-// Canvas
-export const CANVAS_SIZE = 620;
+// Canvas (가로형 — hexaspin과 동일)
+export const CANVAS_WIDTH = 800;
+export const CANVAS_HEIGHT = 500;
 
 // Car physics
 export const CAR_WIDTH = 12;
@@ -32,8 +33,8 @@ export const DRIFT_TRAIL_MAX = 60;
 
 // Track
 export const TRACK_WIDTH = 70;
-export const TRACK_CENTER_X = 310;
-export const TRACK_CENTER_Y = 310;
+export const TRACK_CENTER_X = 400;
+export const TRACK_CENTER_Y = 250;
 export const TRACK_STRAIGHT_LENGTH = 200;
 export const TRACK_CORNER_RADIUS = 120;
 export const TRACK_SEGMENTS = 120;

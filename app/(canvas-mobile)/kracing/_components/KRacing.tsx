@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { setupKRacing, TKRacingCallbacks } from '../_lib/game';
-import { CANVAS_SIZE } from '../_lib/config';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 function KRacing() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,19 +15,43 @@ function KRacing() {
   const { mutateAsync: saveScore } = useCreateScore('kracing');
   const { mutateAsync: createSession } = useGameSession('kracing');
   const isLoggedIn = !!session;
+  const isMobile = useIsMobile();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
     const container = wrapper.parentElement;
     if (!container) return;
-    const containerWidth = container.clientWidth;
-    const scale = Math.min(containerWidth / CANVAS_SIZE, 1);
-    wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.transformOrigin = 'top center';
-    // 부모가 올바른 높이를 인식하도록 wrapper의 표시 높이를 설정
-    wrapper.style.height = `${CANVAS_SIZE * scale}px`;
-  }, []);
+
+    if (isMobile) {
+      // 모바일: 90도 회전 → 800px가 세로, 500px가 가로
+      const availableWidth = container.clientWidth;
+      const availableHeight = Math.max(container.clientHeight, window.innerHeight - 56);
+
+      // 회전 후: 가로에는 CANVAS_HEIGHT(500)이, 세로에는 CANVAS_WIDTH(800)이 들어감
+      const scale = Math.min(
+        availableWidth / CANVAS_HEIGHT,
+        availableHeight / CANVAS_WIDTH,
+      );
+
+      wrapper.style.width = `${CANVAS_WIDTH}px`;
+      wrapper.style.height = `${CANVAS_HEIGHT}px`;
+      wrapper.style.transform = `rotate(90deg) scale(${scale})`;
+      wrapper.style.transformOrigin = 'center center';
+      wrapper.style.marginLeft = '';
+      wrapper.style.marginTop = '';
+    } else {
+      // 데스크탑: 가로 방향 그대로
+      const containerWidth = container.clientWidth;
+      const scale = Math.min(containerWidth / CANVAS_WIDTH, 1);
+      wrapper.style.transform = `scale(${scale})`;
+      wrapper.style.transformOrigin = 'top center';
+      wrapper.style.height = `${CANVAS_HEIGHT * scale}px`;
+      wrapper.style.width = `${CANVAS_WIDTH}px`;
+      wrapper.style.marginLeft = '';
+      wrapper.style.marginTop = '';
+    }
+  }, [isMobile]);
 
   useEffect(() => {
     updateScale();
@@ -64,15 +89,15 @@ function KRacing() {
   }, [saveScore, createSession, isLoggedIn]);
 
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full h-full flex justify-center items-center overflow-hidden">
       <div
         ref={wrapperRef}
-        style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+        style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
       >
         <canvas
           ref={canvasRef}
           className="border border-white/20 rounded-2xl shadow-lg touch-none"
-          style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
         />
       </div>
     </div>

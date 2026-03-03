@@ -38,22 +38,27 @@ function KRacingPage() {
   const { data: scores = [], isLoading } = useGetScores('kracing');
 
   return (
-    <section className="w-full h-full flex flex-col xl:flex-row gap-4 xl:gap-6 items-center xl:items-start justify-center">
-      {/* 모바일/태블릿: 햄버거 메뉴 (xl 미만에서만 표시) */}
-      <div className="xl:hidden w-full flex justify-end px-2">
+    <section className="relative w-full h-full flex flex-col xl:flex-row gap-4 xl:gap-6 items-center xl:items-start justify-center">
+      {/* 모바일: 햄버거 메뉴 (절대 위치로 공간 차지 안 함) */}
+      <div className="xl:hidden absolute top-0 right-0 z-10 px-2">
         <Sheet>
           <SheetTrigger asChild>
             <button className="p-2 rounded-lg border border-arcade-border bg-arcade-surface text-arcade-text">
               <Menu size={20} />
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="bg-arcade-bg border-arcade-border overflow-y-auto">
+          <SheetContent
+            side="right"
+            className="bg-arcade-bg border-arcade-border overflow-y-auto"
+          >
             <SheetHeader>
               <SheetTitle className="text-arcade-text">Menu</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-6 p-4">
               <div>
-                <h3 className="text-sm font-semibold text-arcade-cyan mb-2">Player</h3>
+                <h3 className="text-sm font-semibold text-arcade-cyan mb-2">
+                  Player
+                </h3>
                 {status === 'loading' ? (
                   <div className="h-9 bg-arcade-border rounded animate-pulse" />
                 ) : session?.user ? (
@@ -63,11 +68,15 @@ function KRacingPage() {
                 )}
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-arcade-cyan mb-2">Controls</h3>
+                <h3 className="text-sm font-semibold text-arcade-cyan mb-2">
+                  Controls
+                </h3>
                 <ControlInfoTable controls={controls} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-arcade-cyan mb-2">Ranking</h3>
+                <h3 className="text-sm font-semibold text-arcade-cyan mb-2">
+                  Ranking
+                </h3>
                 <RankBoard data={scores} isLoading={isLoading} showCountry formatScore={formatTimeScore} />
               </div>
             </div>
@@ -75,17 +84,17 @@ function KRacingPage() {
         </Sheet>
       </div>
 
-      {/* 데스크탑: 조작법 (xl 이상에서만 표시) */}
+      {/* 데스크탑: 조작법 */}
       <aside className="hidden xl:block shrink-0 w-72">
         <ControlInfoTable controls={controls} />
       </aside>
 
-      {/* 게임 캔버스 (항상 표시) */}
-      <div className="w-full xl:flex-1 max-w-[620px]">
+      {/* 게임 캔버스 */}
+      <div className="w-full flex-1 max-w-[800px]">
         <KRacing />
       </div>
 
-      {/* 데스크탑: 랭킹 (xl 이상에서만 표시) */}
+      {/* 데스크탑: 랭킹 */}
       <aside className="hidden xl:block shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry formatScore={formatTimeScore} />
       </aside>

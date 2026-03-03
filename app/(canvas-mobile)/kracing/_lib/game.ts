@@ -7,7 +7,8 @@ import {
   TSaveResult,
 } from '@/lib/game';
 import {
-  CANVAS_SIZE,
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
   CAR_WIDTH,
   CAR_HEIGHT,
   MAX_SPEED,
@@ -197,10 +198,10 @@ export const setupKRacing = (
   // --- DPR / Resize ---
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(CANVAS_SIZE * dpr);
-    canvas.height = Math.round(CANVAS_SIZE * dpr);
-    canvas.style.width = `${CANVAS_SIZE}px`;
-    canvas.style.height = `${CANVAS_SIZE}px`;
+    canvas.width = Math.round(CANVAS_WIDTH * dpr);
+    canvas.height = Math.round(CANVAS_HEIGHT * dpr);
+    canvas.style.width = `${CANVAS_WIDTH}px`;
+    canvas.style.height = `${CANVAS_HEIGHT}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     resetGame();
   };
@@ -270,8 +271,8 @@ export const setupKRacing = (
   // --- Touch events ---
   const getTouchPos = (touch: Touch) => {
     const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_SIZE / rect.width;
-    const scaleY = CANVAS_SIZE / rect.height;
+    const scaleX = CANVAS_WIDTH / rect.width;
+    const scaleY = CANVAS_HEIGHT / rect.height;
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
@@ -315,7 +316,7 @@ export const setupKRacing = (
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
       const pos = getTouchPos(touch);
-      const halfW = CANVAS_SIZE / 2;
+      const halfW = CANVAS_WIDTH / 2;
 
       if (pos.x < halfW) {
         touches.left = true;
@@ -522,8 +523,8 @@ export const setupKRacing = (
     // 1. Grass background (large area)
     ctx.fillStyle = COLORS.grass;
     ctx.fillRect(
-      -CANVAS_SIZE, -CANVAS_SIZE,
-      CANVAS_SIZE * 4, CANVAS_SIZE * 4,
+      -CANVAS_WIDTH * 2, -CANVAS_HEIGHT * 2,
+      CANVAS_WIDTH * 5, CANVAS_HEIGHT * 5,
     );
 
     // 2. Track asphalt: outer path -> inner path (reversed) -> fill
@@ -704,8 +705,8 @@ export const setupKRacing = (
   const renderSpeedGauge = () => {
     const gaugeW = 120;
     const gaugeH = 12;
-    const gx = CANVAS_SIZE - gaugeW - 15;
-    const gy = CANVAS_SIZE - 25;
+    const gx = CANVAS_WIDTH - gaugeW - 15;
+    const gy = CANVAS_HEIGHT - 25;
 
     // Background
     ctx.fillStyle = COLORS.speedGaugeBg;
@@ -726,7 +727,7 @@ export const setupKRacing = (
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(`${Math.floor(car.speed)} px/s`, CANVAS_SIZE - 15, gy - 3);
+    ctx.fillText(`${Math.floor(car.speed)} px/s`, CANVAS_WIDTH - 15, gy - 3);
   };
 
   const renderHudText = () => {
@@ -735,25 +736,25 @@ export const setupKRacing = (
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(formatTime(totalTime), CANVAS_SIZE / 2, 12);
+    ctx.fillText(formatTime(totalTime), CANVAS_WIDTH / 2, 12);
 
     // Lap (top right)
     ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`LAP ${Math.min(currentLap + 1, TOTAL_LAPS)}/${TOTAL_LAPS}`, CANVAS_SIZE - 15, 14);
+    ctx.fillText(`LAP ${Math.min(currentLap + 1, TOTAL_LAPS)}/${TOTAL_LAPS}`, CANVAS_WIDTH - 15, 14);
 
     // Lap times (below lap counter)
     ctx.font = '12px monospace';
     ctx.textAlign = 'right';
     for (let i = 0; i < lapTimes.length; i++) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.fillText(`L${i + 1}: ${formatTime(lapTimes[i].time)}`, CANVAS_SIZE - 15, 36 + i * 16);
+      ctx.fillText(`L${i + 1}: ${formatTime(lapTimes[i].time)}`, CANVAS_WIDTH - 15, 36 + i * 16);
     }
   };
 
   const renderCountdown = () => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     ctx.fillStyle = COLORS.countdown;
     ctx.font = 'bold 72px sans-serif';
@@ -761,9 +762,9 @@ export const setupKRacing = (
     ctx.textBaseline = 'middle';
 
     if (showGo) {
-      ctx.fillText('GO!', CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+      ctx.fillText('GO!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     } else {
-      ctx.fillText(String(countdownValue), CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+      ctx.fillText(String(countdownValue), CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     }
   };
 
@@ -790,14 +791,14 @@ export const setupKRacing = (
     const rangeY = maxY - minY;
     const padding = 40;
     const scalePreview = Math.min(
-      (CANVAS_SIZE - padding * 2) / rangeX,
-      (CANVAS_SIZE - padding * 2) / rangeY,
+      (CANVAS_WIDTH - padding * 2) / rangeX,
+      (CANVAS_HEIGHT - padding * 2) / rangeY,
     );
 
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+    ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     ctx.scale(scalePreview, scalePreview);
     ctx.translate(-centerX, -centerY);
 
@@ -808,11 +809,11 @@ export const setupKRacing = (
   };
 
   const render = () => {
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Background
     ctx.fillStyle = COLORS.background;
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     if (state === 'start' || state === 'loading') {
       // Show track preview
@@ -822,7 +823,7 @@ export const setupKRacing = (
 
     // Camera transform: car at center of canvas
     ctx.save();
-    ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+    ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
     ctx.translate(-car.x, -car.y);
 
