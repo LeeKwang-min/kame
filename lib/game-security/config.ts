@@ -57,6 +57,7 @@ export const GAME_SECURITY_CONFIG: Record<
   spacecolony: { maxScore: 100000000, minPlayTimeSeconds: 120 },
   superhexagon: { maxScore: 100000, minPlayTimeSeconds: 3 },
   kracing: { maxScore: 600000, minPlayTimeSeconds: 10, lowerIsBetter: true },
+  kracing2: { maxScore: 600000, minPlayTimeSeconds: 10, lowerIsBetter: true },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },

@@ -92,6 +92,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Arcade',
     platform: 'both',
   },
+  {
+    name: {
+      kor: 'K-레이싱 2',
+      eng: 'K-Racing 2',
+    },
+    href: '/kracing2',
+    category: 'Arcade',
+    platform: 'both',
+  },
   // Action
   {
     name: {

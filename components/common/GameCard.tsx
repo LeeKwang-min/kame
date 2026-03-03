@@ -114,6 +114,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/spacecolony': Rocket,
   '/hexaspin': Hexagon,
   '/kracing': Car,
+  '/kracing2': Car,
   '/ladder': Sparkles,
   '/wheel': CircleDot,
 };

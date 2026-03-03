@@ -62,6 +62,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'spacecolony',
   'superhexagon',
   'kracing',
+  'kracing2',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
