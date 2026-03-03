@@ -47,6 +47,14 @@ export function registerRoomHandlers(
       socket.emit('room:error', { message: '방을 찾을 수 없습니다.' });
       return;
     }
+
+    // Rejoin: player already in this room (e.g., page refresh with singleton socket)
+    if (room.players.has(socket.id)) {
+      socket.join(room.id);
+      socket.emit('room:joined', { room: room.toDetail() });
+      return;
+    }
+
     if (room.state !== 'waiting') {
       socket.emit('room:error', { message: '이미 게임이 진행 중입니다.' });
       return;

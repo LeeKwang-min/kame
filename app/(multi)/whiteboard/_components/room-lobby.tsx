@@ -55,22 +55,26 @@ function RoomLobby() {
   }, [on, router]);
 
   const handleCreateRoom = useCallback(() => {
-    if (!playerName.trim()) return;
+    const name = playerName.trim();
+    if (!name) return;
     setIsCreating(true);
+    sessionStorage.setItem('whiteboard:playerName', name);
     emit('room:create', {
       gameType: 'whiteboard',
-      playerName: playerName.trim(),
+      playerName: name,
       maxPlayers: MAX_PLAYERS,
     });
   }, [playerName, emit]);
 
   const handleJoinRoom = useCallback(
     (roomId: string) => {
-      if (!playerName.trim()) {
+      const name = playerName.trim();
+      if (!name) {
         alert('이름을 입력해주세요.');
         return;
       }
-      emit('room:join', { roomId, playerName: playerName.trim() });
+      sessionStorage.setItem('whiteboard:playerName', name);
+      emit('room:join', { roomId, playerName: name });
     },
     [playerName, emit]
   );

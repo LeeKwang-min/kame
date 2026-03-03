@@ -29,11 +29,17 @@ function WhiteboardRoomPage() {
 
   useEffect(() => {
     if (!isConnected || joinedRef.current) return;
-    emit('draw:request-sync');
     joinedRef.current = true;
-  }, [isConnected, emit]);
+
+    const playerName = sessionStorage.getItem('whiteboard:playerName') || '익명';
+    emit('room:join', { roomId: params.roomId, playerName });
+    emit('draw:request-sync');
+  }, [isConnected, emit, params.roomId]);
 
   useEffect(() => {
+    const offJoined = on('room:joined', (data: { room: TRoomDetail }) => {
+      setRoom(data.room);
+    });
     const offStroke = on('draw:stroke', (stroke: TStroke) => {
       setStrokes((prev) => [...prev, stroke]);
     });
@@ -64,6 +70,7 @@ function WhiteboardRoomPage() {
     });
 
     return () => {
+      offJoined();
       offStroke();
       offSync();
       offClear();
@@ -80,7 +87,6 @@ function WhiteboardRoomPage() {
   );
   const handleClear = useCallback(() => {
     emit('draw:clear');
-    setStrokes([]);
   }, [emit]);
   const handleUndo = useCallback(() => emit('draw:undo'), [emit]);
   const handleLeave = useCallback(() => {
