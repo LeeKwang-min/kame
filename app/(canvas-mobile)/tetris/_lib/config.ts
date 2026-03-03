@@ -3,7 +3,7 @@ import { TTetrominoType } from './types';
 
 export const GAME_META: TGameMeta = {
   id: 'tetris',
-  title: 'Tetris',
+  title: 'Tetrix',
   engine: 'canvas',
   platform: 'both',
   touchControls: 'swipe',

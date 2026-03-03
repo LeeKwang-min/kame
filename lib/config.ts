@@ -4,8 +4,8 @@ export const MENU_LIST: TMenu[] = [
   // Arcade
   {
     name: {
-      kor: '테트리스',
-      eng: 'Tetris',
+      kor: '테트릭스',
+      eng: 'Tetrix',
     },
     href: '/tetris',
     category: 'Arcade',
@@ -21,8 +21,8 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '팩맨',
-      eng: 'Pac-Man',
+      kor: '팩 메이즈',
+      eng: 'Pac Maze',
     },
     href: '/pacman',
     category: 'Arcade',
@@ -38,7 +38,7 @@ export const MENU_LIST: TMenu[] = [
   {
     name: {
       kor: '벽돌 깨기',
-      eng: 'Breakout',
+      eng: 'Brick Out',
     },
     href: '/breakout',
     category: 'Arcade',
@@ -46,7 +46,7 @@ export const MENU_LIST: TMenu[] = [
   {
     name: {
       kor: '탁구',
-      eng: 'Pong',
+      eng: 'Paddle Rally',
     },
     href: '/pong',
     category: 'Arcade',
@@ -61,16 +61,16 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '스페이스 인베이더',
-      eng: 'Space Invaders',
+      kor: '스페이스 레이더',
+      eng: 'Space Raiders',
     },
     href: '/spaceinvaders',
     category: 'Arcade',
   },
   {
     name: {
-      kor: '미사일 커맨드',
-      eng: 'Missile Command',
+      kor: '미사일 가드',
+      eng: 'Missile Guard',
     },
     href: '/missilecommand',
     category: 'Arcade',
@@ -95,8 +95,8 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '플래피 버드',
-      eng: 'Flappy Bird',
+      kor: '플래피 윙즈',
+      eng: 'Flappy Wings',
     },
     href: '/flappybird',
     category: 'Action',
@@ -111,24 +111,24 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '두들 점프',
-      eng: 'Doodle Jump',
+      kor: '두들 홉',
+      eng: 'Doodle Hop',
     },
     href: '/doodle',
     category: 'Action',
   },
   {
     name: {
-      kor: '길건너 친구들',
-      eng: 'Crossy Road',
+      kor: '길건너기',
+      eng: 'Road Cross',
     },
     href: '/crossyroad',
     category: 'Action',
   },
   {
     name: {
-      kor: '무한의 계단',
-      eng: 'Infinite Stairs',
+      kor: '끝없는 계단',
+      eng: 'Endless Stairs',
     },
     href: '/stairs',
     category: 'Action',
@@ -177,16 +177,16 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '다운웰',
-      eng: 'Downwell',
+      kor: '드롭 웰',
+      eng: 'Drop Well',
     },
     href: '/downwell',
     category: 'Action',
   },
   {
     name: {
-      kor: '슈퍼 헥사곤',
-      eng: 'Super Hexagon',
+      kor: '헥사 스핀',
+      eng: 'Hexa Spin',
     },
     href: '/superhexagon',
     category: 'Action',
@@ -269,8 +269,8 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '뿌요뿌요',
-      eng: 'Puyo Puyo',
+      kor: '젤리 팝',
+      eng: 'Jelly Pop',
     },
     href: '/puyopuyo',
     category: 'Puzzle',
@@ -401,8 +401,8 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '후르츠 닌자',
-      eng: 'Fruit Ninja',
+      kor: '후르츠 슬래시',
+      eng: 'Fruit Slash',
     },
     href: '/fruitninja',
     category: 'Reflex',
@@ -417,8 +417,8 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
-      kor: '사이먼',
-      eng: 'Simon',
+      kor: '컬러 메모리',
+      eng: 'Color Memory',
     },
     href: '/simon',
     category: 'Reflex',

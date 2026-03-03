@@ -2,7 +2,7 @@ import { TGameMeta } from '@/@types/game-meta';
 
 export const GAME_META: TGameMeta = {
   id: 'stairs',
-  title: '무한의 계단',
+  title: '끝없는 계단',
   engine: 'canvas',
   platform: 'both',
   touchControls: 'tap',

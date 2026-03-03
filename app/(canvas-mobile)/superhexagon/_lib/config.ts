@@ -2,7 +2,7 @@ import { TGameMeta } from '@/@types/game-meta';
 
 export const GAME_META: TGameMeta = {
   id: 'superhexagon',
-  title: 'Super Hexagon',
+  title: 'Hexa Spin',
   engine: 'canvas',
   platform: 'both',
   touchControls: 'tap',

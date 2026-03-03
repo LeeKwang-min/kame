@@ -44,7 +44,7 @@ import { Metadata } from 'next';
 function MissileCommandLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="w-full h-screen px-6 py-4 flex flex-col gap-10 items-center">
-      <KameHeader title="Missile Command" />
+      <KameHeader title="Missile Guard" />
       <section className="w-full h-full">{children}</section>
     </main>
   );
