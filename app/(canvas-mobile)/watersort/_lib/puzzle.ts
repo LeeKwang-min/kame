@@ -148,63 +148,47 @@ export function isSolved(bottles: TBottle[]): boolean {
 }
 
 /**
- * Generate a solvable puzzle for the given level.
- * Creates a solved state, then randomly shuffles by applying valid moves
- * in reverse. Guarantees solvability since every shuffle move is reversible.
+ * Generate a puzzle for the given level.
+ * Uses Fisher-Yates shuffle to randomly distribute colors across bottles.
+ * With n colors + 2 empty bottles (4 slots each), virtually all random
+ * configurations are solvable.
  */
 export function generatePuzzle(level: number): TBottle[] {
   const numColors = getColorsForLevel(level);
   const totalBottles = getBottleCountForLevel(level);
 
-  function create(): TBottle[] {
-    // Build solved state: each color fills one bottle, plus empty bottles
-    const bottles: TBottle[] = [];
-    for (let c = 0; c < numColors; c++) {
-      bottles.push({
-        colors: Array(SLOTS_PER_BOTTLE).fill(c),
-      });
+  // Create flat array: each color appears SLOTS_PER_BOTTLE times
+  const allColors: number[] = [];
+  for (let c = 0; c < numColors; c++) {
+    for (let s = 0; s < SLOTS_PER_BOTTLE; s++) {
+      allColors.push(c);
     }
-    // Add empty bottles
-    for (let i = 0; i < totalBottles - numColors; i++) {
-      bottles.push({
-        colors: Array(SLOTS_PER_BOTTLE).fill(null),
-      });
-    }
-
-    // Shuffle by applying random valid moves
-    const shuffleMoves = 20 + level * 10;
-    let lastTo = -1;
-
-    for (let m = 0; m < shuffleMoves; m++) {
-      // Collect all valid moves
-      const validMoves: { from: number; to: number }[] = [];
-      for (let i = 0; i < totalBottles; i++) {
-        for (let j = 0; j < totalBottles; j++) {
-          if (i === j) continue;
-          // Avoid immediately reversing the last move
-          if (i === lastTo) continue;
-          if (isValidMove(bottles, i, j)) {
-            validMoves.push({ from: i, to: j });
-          }
-        }
-      }
-
-      if (validMoves.length === 0) break;
-
-      const chosen = validMoves[Math.floor(Math.random() * validMoves.length)];
-      executeMove(bottles, chosen.from, chosen.to);
-      lastTo = chosen.to;
-    }
-
-    return bottles;
   }
 
-  // Regenerate if result is still in solved state
-  let bottles = create();
-  let attempts = 0;
-  while (isSolved(bottles) && attempts < 100) {
-    bottles = create();
-    attempts++;
+  // Fisher-Yates shuffle
+  for (let i = allColors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allColors[i], allColors[j]] = [allColors[j], allColors[i]];
+  }
+
+  // Distribute into bottles
+  const bottles: TBottle[] = [];
+  for (let b = 0; b < numColors; b++) {
+    bottles.push({
+      colors: allColors.slice(b * SLOTS_PER_BOTTLE, (b + 1) * SLOTS_PER_BOTTLE),
+    });
+  }
+
+  // Add empty bottles
+  for (let b = 0; b < totalBottles - numColors; b++) {
+    bottles.push({
+      colors: Array(SLOTS_PER_BOTTLE).fill(null),
+    });
+  }
+
+  // Extremely unlikely but re-shuffle if already solved
+  if (isSolved(bottles)) {
+    return generatePuzzle(level);
   }
 
   return bottles;
