@@ -25,18 +25,18 @@ export const getColorsForLevel = (level: number): number =>
 export const getBottleCountForLevel = (level: number): number =>
   getColorsForLevel(level) + EXTRA_BOTTLES;
 
-// 색상 팔레트 (최대 10색) - 고채도, 명확한 구분
+// 색상 팔레트 (최대 10색) - 원색 기반, 명확한 구분
 export const COLORS = [
-  '#E74C3C', // 빨강
-  '#2980B9', // 파랑
-  '#27AE60', // 초록
-  '#F39C12', // 주황
-  '#8E44AD', // 보라
+  '#E53535', // 빨강
+  '#FF8C00', // 주황
+  '#FFD600', // 노랑
+  '#2DB539', // 초록
+  '#2979FF', // 파랑
+  '#00BCD4', // 남색 (시안)
+  '#9C27B0', // 보라
+  '#222222', // 검정
   '#E91E8B', // 핑크
-  '#16A085', // 청록
-  '#F1C40F', // 노랑
-  '#E67E22', // 진한 주황 (갈색)
-  '#1ABC9C', // 민트
+  '#8D6E3F', // 갈색
 ];
 
 // 비커 렌더링 상수
