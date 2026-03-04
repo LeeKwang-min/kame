@@ -363,24 +363,24 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
-  {
-    name: {
-      kor: '쿠키 공장',
-      eng: 'Cookie Bakery',
-    },
-    href: '/cookiebakery',
-    category: 'Idle',
-    platform: 'both',
-  },
-  {
-    name: {
-      kor: '레모네이드 가판대',
-      eng: 'Lemonade Stand',
-    },
-    href: '/lemonadestand',
-    category: 'Idle',
-    platform: 'both',
-  },
+  // {
+  //   name: {
+  //     kor: '쿠키 공장',
+  //     eng: 'Cookie Bakery',
+  //   },
+  //   href: '/cookiebakery',
+  //   category: 'Idle',
+  //   platform: 'both',
+  // },
+  // {
+  //   name: {
+  //     kor: '레모네이드 가판대',
+  //     eng: 'Lemonade Stand',
+  //   },
+  //   href: '/lemonadestand',
+  //   category: 'Idle',
+  //   platform: 'both',
+  // },
   {
     name: {
       kor: '던전 상인',
@@ -399,15 +399,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Idle',
     platform: 'both',
   },
-  {
-    name: {
-      kor: '우주 식민지',
-      eng: 'Space Colony',
-    },
-    href: '/spacecolony',
-    category: 'Idle',
-    platform: 'both',
-  },
+  // {
+  //   name: {
+  //     kor: '우주 식민지',
+  //     eng: 'Space Colony',
+  //   },
+  //   href: '/spacecolony',
+  //   category: 'Idle',
+  //   platform: 'both',
+  // },
   // Reflex
   {
     name: {
