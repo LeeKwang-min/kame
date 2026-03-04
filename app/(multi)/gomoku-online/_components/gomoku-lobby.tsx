@@ -23,7 +23,9 @@ function GomokuLobby() {
       try {
         const url = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000';
         const res = await fetch(`${url}/rooms/${GAME_TYPE}`);
+        if (!res.ok) return;
         const data = await res.json();
+        if (!Array.isArray(data)) return;
         setRooms(data);
       } catch {
         // server not connected
