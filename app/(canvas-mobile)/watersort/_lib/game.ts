@@ -375,7 +375,12 @@ export function setupWaterSort(
   // --- Rendering ---
 
   function drawBackground() {
-    ctx.fillStyle = '#1a1a2e';
+    // 따뜻한 크림/베이지 그라데이션
+    const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    grad.addColorStop(0, '#FFF5E6');
+    grad.addColorStop(0.5, '#FDEBD0');
+    grad.addColorStop(1, '#F5CBA7');
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
@@ -383,20 +388,20 @@ export function setupWaterSort(
     ctx.save();
 
     // Level indicator (center top)
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = '#5D4037';
     ctx.font = 'bold 22px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`Level ${level}`, CANVAS_WIDTH / 2, 28);
 
     // Undo button (left top)
-    const undoAlpha = moveHistory.length > 0 ? 1 : 0.4;
-    ctx.fillStyle = `rgba(255, 255, 255, ${undoAlpha * 0.15})`;
+    const undoAlpha = moveHistory.length > 0 ? 1 : 0.35;
+    ctx.fillStyle = `rgba(93, 64, 55, ${undoAlpha * 0.12})`;
     ctx.beginPath();
-    ctx.roundRect(UNDO_BUTTON.x, UNDO_BUTTON.y, UNDO_BUTTON.w, UNDO_BUTTON.h, 6);
+    ctx.roundRect(UNDO_BUTTON.x, UNDO_BUTTON.y, UNDO_BUTTON.w, UNDO_BUTTON.h, 8);
     ctx.fill();
 
-    ctx.fillStyle = `rgba(255, 255, 255, ${undoAlpha})`;
+    ctx.fillStyle = `rgba(93, 64, 55, ${undoAlpha})`;
     ctx.font = '14px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -407,12 +412,12 @@ export function setupWaterSort(
     );
 
     // Skip button (right top)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillStyle = 'rgba(93, 64, 55, 0.12)';
     ctx.beginPath();
-    ctx.roundRect(SKIP_BUTTON.x, SKIP_BUTTON.y, SKIP_BUTTON.w, SKIP_BUTTON.h, 6);
+    ctx.roundRect(SKIP_BUTTON.x, SKIP_BUTTON.y, SKIP_BUTTON.w, SKIP_BUTTON.h, 8);
     ctx.fill();
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+    ctx.fillStyle = 'rgba(93, 64, 55, 1)';
     ctx.font = '14px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -423,6 +428,16 @@ export function setupWaterSort(
     );
 
     ctx.restore();
+  }
+
+  function drawBottlePath(x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y + h - r);
+    ctx.arcTo(x, y + h, x + r, y + h, r);
+    ctx.lineTo(x + w - r, y + h);
+    ctx.arcTo(x + w, y + h, x + w, y + h - r, r);
+    ctx.lineTo(x + w, y);
   }
 
   function drawBottle(index: number) {
@@ -439,18 +454,25 @@ export function setupWaterSort(
 
     ctx.save();
 
-    // Bottle outline (U-shape: open top)
-    ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = isSelected ? 3 : 2;
-    ctx.beginPath();
-    // Start from top-left, go down, round bottom-left, across bottom, round bottom-right, go up
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, y + h - r);
-    ctx.arcTo(x, y + h, x + r, y + h, r);
-    ctx.lineTo(x + w - r, y + h);
-    ctx.arcTo(x + w, y + h, x + w, y + h - r, r);
-    ctx.lineTo(x + w, y);
-    ctx.stroke();
+    // Soft shadow under bottle
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 4;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    drawBottlePath(x, y, w, h, r);
+    ctx.lineTo(x, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Glass-like bottle fill
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    drawBottlePath(x, y, w, h, r);
+    ctx.lineTo(x, y);
+    ctx.closePath();
+    ctx.fill();
 
     // Draw water slots (bottom-up: index 0 is bottom)
     const innerW = w - pad * 2;
@@ -466,7 +488,7 @@ export function setupWaterSort(
       ctx.fillStyle = COLORS[colorIdx];
 
       if (i === 0) {
-        // Bottom slot: rounded bottom corners matching bottle
+        // Bottom slot: rounded bottom corners
         const innerR = Math.max(r - pad, 2);
         ctx.beginPath();
         ctx.moveTo(slotX, slotY);
@@ -484,24 +506,35 @@ export function setupWaterSort(
         ctx.closePath();
         ctx.fill();
       } else {
-        // Regular slot: simple rectangle
         ctx.fillRect(slotX, slotY, innerW, SLOT_HEIGHT);
       }
+
+      // Light highlight on left side of each water slot
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fillRect(slotX, slotY, 4, SLOT_HEIGHT);
     }
+
+    // Bottle outline (U-shape)
+    ctx.strokeStyle = isSelected ? '#E67E22' : 'rgba(160, 130, 100, 0.5)';
+    ctx.lineWidth = isSelected ? 3 : 1.5;
+    drawBottlePath(x, y, w, h, r);
+    ctx.stroke();
+
+    // Glass highlight (thin white line on left)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 3, y + 4);
+    ctx.lineTo(x + 3, y + h - r - 4);
+    ctx.stroke();
 
     // Selected glow effect
     if (isSelected) {
-      ctx.shadowColor = '#FFD700';
-      ctx.shadowBlur = 12;
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x, y + h - r);
-      ctx.arcTo(x, y + h, x + r, y + h, r);
-      ctx.lineTo(x + w - r, y + h);
-      ctx.arcTo(x + w, y + h, x + w, y + h - r, r);
-      ctx.lineTo(x + w, y);
+      ctx.shadowColor = '#E67E22';
+      ctx.shadowBlur = 16;
+      ctx.strokeStyle = '#E67E22';
+      ctx.lineWidth = 2.5;
+      drawBottlePath(x, y, w, h, r);
       ctx.stroke();
       ctx.shadowBlur = 0;
     }
@@ -518,15 +551,9 @@ export function setupWaterSort(
   function drawLevelClearOverlay(progress: number) {
     ctx.save();
 
-    // Semi-transparent background
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * Math.min(progress * 2, 1)})`;
+    // Warm semi-transparent overlay
+    ctx.fillStyle = `rgba(255, 248, 230, ${0.7 * Math.min(progress * 2, 1)})`;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // Gold text
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 42px sans-serif';
 
     // Scale-in animation
     const scale = Math.min(progress * 3, 1);
@@ -535,6 +562,16 @@ export function setupWaterSort(
 
     ctx.translate(cx, cy);
     ctx.scale(scale, scale);
+
+    // Text shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Level Clear!', 2, 2);
+
+    // Main text
+    ctx.fillStyle = '#E67E22';
     ctx.fillText('Level Clear!', 0, 0);
 
     ctx.restore();
