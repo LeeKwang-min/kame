@@ -144,6 +144,11 @@ export const setupStockTrader = (
     return worth;
   };
 
+  const calculateFinalScore = (): number => {
+    const profit = getNetWorth() - STARTING_CAPITAL;
+    return Math.min(99999, Math.max(0, Math.floor(profit)));
+  };
+
   const getPortfolioValue = (): number => {
     let val = 0;
     for (let i = 0; i < STOCKS.length; i++) {
@@ -362,7 +367,7 @@ export const setupStockTrader = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(getNetWorth()));
+      const handled = gameOverHud.onKeyDown(e, calculateFinalScore());
       if (handled) return;
     }
 
@@ -429,7 +434,7 @@ export const setupStockTrader = (
     }
 
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(getNetWorth()));
+      gameOverHud.onTouchStart(pos.x, pos.y, calculateFinalScore());
       return;
     }
 
@@ -1102,7 +1107,7 @@ export const setupStockTrader = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(getNetWorth()));
+      gameOverHud.render(calculateFinalScore());
       return;
     }
 

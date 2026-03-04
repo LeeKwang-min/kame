@@ -407,7 +407,7 @@ export const setupDungeonMerchant = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(totalGoldEarned));
+      const handled = gameOverHud.onKeyDown(e, Math.min(99999, Math.floor(totalGoldEarned)));
       if (handled) return;
     }
 
@@ -464,7 +464,7 @@ export const setupDungeonMerchant = (
     }
 
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
+      gameOverHud.onTouchStart(pos.x, pos.y, Math.min(99999, Math.floor(totalGoldEarned)));
       return;
     }
 
@@ -1205,7 +1205,7 @@ export const setupDungeonMerchant = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(totalGoldEarned));
+      gameOverHud.render(Math.min(99999, Math.floor(totalGoldEarned)));
       return;
     }
 

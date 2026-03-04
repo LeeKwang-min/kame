@@ -55,6 +55,11 @@ function formatGold(n: number): string {
   return Math.floor(n).toString();
 }
 
+function calculateFinalScore(rawGold: number): number {
+  if (rawGold <= 0) return 0;
+  return Math.min(99999, Math.floor(Math.log2(rawGold + 1) * 2500));
+}
+
 export const setupTapEmpire = (
   canvas: HTMLCanvasElement,
   callbacks?: TTapEmpireCallbacks,
@@ -279,7 +284,7 @@ export const setupTapEmpire = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(totalGold));
+      const handled = gameOverHud.onKeyDown(e, calculateFinalScore(totalGold));
       if (handled) return;
     }
 
@@ -338,7 +343,7 @@ export const setupTapEmpire = (
 
     // 게임 오버 상태: SAVE/SKIP/재시작 처리
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGold));
+      gameOverHud.onTouchStart(pos.x, pos.y, calculateFinalScore(totalGold));
       return;
     }
 
@@ -763,7 +768,7 @@ export const setupTapEmpire = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(totalGold));
+      gameOverHud.render(calculateFinalScore(totalGold));
       return;
     }
 
