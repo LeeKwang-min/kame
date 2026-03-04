@@ -357,6 +357,15 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
+      kor: '오목',
+      eng: 'Gomoku',
+    },
+    href: '/gomoku',
+    category: 'Puzzle',
+    platform: 'both',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },

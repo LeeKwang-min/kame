@@ -121,6 +121,7 @@ export const GAME_ICONS: Record<string, LucideIcon> = {
   '/wheel': CircleDot,
   '/whiteboard': Pencil,
   '/watersort': Droplets,
+  '/gomoku': CircleDot,
 };
 
 interface IProps {
