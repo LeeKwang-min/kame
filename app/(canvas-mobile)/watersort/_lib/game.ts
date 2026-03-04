@@ -68,20 +68,6 @@ export function setupWaterSort(
 
   // === Animation state ===
 
-  // Pour animation
-  type TPourAnim = {
-    fromIdx: number;
-    toIdx: number;
-    color: number;
-    count: number;
-    phase: 'rise' | 'arc' | 'fill';
-    progress: number; // 0-1 within current phase
-    slotsRemovedFrom: number; // how many slots were at top of source before pour
-    slotsFilledTo: number; // how many slots were filled in target before pour
-  };
-  let pourAnim: TPourAnim | null = null;
-  const POUR_SPEED = 3.5; // phases per second
-
   // Bounce animation for selected bottle
   let bounceTime = 0;
 
@@ -131,7 +117,6 @@ export function setupWaterSort(
     lastTime = 0;
     gameTime = 0;
     levelClearTimer = 0;
-    pourAnim = null;
     particles = [];
     bounceTime = 0;
     gameOverHud.reset();
@@ -143,7 +128,6 @@ export function setupWaterSort(
     moveHistory = [];
     selectedBottle = -1;
     levelClearTimer = 0;
-    pourAnim = null;
     particles = [];
   }
 
@@ -216,68 +200,13 @@ export function setupWaterSort(
     return px >= btn.x && px <= btn.x + btn.w && py >= btn.y && py <= btn.y + btn.h;
   }
 
-  // === Pour animation helpers ===
+  // === Helpers ===
 
   function topIndex(bottle: TBottle): number {
     for (let i = SLOTS_PER_BOTTLE - 1; i >= 0; i--) {
       if (bottle.colors[i] !== null) return i;
     }
     return -1;
-  }
-
-  function topConsecutiveCount(bottle: TBottle): number {
-    const idx = topIndex(bottle);
-    if (idx === -1) return 0;
-    const color = bottle.colors[idx];
-    let count = 1;
-    for (let i = idx - 1; i >= 0; i--) {
-      if (bottle.colors[i] === color) count++;
-      else break;
-    }
-    return count;
-  }
-
-  function emptySlots(bottle: TBottle): number {
-    return bottle.colors.filter((c) => c === null).length;
-  }
-
-  function startPourAnimation(fromIdx: number, toIdx: number) {
-    const source = bottles[fromIdx];
-    const target = bottles[toIdx];
-    const color = source.colors[topIndex(source)]!;
-    const consecutive = topConsecutiveCount(source);
-    const space = emptySlots(target);
-    const count = Math.min(consecutive, space);
-    const slotsRemovedFrom = topIndex(source) + 1; // total filled before removal
-    const slotsFilledTo = SLOTS_PER_BOTTLE - emptySlots(target); // filled count in target
-
-    pourAnim = {
-      fromIdx,
-      toIdx,
-      color,
-      count,
-      phase: 'rise',
-      progress: 0,
-      slotsRemovedFrom,
-      slotsFilledTo,
-    };
-  }
-
-  function finishPour() {
-    if (!pourAnim) return;
-    // Actually execute the move on data
-    const move = executeMove(bottles, pourAnim.fromIdx, pourAnim.toIdx);
-    if (move) {
-      moveHistory.push(move);
-    }
-    pourAnim = null;
-    selectedBottle = -1;
-
-    if (isSolved(bottles)) {
-      state = 'levelclear';
-      levelClearTimer = 0;
-      spawnClearParticles();
-    }
   }
 
   // === Particles ===
@@ -304,7 +233,7 @@ export function setupWaterSort(
   // === Game actions ===
 
   function handleBottleClick(index: number) {
-    if (state !== 'playing' || pourAnim) return;
+    if (state !== 'playing') return;
 
     if (selectedBottle === -1) {
       const bottle = bottles[index];
@@ -317,7 +246,17 @@ export function setupWaterSort(
       selectedBottle = -1;
     } else {
       if (isValidMove(bottles, selectedBottle, index)) {
-        startPourAnimation(selectedBottle, index);
+        const move = executeMove(bottles, selectedBottle, index);
+        if (move) {
+          moveHistory.push(move);
+          selectedBottle = -1;
+
+          if (isSolved(bottles)) {
+            state = 'levelclear';
+            levelClearTimer = 0;
+            spawnClearParticles();
+          }
+        }
       } else {
         const bottle = bottles[index];
         const hasContent = bottle.colors.some((c) => c !== null);
@@ -332,7 +271,7 @@ export function setupWaterSort(
   }
 
   function handleUndo() {
-    if (state !== 'playing' || pourAnim) return;
+    if (state !== 'playing') return;
     if (moveHistory.length === 0) return;
     const lastMove = moveHistory.pop()!;
     undoMove(bottles, lastMove);
@@ -340,7 +279,7 @@ export function setupWaterSort(
   }
 
   function handleSkip() {
-    if (state !== 'playing' || pourAnim) return;
+    if (state !== 'playing') return;
     startLevel(level);
   }
 
@@ -377,7 +316,7 @@ export function setupWaterSort(
     }
 
     if (e.code === 'KeyP') {
-      if (state === 'playing' && !pourAnim) {
+      if (state === 'playing') {
         state = 'paused';
       }
       return;
@@ -486,7 +425,7 @@ export function setupWaterSort(
   function drawBottle(index: number) {
     const bottle = bottles[index];
     const rect = getBottleRect(index);
-    const isSelected = selectedBottle === index && !pourAnim;
+    const isSelected = selectedBottle === index;
 
     const x = rect.x;
     // Bounce animation for selected bottle
@@ -527,19 +466,9 @@ export function setupWaterSort(
     const innerW = w - pad * 2;
     const slotGap = 2;
 
-    // During pour animation, skip rendering slots being animated
-    const isPourSource = pourAnim && pourAnim.fromIdx === index;
-    const isPourTarget = pourAnim && pourAnim.toIdx === index;
-
     for (let i = 0; i < SLOTS_PER_BOTTLE; i++) {
       const colorIdx = bottle.colors[i];
       if (colorIdx === null) continue;
-
-      // If pouring from this bottle, hide top slots that are being animated
-      if (isPourSource && pourAnim) {
-        const srcTop = topIndex(bottle);
-        if (i > srcTop - pourAnim.count && i <= srcTop) continue;
-      }
 
       const slotY = y + h - pad - (i + 1) * SLOT_HEIGHT - i * slotGap;
       const slotX = x + pad;
@@ -563,7 +492,7 @@ export function setupWaterSort(
       } else {
         // Top-most filled slot gets wobble on its top edge
         const isTopSlot = i === topIndex(bottle);
-        if (isTopSlot && !isPourSource) {
+        if (isTopSlot) {
           ctx.beginPath();
           // Wavy top edge
           ctx.moveTo(slotX, slotY + SLOT_HEIGHT);
@@ -618,88 +547,6 @@ export function setupWaterSort(
     }
   }
 
-  // === Pour animation rendering ===
-
-  function drawPourAnimation() {
-    if (!pourAnim) return;
-
-    const fromRect = getBottleRect(pourAnim.fromIdx);
-    const toRect = getBottleRect(pourAnim.toIdx);
-    const pad = BOTTLE_INNER_PADDING;
-    const slotGap = 2;
-
-    const color = COLORS[pourAnim.color];
-
-    // Source bottle top position (where water rises from)
-    const srcTopSlotIdx = pourAnim.slotsRemovedFrom - 1; // 0-based index of top slot
-    const srcX = fromRect.x + pad;
-    const srcY = fromRect.y + fromRect.h - pad - (srcTopSlotIdx + 1) * SLOT_HEIGHT - srcTopSlotIdx * slotGap;
-    const innerW = BOTTLE_WIDTH - pad * 2;
-
-    // Target bottle fill position
-    const tgtFillIdx = pourAnim.slotsFilledTo; // next empty slot index in target
-    const tgtX = toRect.x + pad;
-    const tgtY = toRect.y + toRect.h - pad - (tgtFillIdx + 1) * SLOT_HEIGHT - tgtFillIdx * slotGap;
-
-    ctx.save();
-    ctx.fillStyle = color;
-
-    if (pourAnim.phase === 'rise') {
-      // Water blob rises from source bottle top
-      const riseHeight = pourAnim.progress * 40;
-      const blobW = innerW * 0.6;
-      const blobX = srcX + (innerW - blobW) / 2;
-      const blobY = srcY - riseHeight;
-      ctx.globalAlpha = 0.9;
-      ctx.beginPath();
-      ctx.roundRect(blobX, blobY, blobW, 12, 4);
-      ctx.fill();
-    } else if (pourAnim.phase === 'arc') {
-      // Water arcs from source to target
-      const t = pourAnim.progress;
-      const startX = fromRect.x + BOTTLE_WIDTH / 2;
-      const startY = fromRect.y - 30;
-      const endX = toRect.x + BOTTLE_WIDTH / 2;
-      const endY = toRect.y - 10;
-      const cpY = Math.min(startY, endY) - 50; // control point above both
-
-      // Quadratic bezier position
-      const px = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * ((startX + endX) / 2) + t * t * endX;
-      const py = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * cpY + t * t * endY;
-
-      // Draw stream from start to current pos
-      ctx.globalAlpha = 0.85;
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = color;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-
-      // Trail behind the blob
-      const trailLen = 0.15;
-      const steps = 8;
-      for (let s = 0; s <= steps; s++) {
-        const st = Math.max(0, t - trailLen) + (trailLen * s) / steps;
-        const sx = (1 - st) * (1 - st) * startX + 2 * (1 - st) * st * ((startX + endX) / 2) + st * st * endX;
-        const sy = (1 - st) * (1 - st) * startY + 2 * (1 - st) * st * cpY + st * st * endY;
-        if (s === 0) ctx.moveTo(sx, sy);
-        else ctx.lineTo(sx, sy);
-      }
-      ctx.stroke();
-
-      // Blob at current position
-      ctx.beginPath();
-      ctx.arc(px, py, 7, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (pourAnim.phase === 'fill') {
-      // Water fills into target slot
-      const fillH = pourAnim.progress * SLOT_HEIGHT;
-      ctx.globalAlpha = 0.9;
-      ctx.fillRect(tgtX, tgtY + SLOT_HEIGHT - fillH, innerW, fillH);
-    }
-
-    ctx.restore();
-  }
-
   // === Particles rendering ===
 
   function drawParticles() {
@@ -751,22 +598,6 @@ export function setupWaterSort(
       bounceTime += dtSec;
     }
 
-    // Pour animation update
-    if (pourAnim) {
-      pourAnim.progress += dtSec * POUR_SPEED;
-      if (pourAnim.progress >= 1) {
-        pourAnim.progress = 0;
-        if (pourAnim.phase === 'rise') {
-          pourAnim.phase = 'arc';
-        } else if (pourAnim.phase === 'arc') {
-          pourAnim.phase = 'fill';
-        } else {
-          // fill done → commit the move
-          finishPour();
-        }
-      }
-    }
-
     // Particle update
     for (const p of particles) {
       if (p.life <= 0) continue;
@@ -816,7 +647,6 @@ export function setupWaterSort(
     // Playing or levelclear
     drawHud();
     drawBottles();
-    drawPourAnimation();
 
     if (state === 'levelclear') {
       drawParticles();
