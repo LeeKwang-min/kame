@@ -56,7 +56,8 @@ export type TGameType =
   | 'spacecolony'
   | 'superhexagon'
   | 'kracing'
-  | 'kracing2';
+  | 'kracing2'
+  | 'watersort';
 
 export type TScore = {
   id: string;
