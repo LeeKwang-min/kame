@@ -12,6 +12,6 @@ export type TGameResult = {
   winLine: TPosition[] | null;
 };
 
-export type TDifficulty = 'beginner' | 'easy' | 'medium' | 'hard';
+export type TDifficulty = 'beginner' | 'easy' | 'medium';
 
 export type TDirection = [number, number];

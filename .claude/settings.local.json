@@ -53,7 +53,8 @@
       "Bash(fi)",
       "Bash(mkdir:*)",
       "Bash(npx jest:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npx skills:*)"
     ]
   }
 }

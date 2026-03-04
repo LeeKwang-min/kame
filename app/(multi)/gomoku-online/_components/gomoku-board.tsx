@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   CANVAS_SIZE,
   BOARD_PADDING,
@@ -15,9 +15,14 @@ import {
   TGomokuSyncPayload,
   TGomokuRestartPayload,
 } from '../_lib/types';
-import { BOARD_SIZE, STAR_POINTS } from '@/lib/gomoku';
-import { getAllForbiddenPositions } from '@/lib/gomoku';
+import { BOARD_SIZE, STAR_POINTS, getAllForbiddenPositions } from '@/lib/gomoku';
 import type { TPosition } from '@/lib/gomoku';
+
+const RESULT_STYLES = {
+  win:  { bg: 'rgba(22, 101, 52, 0.95)', color: '#4ade80', title: 'Victory!', sub: '승리했습니다' },
+  lose: { bg: 'rgba(127, 29, 29, 0.95)', color: '#f87171', title: 'Defeat', sub: '패배했습니다' },
+  draw: { bg: 'rgba(113, 63, 18, 0.95)', color: '#fbbf24', title: 'Draw', sub: '무승부' },
+} as const;
 
 type TProps = {
   myId: string;
@@ -44,7 +49,7 @@ function GomokuBoard({
 }: TProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [hoverPos, setHoverPos] = useState<TPosition | null>(null);
+  const hoverPosRef = useRef<TPosition | null>(null);
   const winLineAlphaRef = useRef(0);
   const winLineDirRef = useRef(1);
 
@@ -58,9 +63,12 @@ function GomokuBoard({
   const isMyTurn = myStone === currentTurn && !isGameOver;
 
   // Compute forbidden positions (only for black's turn)
-  const forbiddenPositions = currentTurn === 1 && !isGameOver
-    ? getAllForbiddenPositions(board)
-    : [];
+  const forbiddenPositions = useMemo(() =>
+    currentTurn === 1 && !isGameOver
+      ? getAllForbiddenPositions(board)
+      : [],
+    [board, currentTurn, isGameOver]
+  );
 
   // --- Coordinate conversion ---
   const boardToCanvas = useCallback((bx: number, by: number) => ({
@@ -227,8 +235,9 @@ function GomokuBoard({
       }
 
       // Hover preview
-      if (hoverPos && isMyTurn) {
-        const c = boardToCanvas(hoverPos.x, hoverPos.y);
+      const hp = hoverPosRef.current;
+      if (hp && isMyTurn) {
+        const c = boardToCanvas(hp.x, hp.y);
         ctx.beginPath();
         ctx.arc(c.x, c.y, STONE_RADIUS, 0, Math.PI * 2);
         ctx.fillStyle = myStone === 1 ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
@@ -258,45 +267,90 @@ function GomokuBoard({
 
       // Turn/status info overlay
       ctx.save();
-      let statusText = '';
+
       if (isGameOver) {
-        if (winner !== null) {
-          if (myStone === winner) {
-            statusText = '승리!';
-          } else {
-            statusText = '패배...';
-          }
-        } else {
-          statusText = '무승부';
-        }
-      } else if (!playerOrder) {
-        statusText = '상대를 기다리는 중...';
-      } else if (isMyTurn) {
-        statusText = '당신의 차례입니다';
-      } else {
-        statusText = '상대방의 차례입니다';
-      }
+        // --- Large centered game result overlay ---
+        const cx = CANVAS_SIZE / 2;
+        const cy = CANVAS_SIZE / 2;
 
-      if (statusText) {
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
+        // Dim background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-        const textMetrics = ctx.measureText(statusText);
-        const pillW = textMetrics.width + 16;
-        const pillH = 24;
-        const pillX = 6;
-        const pillY = 4;
+        // Result box
+        const boxW = 280;
+        const boxH = 140;
+        const boxX = cx - boxW / 2;
+        const boxY = cy - boxH / 2;
+        const boxRadius = 16;
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        // Box shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        ctx.roundRect(boxX + 4, boxY + 4, boxW, boxH, boxRadius);
         ctx.fill();
 
-        ctx.fillStyle = isGameOver
-          ? (winner !== null && myStone === winner ? '#4ade80' : winner !== null ? '#ef4444' : '#fbbf24')
-          : (isMyTurn ? '#4ade80' : '#e0e0e0');
-        ctx.fillText(statusText, pillX + 8, pillY + 5);
+        // Result style
+        const resultType = winner !== null && myStone === winner ? 'win'
+          : winner !== null ? 'lose' : 'draw';
+        const { bg: boxBg, color: mainColor, title: resultTitle, sub: resultSub } = RESULT_STYLES[resultType];
+
+        // Box background + border (single path)
+        ctx.beginPath();
+        ctx.roundRect(boxX, boxY, boxW, boxH, boxRadius);
+        ctx.fillStyle = boxBg;
+        ctx.fill();
+        ctx.strokeStyle = mainColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Result title
+        ctx.fillStyle = mainColor;
+        ctx.font = 'bold 36px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(resultTitle, cx, cy - 20);
+
+        // Result subtitle
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.font = '16px sans-serif';
+        ctx.fillText(resultSub, cx, cy + 22);
+
+        // Stone indicator
+        const stoneLabel = myStone === 1 ? '● 흑' : '○ 백';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.font = '13px sans-serif';
+        ctx.fillText(stoneLabel, cx, cy + 48);
+      } else {
+        // --- Small turn indicator (during play) ---
+        let statusText = '';
+        if (!playerOrder) {
+          statusText = '상대를 기다리는 중...';
+        } else if (isMyTurn) {
+          statusText = '당신의 차례입니다';
+        } else {
+          statusText = '상대방의 차례입니다';
+        }
+
+        if (statusText) {
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+
+          const textMetrics = ctx.measureText(statusText);
+          const pillW = textMetrics.width + 16;
+          const pillH = 24;
+          const pillX = 6;
+          const pillY = 4;
+
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          ctx.beginPath();
+          ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+          ctx.fill();
+
+          ctx.fillStyle = isMyTurn ? '#4ade80' : '#e0e0e0';
+          ctx.fillText(statusText, pillX + 8, pillY + 5);
+        }
       }
 
       // My stone indicator (top-right)
@@ -329,7 +383,7 @@ function GomokuBoard({
     raf = requestAnimationFrame(loop);
 
     return () => cancelAnimationFrame(raf);
-  }, [board, currentTurn, lastMove, winLine, winner, isDraw, hoverPos, isMyTurn, myStone, playerOrder, forbiddenPositions, isGameOver, boardToCanvas]);
+  }, [board, currentTurn, lastMove, winLine, winner, isDraw, isMyTurn, myStone, playerOrder, forbiddenPositions, isGameOver, boardToCanvas]);
 
   // --- Mouse events ---
   const getCanvasPos = useCallback((clientX: number, clientY: number) => {
@@ -366,14 +420,14 @@ function GomokuBoard({
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!isMyTurn) {
-        setHoverPos(null);
+        hoverPosRef.current = null;
         return;
       }
 
       const pos = getCanvasPos(e.clientX, e.clientY);
       const boardPos = canvasToBoard(pos.x, pos.y);
       if (!boardPos || board[boardPos.y][boardPos.x] !== 0) {
-        setHoverPos(null);
+        hoverPosRef.current = null;
         return;
       }
 
@@ -383,18 +437,18 @@ function GomokuBoard({
           (p) => p.x === boardPos.x && p.y === boardPos.y
         );
         if (isForbiddenPos) {
-          setHoverPos(null);
+          hoverPosRef.current = null;
           return;
         }
       }
 
-      setHoverPos(boardPos);
+      hoverPosRef.current = boardPos;
     },
     [isMyTurn, getCanvasPos, canvasToBoard, board, myStone, forbiddenPositions]
   );
 
   const handlePointerLeave = useCallback(() => {
-    setHoverPos(null);
+    hoverPosRef.current = null;
   }, []);
 
   return (

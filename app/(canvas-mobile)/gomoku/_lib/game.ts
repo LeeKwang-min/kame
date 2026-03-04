@@ -312,11 +312,6 @@ export const setupGomoku = (
         beginPlay();
         return;
       }
-      if (e.code === 'Digit4') {
-        difficulty = 'hard';
-        beginPlay();
-        return;
-      }
     }
   };
 
@@ -628,7 +623,6 @@ export const setupGomoku = (
       beginner: '입문',
       easy: '초급',
       medium: '중급',
-      hard: '고급',
     };
     const diffText = diffNames[difficulty];
     ctx.font = '12px sans-serif';
@@ -695,7 +689,6 @@ export const setupGomoku = (
       { label: '1. 입문', value: 'beginner', desc: '랜덤 수' },
       { label: '2. 초급', value: 'easy', desc: '기본 전략' },
       { label: '3. 중급', value: 'medium', desc: '공격적' },
-      { label: '4. 고급', value: 'hard', desc: '최강 AI' },
     ];
 
     difficultyButtons = [];

@@ -18,7 +18,6 @@ const DIFFICULTY_CONFIG: Record<TDifficulty, TDifficultyConfig> = {
   beginner: { depth: 1, randomChance: 0.3, delay: 0 },
   easy: { depth: 2, randomChance: 0.15, delay: 500 },
   medium: { depth: 4, randomChance: 0.05, delay: 1000 },
-  hard: { depth: 6, randomChance: 0, delay: 1500 },
 };
 
 /** Maximum number of candidate moves to consider at each level */
