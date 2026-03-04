@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import { RoomManager } from '../game/RoomManager';
 import { registerRoomHandlers } from './handlers/room';
 import { registerWhiteboardHandlers } from './handlers/whiteboard';
+import { registerGomokuHandlers } from './handlers/gomoku';
 
 export const roomManager = new RoomManager();
 
@@ -11,6 +12,7 @@ export function initializeSocket(io: Server): void {
 
     registerRoomHandlers(io, socket, roomManager);
     registerWhiteboardHandlers(io, socket, roomManager);
+    registerGomokuHandlers(io, socket, roomManager);
 
     socket.on('disconnect', () => {
       const room = roomManager.findRoomByPlayer(socket.id);

@@ -1,4 +1,4 @@
-export type TMultiGameType = 'whiteboard' | 'tetris' | 'racing';
+export type TMultiGameType = 'whiteboard' | 'tetris' | 'racing' | 'gomoku';
 
 export type TRoomState = 'waiting' | 'playing' | 'finished';
 

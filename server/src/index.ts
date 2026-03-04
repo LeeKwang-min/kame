@@ -12,7 +12,7 @@ const httpServer = createServer(app);
 app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json());
 
-const VALID_GAME_TYPES = new Set<TMultiGameType>(['whiteboard', 'tetris', 'racing']);
+const VALID_GAME_TYPES = new Set<TMultiGameType>(['whiteboard', 'tetris', 'racing', 'gomoku']);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

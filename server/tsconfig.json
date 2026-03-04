@@ -17,6 +17,6 @@
     },
     "baseUrl": "."
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*", "../shared/**/*", "../lib/gomoku/**/*"],
   "exclude": ["node_modules", "dist"]
 }

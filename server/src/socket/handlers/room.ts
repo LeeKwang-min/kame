@@ -17,6 +17,7 @@ const DEFAULT_MAX_PLAYERS: Record<TMultiGameType, number> = {
   whiteboard: 8,
   tetris: 4,
   racing: 6,
+  gomoku: 2,
 };
 
 export function registerRoomHandlers(

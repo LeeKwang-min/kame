@@ -535,6 +535,15 @@ export const MENU_LIST: TMenu[] = [
     category: 'Multiplayer',
     platform: 'both',
   },
+  {
+    name: {
+      kor: '오목 온라인',
+      eng: 'Gomoku Online',
+    },
+    href: '/gomoku-online',
+    category: 'Multiplayer',
+    platform: 'both',
+  },
 ];
 
 export const FEATURED_GAMES: TFeaturedGame[] = [
