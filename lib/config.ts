@@ -348,6 +348,15 @@ export const MENU_LIST: TMenu[] = [
   },
   {
     name: {
+      kor: '워터 소트',
+      eng: 'Water Sort',
+    },
+    href: '/watersort',
+    category: 'Puzzle',
+    platform: 'both',
+  },
+  {
+    name: {
       kor: '랜덤 디펜스',
       eng: 'Random Defense',
     },
@@ -614,8 +623,8 @@ export const FEATURED_GAMES: TFeaturedGame[] = [
   {
     href: '/tapempire',
     description: {
-      kor: '3분 안에 최대한 큰 제국을 건설하세요!',
-      eng: 'Build the biggest empire in 3 minutes!',
+      kor: '10분 안에 최대한 큰 제국을 건설하세요!',
+      eng: 'Build the biggest empire in 10 minutes!',
     },
   },
   {
@@ -634,8 +643,8 @@ export const BANNER_ITEMS: TBannerItem[] = [
     bgColor: 'from-yellow-900/50 to-amber-900/50',
     title: { kor: '새로운 게임 출시!', eng: 'New Game Released!' },
     description: {
-      kor: '3분 안에 최대한 큰 제국을 건설하세요!',
-      eng: 'Build the biggest empire in 3 minutes!',
+      kor: '10분 안에 최대한 큰 제국을 건설하세요!',
+      eng: 'Build the biggest empire in 10 minutes!',
     },
     href: '/tapempire',
     ctaText: { kor: '지금 플레이', eng: 'Play Now' },

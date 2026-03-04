@@ -63,6 +63,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'superhexagon',
   'kracing',
   'kracing2',
+  'watersort',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {
