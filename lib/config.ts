@@ -459,6 +459,15 @@ export const MENU_LIST: TMenu[] = [
     href: '/colormemory',
     category: 'Reflex',
   },
+  {
+    name: {
+      kor: '리듬 비트',
+      eng: 'Rhythm Beat',
+    },
+    href: '/rhythmbeat',
+    category: 'Reflex',
+    platform: 'both',
+  },
   // {
   //   name: {
   //     kor: '플랫포머',

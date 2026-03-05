@@ -65,6 +65,7 @@ const VALID_GAME_TYPES: TGameType[] = [
   'kracing2',
   'watersort',
   'gomoku',
+  'rhythmbeat',
 ];
 
 function isValidGameType(gameType: string): gameType is TGameType {

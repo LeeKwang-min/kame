@@ -58,7 +58,8 @@ export type TGameType =
   | 'kracing'
   | 'kracing2'
   | 'watersort'
-  | 'gomoku';
+  | 'gomoku'
+  | 'rhythmbeat';
 
 export type TScore = {
   id: string;

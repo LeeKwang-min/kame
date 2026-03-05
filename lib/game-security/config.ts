@@ -60,6 +60,7 @@ export const GAME_SECURITY_CONFIG: Record<
   kracing2: { maxScore: 600000, minPlayTimeSeconds: 10, lowerIsBetter: true },
   watersort: { maxScore: 500, minPlayTimeSeconds: 10 },
   gomoku: { maxScore: 1000, minPlayTimeSeconds: 30 },
+  rhythmbeat: { maxScore: 9999999, minPlayTimeSeconds: 10 },
   // 운 기반
   enhance: { maxScore: 25, minPlayTimeSeconds: 3 },
   slot: { maxScore: 1000000, minPlayTimeSeconds: 2 },
