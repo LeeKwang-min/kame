@@ -37,6 +37,8 @@ import {
   PARTICLE_COUNT,
   PARTICLE_LIFE,
   DEPTH_SCORE_RATE,
+  CEILING_DEATH_Y,
+  CEILING_WARNING_Y,
   COLORS,
 } from './config';
 import { TPlayer, TPlatform, TEnemy, TBullet, TParticle } from './types';
@@ -557,8 +559,8 @@ export const setupDownwell = (
       }
     }
 
-    // --- Game over: player pushed above screen ---
-    if (player.y + player.height < -50) {
+    // --- Game over: player crushed against ceiling ---
+    if (player.y < CEILING_DEATH_Y) {
       triggerGameOver();
     }
   }
@@ -668,6 +670,27 @@ export const setupDownwell = (
     const eyeOffsetX = player.isFacingRight ? player.width * 0.6 : player.width * 0.2;
     ctx.fillRect(player.x + eyeOffsetX, player.y + 5, 4, 4);
     ctx.restore();
+
+    // --- Ceiling danger zone ---
+    if (isStarted && !isGameOver) {
+      const gradient = ctx.createLinearGradient(0, 0, 0, CEILING_WARNING_Y);
+      gradient.addColorStop(0, 'rgba(233, 69, 96, 0.4)');
+      gradient.addColorStop(0.5, 'rgba(233, 69, 96, 0.15)');
+      gradient.addColorStop(1, 'rgba(233, 69, 96, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(WALL_WIDTH, 0, CANVAS_WIDTH - WALL_WIDTH * 2, CEILING_WARNING_Y);
+
+      // Pulsing warning line at death threshold
+      const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
+      ctx.strokeStyle = `rgba(233, 69, 96, ${0.3 + pulse * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 4]);
+      ctx.beginPath();
+      ctx.moveTo(WALL_WIDTH, CEILING_DEATH_Y);
+      ctx.lineTo(CANVAS_WIDTH - WALL_WIDTH, CEILING_DEATH_Y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     // --- HUD ---
     drawHud();

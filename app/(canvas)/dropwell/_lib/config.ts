@@ -41,6 +41,10 @@ export const SCROLL_SPEED_INCREASE = 1;
 export const PARTICLE_COUNT = 10;
 export const PARTICLE_LIFE = 0.4;
 
+// Anti-cheese: ceiling crush
+export const CEILING_DEATH_Y = 40;
+export const CEILING_WARNING_Y = 100;
+
 // Scoring
 export const DEPTH_SCORE_RATE = 10;
 
