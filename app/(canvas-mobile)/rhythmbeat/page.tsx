@@ -26,7 +26,7 @@ const controls = [
 
 function RhythmBeatPage() {
   const { data: session, status } = useSession();
-  const { data: scores = [], isLoading } = useGetScores('rhythmbeat' as any);
+  const { data: scores = [], isLoading } = useGetScores('rhythmbeat');
 
   return (
     <section className="w-full h-full flex flex-col xl:flex-row gap-4 xl:gap-6 items-center xl:items-start justify-center">

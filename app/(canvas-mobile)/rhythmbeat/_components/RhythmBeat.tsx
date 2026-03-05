@@ -12,8 +12,8 @@ function RhythmBeat() {
   const sessionTokenRef = useRef<string | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const { data: session } = useSession();
-  const { mutateAsync: saveScore } = useCreateScore('rhythmbeat' as any);
-  const { mutateAsync: createSession } = useGameSession('rhythmbeat' as any);
+  const { mutateAsync: saveScore } = useCreateScore('rhythmbeat');
+  const { mutateAsync: createSession } = useGameSession('rhythmbeat');
   const isLoggedIn = !!session;
 
   const getCanvasHeight = useCallback(() => {
@@ -67,7 +67,7 @@ function RhythmBeat() {
       onScoreSave: async (score) => {
         if (!sessionTokenRef.current) return { saved: false };
         const result = await saveScore({
-          gameType: 'rhythmbeat' as any,
+          gameType: 'rhythmbeat',
           score: Math.floor(score),
           sessionToken: sessionTokenRef.current,
         });

@@ -97,7 +97,7 @@ export function setupRhythmBeat(
     },
   };
 
-  const gameOverHud = createGameOverHud(canvas, ctx, 'rhythmbeat' as any, gameOverCallbacks, {
+  const gameOverHud = createGameOverHud(canvas, ctx, 'rhythmbeat', gameOverCallbacks, {
     isLoggedIn: callbacks?.isLoggedIn ?? false,
   });
 
