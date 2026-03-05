@@ -14,7 +14,7 @@ export const GAME_META: TGameMeta = {
 
 export const CANVAS_WIDTH = 400;
 export const MIN_CANVAS_HEIGHT = 600;
-export const MAX_CANVAS_HEIGHT = 900;
+export const MAX_CANVAS_HEIGHT = 1200;
 
 export const LANE_COUNT = 4;
 export const LANE_COLORS = ['#00f5ff', '#ff00ff', '#ffff00', '#00ff88'] as const;

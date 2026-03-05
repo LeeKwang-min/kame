@@ -17,11 +17,9 @@ function RhythmBeat() {
   const isLoggedIn = !!session;
 
   const getCanvasHeight = useCallback(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return MIN_CANVAS_HEIGHT;
-    const container = wrapper.parentElement;
-    if (!container) return MIN_CANVAS_HEIGHT;
-    const available = container.clientHeight;
+    // 헤더(~56px) + 패딩(32px) + 갭(40px) + 여유(20px) = ~148px 오버헤드
+    const overhead = 148;
+    const available = window.innerHeight - overhead;
     return Math.max(MIN_CANVAS_HEIGHT, Math.min(MAX_CANVAS_HEIGHT, available));
   }, []);
 
