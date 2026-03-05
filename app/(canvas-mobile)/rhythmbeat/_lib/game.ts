@@ -342,11 +342,11 @@ export function setupRhythmBeat(
 
   // --- Render ---
   function render() {
-    ctx.fillStyle = '#0a0a0f';
+    ctx.fillStyle = '#12121f';
     ctx.fillRect(0, 0, CANVAS_WIDTH, canvasHeight);
 
-    // Grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    // Lane dividers
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     ctx.lineWidth = 1;
     for (let i = 1; i < LANE_COUNT; i++) {
       const x = i * laneWidth;
@@ -387,16 +387,53 @@ export function setupRhythmBeat(
     for (let i = 0; i < LANE_COUNT; i++) {
       const x = i * laneWidth;
       const color = LANE_COLORS[i];
+      const pressed = lanePressed[i];
 
-      if (lanePressed[i]) {
+      // Lane press glow
+      if (pressed) {
         ctx.fillStyle = color + '30';
         ctx.fillRect(x, judgeLineY, laneWidth, canvasHeight - judgeLineY);
       }
 
-      ctx.fillStyle = lanePressed[i] ? color : 'rgba(255,255,255,0.4)';
-      ctx.font = 'bold 18px monospace';
+      // Keycap button
+      const kcW = 36;
+      const kcH = 36;
+      const kcX = x + laneWidth / 2 - kcW / 2;
+      const kcY = judgeLineY + 16;
+      const kcR = 6;
+
+      // Keycap shadow (bottom edge for 3D effect)
+      if (!pressed) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.beginPath();
+        ctx.roundRect(kcX, kcY + 3, kcW, kcH, kcR);
+        ctx.fill();
+      }
+
+      // Keycap body
+      ctx.fillStyle = pressed ? color + '40' : 'rgba(255,255,255,0.08)';
+      ctx.strokeStyle = pressed ? color : 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(kcX, pressed ? kcY + 2 : kcY, kcW, kcH, kcR);
+      ctx.fill();
+      ctx.stroke();
+
+      // Keycap top highlight
+      if (!pressed) {
+        ctx.fillStyle = 'rgba(255,255,255,0.04)';
+        ctx.beginPath();
+        ctx.roundRect(kcX + 2, kcY, kcW - 4, kcH / 2, [kcR, kcR, 0, 0]);
+        ctx.fill();
+      }
+
+      // Key label
+      ctx.fillStyle = pressed ? color : 'rgba(255,255,255,0.6)';
+      ctx.font = 'bold 16px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(LANE_LABELS[i], x + laneWidth / 2, judgeLineY + 40);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(LANE_LABELS[i], x + laneWidth / 2, (pressed ? kcY + 2 : kcY) + kcH / 2);
+      ctx.textBaseline = 'alphabetic';
     }
 
     // HP bar
