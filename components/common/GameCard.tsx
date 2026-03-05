@@ -143,10 +143,10 @@ function GameCard({ menu }: IProps) {
           'aspect-square p-4 rounded-lg',
           'bg-arcade-surface border border-arcade-border',
           'cursor-not-allowed opacity-50',
-          'transition-all duration-300',
+          'transition-[border-color,box-shadow,opacity] duration-300',
         )}>
-        <Lock className="absolute top-2 right-2 w-4 h-4 text-arcade-text/50" />
-        <Icon className="w-12 h-12 text-arcade-text/30 mb-2" />
+        <Lock className="absolute top-2 right-2 w-4 h-4 text-arcade-text/50" aria-hidden="true" />
+        <Icon className="w-12 h-12 text-arcade-text/30 mb-2" aria-hidden="true" />
         <span className="text-sm font-bold text-arcade-text/50 text-center">
           {gameName}
         </span>
@@ -162,7 +162,7 @@ function GameCard({ menu }: IProps) {
           'aspect-square p-4 rounded-lg',
           'bg-arcade-surface border border-arcade-border',
           'cursor-pointer',
-          'transition-all duration-300',
+          'transition-[transform,border-color,box-shadow] duration-300',
           'hover:scale-105',
           'hover:border-arcade-cyan',
           'hover:shadow-[0_0_20px_rgba(0,255,245,0.3)]',

@@ -34,10 +34,12 @@ function MainSearchBar({ search, setSearch, onSearchChange }: IProps) {
 
   return (
     <div className="relative flex-1 min-w-[200px]">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-arcade-text/50" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-arcade-text/50" aria-hidden="true" />
       <Input
         type="text"
+        aria-label={t.common.searchGames}
         placeholder={t.common.searchGames}
+        autoComplete="off"
         value={debouncedSearch}
         onChange={(e) => setDebouncedSearch(e.target.value)}
         className={cn(
@@ -45,7 +47,7 @@ function MainSearchBar({ search, setSearch, onSearchChange }: IProps) {
           'bg-arcade-surface border-arcade-border',
           'text-arcade-text placeholder:text-arcade-text/40',
           'focus:border-arcade-cyan focus:ring-arcade-cyan/20',
-          'transition-all duration-300',
+          'transition-[border-color,box-shadow] duration-300',
         )}
       />
     </div>

@@ -86,9 +86,10 @@ function MainBanner() {
           {BANNER_ITEMS.map((_, i) => (
             <button
               key={i}
+              aria-label={`배너 ${i + 1}로 이동`}
               onClick={() => goTo(i)}
               className={cn(
-                'h-2 rounded-full transition-all duration-300',
+                'h-2 rounded-full transition-[width,background-color,box-shadow] duration-300',
                 i === currentIndex
                   ? 'bg-arcade-cyan w-6 shadow-[0_0_8px_rgba(34,211,211,0.4)]'
                   : 'bg-arcade-text/20 hover:bg-arcade-text/40 w-2',
@@ -125,7 +126,7 @@ function BannerSlide({
         'h-[160px] sm:h-[170px] lg:h-[200px]',
         'border border-arcade-border/60',
         'hover:border-arcade-cyan/30',
-        'transition-[border-color,box-shadow] duration-500',
+        'transition-[border-color,box-shadow] duration-300',
         'hover:shadow-[0_0_20px_rgba(34,211,211,0.08)]',
       )}
     >

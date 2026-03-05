@@ -36,14 +36,14 @@ function MainHeader() {
         <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <button className="p-2 rounded-lg border border-arcade-border bg-arcade-surface text-arcade-text">
-                <Menu size={20} />
+              <button aria-label="메뉴 열기" className="p-2 rounded-lg border border-arcade-border bg-arcade-surface text-arcade-text">
+                <Menu size={20} aria-hidden="true" />
               </button>
             </SheetTrigger>
             <SheetContent side="right" className="bg-arcade-bg border-arcade-border overflow-y-auto">
               <SheetHeader>
                 <SheetTitle className="text-arcade-text flex items-center gap-2">
-                  <Gamepad2 className="text-arcade-cyan" size={20} />
+                  <Gamepad2 className="text-arcade-cyan" size={20} aria-hidden="true" />
                   {t.auth.playerZone}
                 </SheetTitle>
               </SheetHeader>

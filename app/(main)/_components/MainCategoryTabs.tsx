@@ -68,7 +68,7 @@ function MainCategoryTabs({ category, setCategory }: IProps) {
 
   return (
     <div className="w-full overflow-x-auto scrollbar-hide">
-      <div ref={tabsRef} className="relative flex items-center gap-0.5 min-w-max">
+      <div ref={tabsRef} role="tablist" className="relative flex items-center gap-0.5 min-w-max">
         {TABS.map((tab) => {
           const Icon = TAB_ICONS[tab.iconName];
           const isActive = category === tab.id;
@@ -77,6 +77,8 @@ function MainCategoryTabs({ category, setCategory }: IProps) {
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
               data-tab-id={tab.id}
               onClick={() => setCategory(tab.id)}
               className={cn(
@@ -91,6 +93,7 @@ function MainCategoryTabs({ category, setCategory }: IProps) {
               {Icon && (
                 <Icon
                   size={15}
+                  aria-hidden="true"
                   className={cn(
                     'transition-colors duration-200',
                     isActive ? 'text-arcade-cyan' : '',

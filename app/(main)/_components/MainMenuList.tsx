@@ -91,7 +91,7 @@ function MainMenuList({ keyword, category, isMobile }: IProps) {
               'pb-2 border-b border-arcade-border',
             )}
           >
-            {CATEGORY_ICON[cat as keyof typeof CATEGORY_ICON]}
+            <span aria-hidden="true">{CATEGORY_ICON[cat as keyof typeof CATEGORY_ICON]}</span>
             {cat}
           </h3>
           <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -111,8 +111,8 @@ function MainMenuListLoading() {
   return (
     <div className="w-full flex items-center justify-center min-h-[250px]">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 size={28} className="text-arcade-cyan animate-spin" />
-        <p className="text-sm text-arcade-text/40 font-medium">Loading...</p>
+        <Loader2 size={28} className="text-arcade-cyan animate-spin" aria-hidden="true" />
+        <p className="text-sm text-arcade-text/40 font-medium">Loading…</p>
       </div>
     </div>
   );
