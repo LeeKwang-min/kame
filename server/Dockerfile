@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY server/package.json server/yarn.lock ./server/
 COPY shared/ ./shared/
-COPY lib/gomoku/ ./lib/gomoku/
+COPY lib/ ./lib/
 RUN cd server && yarn install --frozen-lockfile
 COPY server/tsconfig.json ./server/
 COPY server/src/ ./server/src/
