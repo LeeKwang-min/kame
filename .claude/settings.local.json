@@ -54,7 +54,10 @@
       "Bash(mkdir:*)",
       "Bash(npx jest:*)",
       "Bash(rm:*)",
-      "Bash(npx skills:*)"
+      "Bash(npx skills:*)",
+      "Bash(brew install:*)",
+      "Bash(railway login:*)",
+      "Bash(railway whoami:*)"
     ]
   }
 }
