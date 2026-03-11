@@ -11,6 +11,8 @@ import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/next';
 import { SITE_URL, SITE_NAME } from '@/lib/constants';
 import JsonLd from '@/components/common/JsonLd';
+import { AdProvider } from '@/components/ads/AdProvider';
+import { AdSenseScript } from '@/components/ads/AdSenseScript';
 
 const mono = Space_Mono({
   variable: '--font-geist-mono',
@@ -113,13 +115,16 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <LocaleProvider>
-              <TanstackQueryProvider>{children}</TanstackQueryProvider>
+              <TanstackQueryProvider>
+                <AdProvider>{children}</AdProvider>
+              </TanstackQueryProvider>
               <InitialsAlert />
             </LocaleProvider>
           </AuthProvider>
         </ThemeProvider>
         <Toaster position="bottom-right" />
         <Analytics />
+        <AdSenseScript />
       </body>
     </html>
   );

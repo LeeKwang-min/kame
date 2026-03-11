@@ -51,3 +51,6 @@ server/dist
 
 # claude worktrees
 .claude/worktrees
+
+# superpowers brainstorming
+.superpowers/
