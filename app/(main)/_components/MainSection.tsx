@@ -4,6 +4,7 @@ import MainMenuList from './MainMenuList';
 import MainSearchBar from './MainSearchBar';
 import MainCategoryTabs from './MainCategoryTabs';
 import LoginSidebar from '@/components/auth/LoginSidebar';
+import { SidebarAd } from '@/components/ads';
 import MainBanner from './MainBanner';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -23,7 +24,10 @@ function MainSection() {
 
   return (
     <div className="flex gap-6 grow">
-      <LoginSidebar className="hidden lg:flex" />
+      <div className="hidden lg:flex flex-col gap-4 shrink-0">
+        <LoginSidebar />
+        <SidebarAd slot="sidebar-main" maxWidth={288} />
+      </div>
       <div className="flex flex-col gap-3 sm:gap-4 grow min-w-0">
         <MainBanner />
         <MainSearchBar

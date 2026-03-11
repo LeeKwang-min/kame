@@ -1,6 +1,8 @@
 'use client';
 
+import { Fragment, useMemo } from 'react';
 import { useGetMenus } from '@/service/menus';
+import { InFeedAd } from '@/components/ads';
 import {
   Binary,
   BookText,
@@ -67,13 +69,27 @@ function MainMenuList({ keyword, category, isMobile }: IProps) {
     );
   }
 
-  // Specific category tab (not ALL): flat grid, no category heading
+  // Specific category tab (not ALL): flat grid with in-feed ads
   if (category !== 'ALL') {
     const allMenus: TMenu[] = categories.flatMap((cat) => menus?.[cat] || []);
+    const adGroupSize = 8;
+    const maxInFeedAds = 2;
+    const groups: TMenu[][] = [];
+    for (let i = 0; i < allMenus.length; i += adGroupSize) {
+      groups.push(allMenus.slice(i, i + adGroupSize));
+    }
+
     return (
-      <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {allMenus.map((menu) => (
-          <GameCard key={menu.name.eng} menu={menu} />
+      <div className="w-full flex flex-col gap-4">
+        {groups.map((group, gIdx) => (
+          <Fragment key={gIdx}>
+            {gIdx > 0 && gIdx <= maxInFeedAds && <InFeedAd className="my-2" />}
+            <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {group.map((menu) => (
+                <GameCard key={menu.name.eng} menu={menu} />
+              ))}
+            </div>
+          </Fragment>
         ))}
       </div>
     );
@@ -82,24 +98,29 @@ function MainMenuList({ keyword, category, isMobile }: IProps) {
   // ALL tab: grouped by category (existing behavior)
   return (
     <div className="w-full flex flex-col gap-8">
-      {categories.map((cat) => (
-        <div key={cat} className="w-full flex flex-col gap-3">
-          <h3
-            className={cn(
-              'font-bold flex items-center gap-2',
-              'text-arcade-text text-lg',
-              'pb-2 border-b border-arcade-border',
-            )}
-          >
-            <span aria-hidden="true">{CATEGORY_ICON[cat as keyof typeof CATEGORY_ICON]}</span>
-            {cat}
-          </h3>
-          <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {menus?.[cat]?.map((menu) => (
-              <GameCard key={menu.name.eng} menu={menu} />
-            ))}
+      {categories.map((cat, index) => (
+        <Fragment key={cat}>
+          {index > 0 && index % 2 === 0 && index / 2 <= 3 && (
+            <InFeedAd className="my-2" />
+          )}
+          <div className="w-full flex flex-col gap-3">
+            <h3
+              className={cn(
+                'font-bold flex items-center gap-2',
+                'text-arcade-text text-lg',
+                'pb-2 border-b border-arcade-border',
+              )}
+            >
+              <span aria-hidden="true">{CATEGORY_ICON[cat as keyof typeof CATEGORY_ICON]}</span>
+              {cat}
+            </h3>
+            <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {menus?.[cat]?.map((menu) => (
+                <GameCard key={menu.name.eng} menu={menu} />
+              ))}
+            </div>
           </div>
-        </div>
+        </Fragment>
       ))}
     </div>
   );
