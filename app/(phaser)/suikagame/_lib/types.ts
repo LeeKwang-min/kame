@@ -4,6 +4,7 @@ export type TSuikaCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn: boolean;
+  onGameOver?: (score: number) => void;
 };
 
 export type TFruitBody = {

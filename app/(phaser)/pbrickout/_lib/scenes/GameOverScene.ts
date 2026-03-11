@@ -5,7 +5,14 @@ interface GameOverData {
   isWin: boolean;
 }
 
+interface PBrickoutCallbacks {
+  onGameOver?: (score: number) => void;
+}
+
 export class GameOverScene extends Phaser.Scene {
+  private finalScore: number = 0;
+  private isWin: boolean = false;
+
   constructor() {
     super({ key: 'GameOverScene' });
   }
@@ -13,21 +20,30 @@ export class GameOverScene extends Phaser.Scene {
   // init: 씬 시작 시 데이터를 받는 메서드
   // scene.start('GameOverScene', { score: 100 }) 에서 전달한 데이터
   init(data: GameOverData) {
-    this.data.set('score', data.score || 0);
-    this.data.set('isWin', data.isWin || false);
+    this.finalScore = data.score || 0;
+    this.isWin = data.isWin || false;
   }
 
   create() {
     const { width, height } = this.cameras.main;
-    const score = this.data.get('score') as number;
-    const isWin = this.data.get('isWin') as boolean;
+    const callbacks = this.registry.get('callbacks') as PBrickoutCallbacks | undefined;
+
+    // Notify ad system of game over
+    callbacks?.onGameOver?.(this.finalScore);
+
+    // If ad overlay should be shown, only draw a semi-transparent overlay and return early
+    const shouldShowAdRef = this.registry.get('shouldShowAdRef') as { current: boolean } | undefined;
+    if (shouldShowAdRef?.current) {
+      this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(20);
+      return;
+    }
 
     // 배경 어둡게
     this.cameras.main.setBackgroundColor('#000000');
 
     // 결과 텍스트
-    const titleText = isWin ? 'YOU WIN!' : 'GAME OVER';
-    const titleColor = isWin ? '#FFD700' : '#FF6B6B';
+    const titleText = this.isWin ? 'YOU WIN!' : 'GAME OVER';
+    const titleColor = this.isWin ? '#FFD700' : '#FF6B6B';
 
     this.add
       .text(width / 2, height / 2 - 60, titleText, {
@@ -39,7 +55,7 @@ export class GameOverScene extends Phaser.Scene {
 
     // 점수 표시
     this.add
-      .text(width / 2, height / 2, `Final Score: ${score}`, {
+      .text(width / 2, height / 2, `Final Score: ${this.finalScore}`, {
         fontSize: '32px',
         color: '#ffffff',
       })

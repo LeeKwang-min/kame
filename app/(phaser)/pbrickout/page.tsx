@@ -2,6 +2,7 @@
 
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import dynamic from 'next/dynamic';
 
 // dynamic import: SSR 비활성화
@@ -28,10 +29,12 @@ function BreakoutPage() {
       <aside className="shrink-0 w-64 space-y-4">
         <ControlInfoTable controls={controls} />
         <RankBoard data={[]} />
+        <SidebarAd slot="sidebar-left" />
       </aside>
       <div className="flex-1 h-full">
         <PhaserGame />
       </div>
+      <AnchorAd />
     </section>
   );
 }

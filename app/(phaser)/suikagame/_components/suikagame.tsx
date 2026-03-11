@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { useSession } from 'next-auth/react';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 import { GAME_WIDTH, GAME_HEIGHT, PHYSICS_CONFIG } from '../_lib/config';
 import { BootScene } from '../_lib/scenes/BootScene';
 import { GameScene } from '../_lib/scenes/GameScene';
@@ -18,6 +19,15 @@ function SuikaGame() {
   const { mutateAsync: saveScore } = useCreateScore('suikagame');
   const { mutateAsync: createSession } = useGameSession('suikagame');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
@@ -67,22 +77,55 @@ function SuikaGame() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
     });
 
+    gameRef.current.registry.set('shouldShowAdRef', shouldShowAdRef);
+
+    restartRef.current = () => {
+      if (gameRef.current) {
+        gameRef.current.scene.stop('GameOverScene');
+        gameRef.current.scene.stop('UIScene');
+        gameRef.current.scene.start('GameScene');
+        (gameRef.current.scene as unknown as { launch(key: string): void }).launch('UIScene');
+      }
+    };
+
     return () => {
+      restartRef.current = null;
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
       }
     };
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
-      <div
-        ref={containerRef}
-        className="w-full max-w-[480px] aspect-[480/720] border-2 border-amber-300/60 rounded-2xl shadow-lg overflow-hidden"
-      />
+      <div className="relative w-full max-w-[480px] aspect-[480/720]">
+        <div
+          ref={containerRef}
+          className="w-full h-full border-2 border-amber-300/60 rounded-2xl shadow-lg overflow-hidden"
+        />
+        <GameOverAdOverlay
+          visible={showAdOverlay}
+          score={currentScore}
+          isLoggedIn={isLoggedIn}
+          onSave={async (score) => {
+            if (!sessionTokenRef.current) return { saved: false };
+            const result = await saveScore({
+              gameType: 'suikagame',
+              score: Math.floor(score),
+              sessionToken: sessionTokenRef.current,
+            });
+            sessionTokenRef.current = null;
+            return result;
+          }}
+          onSkip={closeOverlay}
+          onRestart={handleRestart}
+          onClose={closeOverlay}
+        />
+      </div>
     </div>
   );
 }

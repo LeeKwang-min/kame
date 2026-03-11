@@ -7,7 +7,7 @@ const jsonLd = getGameJsonLd('/suikagame');
 
 function SuikaGameLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="w-full h-screen px-4 py-4 flex flex-col gap-6 items-center sm:px-6 sm:gap-10">
+    <main className="w-full h-screen px-4 py-4 pb-[60px] sm:pb-[100px] flex flex-col gap-6 items-center sm:px-6 sm:gap-10">
       {jsonLd && <JsonLd data={jsonLd} />}
       <KameHeader title="Watermelon Game" />
       <section className="w-full h-full">{children}</section>

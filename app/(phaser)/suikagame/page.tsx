@@ -8,6 +8,7 @@ import RankBoard from '@/components/common/RankBoard';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 import UserProfile from '@/components/auth/UserProfile';
 import { useGetScores } from '@/service/scores';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import {
   Sheet,
   SheetContent,
@@ -78,8 +79,9 @@ function SuikaGamePage() {
       </div>
 
       {/* 데스크탑: 조작법 (xl 이상에서만 표시) */}
-      <aside className="hidden xl:block shrink-0 w-72">
+      <aside className="hidden xl:block shrink-0 w-72 space-y-4">
         <ControlInfoTable controls={controls} />
+        <SidebarAd slot="sidebar-left" />
       </aside>
 
       {/* 게임 (항상 표시) */}
@@ -88,9 +90,12 @@ function SuikaGamePage() {
       </div>
 
       {/* 데스크탑: 랭킹 (xl 이상에서만 표시) */}
-      <aside className="hidden xl:block shrink-0 w-64">
+      <aside className="hidden xl:block shrink-0 w-64 space-y-4">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-right" />
       </aside>
+
+      <AnchorAd />
     </section>
   );
 }

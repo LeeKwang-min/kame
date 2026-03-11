@@ -22,6 +22,16 @@ export class GameOverScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
 
+    // Notify ad system of game over
+    callbacks?.onGameOver?.(this.finalScore);
+
+    // If ad overlay should be shown, only draw a semi-transparent overlay and return early
+    const shouldShowAdRef = this.registry.get('shouldShowAdRef') as { current: boolean } | undefined;
+    if (shouldShowAdRef?.current) {
+      this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7).setDepth(20);
+      return;
+    }
+
     // Semi-transparent warm overlay
     this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x5D4037, 0.75).setDepth(20);
 
