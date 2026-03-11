@@ -14,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import Dodge from './_components/Dodge';
 
 const controls = [
@@ -28,6 +29,7 @@ function DodgePage() {
   const { data: scores = [], isLoading } = useGetScores('dodge');
 
   return (
+    <>
     <section className="w-full h-full flex flex-col xl:flex-row gap-4 xl:gap-6 items-center xl:items-start justify-center">
       {/* 모바일/태블릿: 햄버거 메뉴 (xl 미만에서만 표시) */}
       <div className="xl:hidden w-full flex justify-end px-2">
@@ -68,6 +70,7 @@ function DodgePage() {
       {/* 데스크탑: 조작법 (xl 이상에서만 표시) */}
       <aside className="hidden xl:block shrink-0 w-72">
         <ControlInfoTable controls={controls} />
+        <SidebarAd slot="sidebar-left" maxWidth={288} />
       </aside>
 
       {/* 게임 캔버스 (항상 표시) */}
@@ -78,8 +81,11 @@ function DodgePage() {
       {/* 데스크탑: 랭킹 (xl 이상에서만 표시) */}
       <aside className="hidden xl:block shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
+    <AnchorAd />
+    </>
   );
 }
 

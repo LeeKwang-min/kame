@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setupDodge, TDodgeCallbacks } from '../_lib/game';
 import { CANVAS_SIZE } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function Dodge() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,6 +15,15 @@ function Dodge() {
   const { mutateAsync: saveScore } = useCreateScore('dodge');
   const { mutateAsync: createSession } = useGameSession('dodge');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -58,10 +68,13 @@ function Dodge() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupDodge(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full flex justify-center">
@@ -69,11 +82,31 @@ function Dodge() {
         ref={wrapperRef}
         style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
       >
-        <canvas
-          ref={canvasRef}
-          className="border border-white/20 rounded-2xl shadow-lg touch-none bg-white"
-          style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
-        />
+        <div className="relative" style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}>
+          <canvas
+            ref={canvasRef}
+            className="border border-white/20 rounded-2xl shadow-lg touch-none bg-white"
+            style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+          />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: 'dodge',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );
