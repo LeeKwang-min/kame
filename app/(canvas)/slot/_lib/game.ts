@@ -11,6 +11,9 @@ export type TSlotCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type Button = {
@@ -98,6 +101,10 @@ export const setupSlot = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // 릴 스트립 초기화 (각 릴에 심볼 배치)
   const initializeReelStrips = () => {
     reelStrips = [];
@@ -174,6 +181,7 @@ export const setupSlot = (
 
     if (state.coins <= 0) {
       state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxCoins);
     } else {
       state.phase = 'playing';
     }
@@ -942,7 +950,9 @@ export const setupSlot = (
     renderSlotMachine();
 
     if (state.phase === 'gameover') {
-      gameOverHud.render(state.maxCoins);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.maxCoins);
+      }
     }
   };
 
@@ -968,5 +978,8 @@ export const setupSlot = (
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('touchstart', onTouchStart);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

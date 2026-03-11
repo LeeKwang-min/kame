@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { setupBubbleShooter, TBubbleShooterCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function BubbleShooter() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -12,6 +13,15 @@ function BubbleShooter() {
   const { mutateAsync: saveScore } = useCreateScore('bubbleshooter');
   const { mutateAsync: createSession } = useGameSession('bubbleshooter');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -37,17 +47,40 @@ function BubbleShooter() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupBubbleShooter(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
-      <canvas
-        ref={canvasRef}
-        className="w-[480px] h-[640px] border border-white/20 rounded-2xl touch-none shadow-lg"
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          className="w-[480px] h-[640px] border border-white/20 rounded-2xl touch-none shadow-lg"
+        />
+        <GameOverAdOverlay
+          visible={showAdOverlay}
+          score={currentScore}
+          isLoggedIn={isLoggedIn}
+          onSave={async (score) => {
+            if (!sessionTokenRef.current) return { saved: false };
+            const result = await saveScore({
+              gameType: 'bubbleshooter',
+              score: Math.floor(score),
+              sessionToken: sessionTokenRef.current,
+            });
+            sessionTokenRef.current = null;
+            return result;
+          }}
+          onSkip={closeOverlay}
+          onRestart={handleRestart}
+          onClose={closeOverlay}
+        />
+      </div>
     </div>
   );
 }

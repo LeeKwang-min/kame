@@ -21,6 +21,9 @@ export type TNumberChainCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupNumberChain(
@@ -358,6 +361,10 @@ export function setupNumberChain(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const getCanvasPos = (clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     return {
@@ -383,8 +390,10 @@ export function setupNumberChain(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -407,6 +416,7 @@ export function setupNumberChain(
         break;
       case 'Escape':
         if (state === 'playing' && score > 0) state = 'gameover';
+        callbacks?.onGameOver?.(score);
         break;
     }
   }
@@ -520,5 +530,8 @@ export function setupNumberChain(
     cancelAnimationFrame(animationId);
     canvas.removeEventListener('click', handleClick);
     window.removeEventListener('keydown', handleKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

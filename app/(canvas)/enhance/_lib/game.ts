@@ -11,6 +11,9 @@ export type TEnhanceCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type Button = {
@@ -77,10 +80,15 @@ export const setupEnhance = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const doEnhance = () => {
     if (state.phase !== 'playing' || isAnimating) return;
     if (state.level >= MAX_LEVEL) {
       state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxLevel);
       return;
     }
 
@@ -103,6 +111,7 @@ export const setupEnhance = (
         }
         if (state.level >= MAX_LEVEL) {
           state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxLevel);
         }
         break;
       case 'downgrade':
@@ -110,6 +119,7 @@ export const setupEnhance = (
         break;
       case 'destroy':
         state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxLevel);
         break;
     }
 
@@ -741,7 +751,9 @@ export const setupEnhance = (
     renderGameScreen();
 
     if (state.phase === 'gameover') {
-      gameOverHud.render(state.maxLevel);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.maxLevel);
+      }
     }
   };
 
@@ -766,5 +778,8 @@ export const setupEnhance = (
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('touchstart', onTouchStart);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

@@ -17,6 +17,9 @@ export type TKustomCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupKustom(
@@ -62,6 +65,10 @@ export function setupKustom(
     boss = createBoss();
     keys.clear();
     gameOverHud.reset();
+  }
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
   }
 
   async function startGame(): Promise<void> {
@@ -151,6 +158,7 @@ export function setupKustom(
       const isDead = hitPlayer(player);
       if (isDead) {
         state = 'gameover';
+        callbacks?.onGameOver?.(Math.floor(elapsedTime));
       }
     }
   }
@@ -185,7 +193,9 @@ export function setupKustom(
     }
 
     if (state === 'gameover') {
-      gameOverHud.render(Math.floor(elapsedTime));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(Math.floor(elapsedTime));
+      }
       return;
     }
   }
@@ -209,8 +219,10 @@ export function setupKustom(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      gameOverHud.onKeyDown(e, Math.floor(elapsedTime));
-      return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onKeyDown(e, Math.floor(elapsedTime));
+        return;
+      }
     }
 
     switch (e.code) {
@@ -262,5 +274,8 @@ export function setupKustom(
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
     cancelAnimationFrame(animationId);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { setupKustom, TKustomCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function Kustom() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -12,6 +13,15 @@ function Kustom() {
   const { mutateAsync: saveScore } = useCreateScore('kustom');
   const { mutateAsync: createSession } = useGameSession('kustom');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -37,17 +47,40 @@ function Kustom() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupKustom(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
-      <canvas
-        ref={canvasRef}
-        className="w-[1080px] h-[600px] border border-white/20 rounded-2xl shadow-lg"
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          className="w-[1080px] h-[600px] border border-white/20 rounded-2xl shadow-lg"
+        />
+        <GameOverAdOverlay
+          visible={showAdOverlay}
+          score={currentScore}
+          isLoggedIn={isLoggedIn}
+          onSave={async (score) => {
+            if (!sessionTokenRef.current) return { saved: false };
+            const result = await saveScore({
+              gameType: 'kustom',
+              score: Math.floor(score),
+              sessionToken: sessionTokenRef.current,
+            });
+            sessionTokenRef.current = null;
+            return result;
+          }}
+          onSkip={closeOverlay}
+          onRestart={handleRestart}
+          onClose={closeOverlay}
+        />
+      </div>
     </div>
   );
 }

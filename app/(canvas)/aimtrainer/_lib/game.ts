@@ -29,6 +29,9 @@ export type TAimTrainerCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupAimTrainer = (
@@ -273,6 +276,10 @@ export const setupAimTrainer = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Start ---
   const startGame = async () => {
     if (isStarted || isLoading) return;
@@ -304,6 +311,7 @@ export const setupAimTrainer = (
   const triggerGameOver = () => {
     isGameOver = true;
     isStarted = false;
+    callbacks?.onGameOver?.(score);
   };
 
   // --- Update ---
@@ -422,7 +430,9 @@ export const setupAimTrainer = (
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -603,8 +613,10 @@ export const setupAimTrainer = (
 
     // Game over HUD handles keys first
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -640,5 +652,8 @@ export const setupAimTrainer = (
     cancelAnimationFrame(animationId);
     canvas.removeEventListener('click', handleCanvasClick);
     window.removeEventListener('keydown', handleKeyDown);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

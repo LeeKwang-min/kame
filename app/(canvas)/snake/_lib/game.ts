@@ -14,6 +14,9 @@ export type TSnakeCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupSnake = (
@@ -140,6 +143,10 @@ export const setupSnake = (
     food = spawnFood();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
@@ -243,11 +250,15 @@ export const setupSnake = (
 
     if (handleWallCollision(newHead)) {
       isGameOver = true;
+
+      callbacks?.onGameOver?.(score);
       return;
     }
 
     if (handleSelfCollision(newHead)) {
       isGameOver = true;
+
+      callbacks?.onGameOver?.(score);
       return;
     }
 
@@ -579,7 +590,9 @@ export const setupSnake = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -607,5 +620,8 @@ export const setupSnake = (
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

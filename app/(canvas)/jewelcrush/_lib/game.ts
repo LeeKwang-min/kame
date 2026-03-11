@@ -48,6 +48,9 @@ export type TJewelCrushCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type TState = 'start' | 'loading' | 'playing' | 'swapping' | 'popping' | 'dropping' | 'paused' | 'gameover';
@@ -532,6 +535,10 @@ export function setupJewelCrush(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   async function startGame() {
     if (state !== 'start' && state !== 'paused') return;
 
@@ -567,7 +574,9 @@ export function setupJewelCrush(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      if (gameOverHud.onKeyDown(e, score)) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        if (gameOverHud.onKeyDown(e, score)) return;
+      }
     }
 
     switch (e.code) {
@@ -671,6 +680,7 @@ export function setupJewelCrush(
       if (timeLeft <= 0) {
         timeLeft = 0;
         state = 'gameover';
+        callbacks?.onGameOver?.(score);
         return;
       }
     }
@@ -962,5 +972,8 @@ export function setupJewelCrush(
   return () => {
     window.removeEventListener('keydown', handleKeyDown);
     cancelAnimationFrame(animationId);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

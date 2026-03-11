@@ -35,6 +35,9 @@ export type THelicopterCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupHelicopter = (
@@ -232,6 +235,10 @@ export const setupHelicopter = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Start ---
   const startGame = async () => {
     if (isStarted || isLoading) return;
@@ -265,6 +272,7 @@ export const setupHelicopter = (
     spawnExplosionParticles(player.x, player.y);
     isGameOver = true;
     isStarted = false;
+    callbacks?.onGameOver?.(score);
   };
 
   // --- Update ---
@@ -373,7 +381,9 @@ export const setupHelicopter = (
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -569,5 +579,8 @@ export const setupHelicopter = (
     cancelAnimationFrame(animationId);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

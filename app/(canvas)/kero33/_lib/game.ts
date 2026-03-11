@@ -29,6 +29,9 @@ export type TKero33Callbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // 이미지 로드 헬퍼
@@ -370,6 +373,7 @@ export const setupKero33 = (
 
       if (state.lives <= 0) {
         state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.score);
       }
     }
   };
@@ -652,7 +656,9 @@ export const setupKero33 = (
         drawOverlay('KERO33', 'Press S to start');
       }
     } else if (state.phase === 'gameover') {
-      gameOverHud.render(state.score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.score);
+      }
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     }
@@ -668,5 +674,8 @@ export const setupKero33 = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

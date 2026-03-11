@@ -25,6 +25,9 @@ export type TMissileCommandCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupMissileCommand = (
@@ -113,6 +116,10 @@ export const setupMissileCommand = (
     enemyMissiles = [];
     cities = createCities();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -369,6 +376,8 @@ export const setupMissileCommand = (
     const aliveCities = cities.filter((c) => c.alive);
     if (aliveCities.length === 0) {
       isGameOver = true;
+
+      callbacks?.onGameOver?.(score);
     }
   };
 
@@ -703,7 +712,9 @@ export const setupMissileCommand = (
 
     // 게임 오버 화면
     if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
 
     // 일시정지 화면
@@ -766,5 +777,8 @@ export const setupMissileCommand = (
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('click', onClick);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

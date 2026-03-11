@@ -47,6 +47,9 @@ export type TDownwellCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupDownwell = (
@@ -255,6 +258,10 @@ export const setupDownwell = (
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Start ---
   async function startGame() {
     if (isStarted || isLoading) return;
@@ -283,6 +290,8 @@ export const setupDownwell = (
   function triggerGameOver() {
     isGameOver = true;
     isStarted = false;
+
+    callbacks?.onGameOver?.(getScore());
   }
 
   // --- Update ---
@@ -703,7 +712,9 @@ export const setupDownwell = (
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (isGameOver) {
-      gameOverHud.render(getScore());
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(getScore());
+      }
     }
   }
 
@@ -763,8 +774,10 @@ export const setupDownwell = (
 
     // Game over HUD handles keys first
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, getScore());
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, getScore());
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -829,5 +842,8 @@ export const setupDownwell = (
     cancelAnimationFrame(animationId);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

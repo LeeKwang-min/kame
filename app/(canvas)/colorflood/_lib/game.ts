@@ -26,6 +26,9 @@ export type TColorFloodCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupColorFlood(
@@ -155,6 +158,7 @@ export function setupColorFlood(
       startTime = performance.now();
     } else if (moves >= MAX_MOVES) {
       state = 'gameover';
+        callbacks?.onGameOver?.(score);
     }
   }
 
@@ -188,6 +192,10 @@ export function setupColorFlood(
     level = 1;
     history = [];
     gameOverHud.reset();
+  }
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
   }
 
   const getCanvasPos = (clientX: number, clientY: number) => {
@@ -381,7 +389,9 @@ export function setupColorFlood(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -407,5 +417,8 @@ export function setupColorFlood(
     cancelAnimationFrame(animationId);
     canvas.removeEventListener('click', handleClick);
     window.removeEventListener('keydown', handleKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

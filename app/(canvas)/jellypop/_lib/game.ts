@@ -51,6 +51,9 @@ export type TPuyoPuyoCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // 회전 오프셋: child가 pivot 기준으로 어디에 있는지
@@ -507,9 +510,11 @@ export function setupPuyoPuyo(
       chainCount = 0;
       if (checkGameOver()) {
         state = 'gameover';
+        callbacks?.onGameOver?.(score);
       } else {
         if (!spawnPair()) {
           state = 'gameover';
+        callbacks?.onGameOver?.(score);
         } else {
           state = 'playing';
           dropTimer = 0;
@@ -537,6 +542,10 @@ export function setupPuyoPuyo(
     popTimer = 0;
     poppingCells = [];
     gameOverHud.reset();
+  }
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
   }
 
   async function startGame() {
@@ -831,7 +840,9 @@ export function setupPuyoPuyo(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -1082,5 +1093,8 @@ export function setupPuyoPuyo(
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
     cancelAnimationFrame(animationId);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

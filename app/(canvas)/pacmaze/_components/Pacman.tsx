@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { setupPacman, TPacmanCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 
 function Pacman() {
@@ -13,6 +14,15 @@ function Pacman() {
   const { mutateAsync: saveScore } = useCreateScore('pacman');
   const { mutateAsync: createSession } = useGameSession('pacman');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,20 +48,43 @@ function Pacman() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupPacman(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        className="border touch-none bg-black"
-        style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          className="border touch-none bg-black"
+          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+        />
+        <GameOverAdOverlay
+          visible={showAdOverlay}
+          score={currentScore}
+          isLoggedIn={isLoggedIn}
+          onSave={async (score) => {
+            if (!sessionTokenRef.current) return { saved: false };
+            const result = await saveScore({
+              gameType: 'pacman',
+              score: Math.floor(score),
+              sessionToken: sessionTokenRef.current,
+            });
+            sessionTokenRef.current = null;
+            return result;
+          }}
+          onSkip={closeOverlay}
+          onRestart={handleRestart}
+          onClose={closeOverlay}
+        />
+      </div>
     </div>
   );
 }

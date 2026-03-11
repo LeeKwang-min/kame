@@ -18,6 +18,9 @@ export type TRouletteCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type Button = {
@@ -98,6 +101,10 @@ export const setupRoulette = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const changeBetType = (delta: number) => {
     if (state.phase !== 'betting') return;
 
@@ -166,6 +173,7 @@ export const setupRoulette = (
   const nextRound = () => {
     if (state.chips <= 0) {
       state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxChips);
       return;
     }
 
@@ -889,7 +897,9 @@ export const setupRoulette = (
     renderGameScreen();
 
     if (state.phase === 'gameover') {
-      gameOverHud.render(state.maxChips);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.maxChips);
+      }
     }
   };
 
@@ -914,5 +924,8 @@ export const setupRoulette = (
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('touchstart', onTouchStart);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

@@ -31,6 +31,9 @@ export type TMazeCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export type TMazeCleanup = {
@@ -331,6 +334,10 @@ export function setupMaze(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Movement ---
   function movePlayer(dr: number, dc: number) {
     const nr = player.row + dr;
@@ -357,6 +364,7 @@ export function setupMaze(
     if (player.row === exitRow && player.col === exitCol) {
       score = calculateScore();
       state = 'gameover';
+        callbacks?.onGameOver?.(score);
     }
   }
 
@@ -894,7 +902,9 @@ export function setupMaze(
     if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -941,6 +951,9 @@ export function setupMaze(
       canvas.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('keydown', handleKeyDown);
       canvas.style.cursor = 'default';
+      if (callbacks?.restartRef) {
+        callbacks.restartRef.current = null;
+      }
     },
     setLoggedIn: (value: boolean) => {
       gameOverHud.setLoggedIn(value);

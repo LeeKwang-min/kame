@@ -24,6 +24,9 @@ export type TPlatformerCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupPlatformer = (
@@ -195,6 +198,10 @@ export const setupPlatformer = (
       };
     }
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -398,6 +405,9 @@ export const setupPlatformer = (
     } else {
       isCleared = true;
       isGameOver = true;
+
+      const timeScore = Math.max(0, Math.floor(10000 - totalSec * 100));
+      callbacks?.onGameOver?.(timeScore);
     }
   };
 
@@ -515,7 +525,9 @@ export const setupPlatformer = (
     if (levelIndex >= LEVELS.length - 1 && isGameOver) {
       // 시간 기반 점수: 최대 10000점 - 경과시간(초) * 100
       const timeScore = Math.max(0, Math.floor(10000 - totalSec * 100));
-      gameOverHud.render(timeScore);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(timeScore);
+      }
     }
   };
 
@@ -589,5 +601,8 @@ export const setupPlatformer = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

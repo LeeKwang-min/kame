@@ -50,6 +50,9 @@ export type TCrossyRoadCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupCrossyRoad = (
@@ -247,6 +250,10 @@ export const setupCrossyRoad = (
     initGame();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
@@ -336,8 +343,10 @@ export const setupCrossyRoad = (
 
     // Game over HUD
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(score));
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, Math.floor(score));
+        if (handled) return;
+      }
     }
 
     // Restart
@@ -857,6 +866,8 @@ export const setupCrossyRoad = (
           deathTimer = 0;
           deathAnimProgress = 1;
           isGameOver = true;
+
+          callbacks?.onGameOver?.(Math.floor(score));
         }
       }
     }
@@ -1284,7 +1295,9 @@ export const setupCrossyRoad = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(score));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(Math.floor(score));
+      }
       return;
     }
 
@@ -1312,5 +1325,8 @@ export const setupCrossyRoad = (
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

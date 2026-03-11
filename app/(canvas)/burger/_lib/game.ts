@@ -23,6 +23,9 @@ export type TBurgerCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 const initialState: GameState = {
@@ -94,6 +97,10 @@ export const setupBurger = (
     shuffleFlashAlpha = 0;
     gameOverHud.reset();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   const startGame = async () => {
     if (state.phase !== 'start' || isLoading) return;
@@ -911,6 +918,7 @@ export const setupBurger = (
 
         if (state.timeLeft <= 0) {
           state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.score);
         }
       }
     }
@@ -942,7 +950,9 @@ export const setupBurger = (
     renderGameScreen();
 
     if (state.phase === 'gameover') {
-      gameOverHud.render(state.score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.score);
+      }
     }
   };
 
@@ -963,5 +973,8 @@ export const setupBurger = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('resize', resize);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

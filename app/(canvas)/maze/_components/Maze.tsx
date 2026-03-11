@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { setupMaze, TMazeCallbacks, TMazeCleanup } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function Maze() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -13,6 +14,15 @@ function Maze() {
   const { mutateAsync: saveScore } = useCreateScore('maze');
   const { mutateAsync: createSession } = useGameSession('maze');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,6 +48,9 @@ function Maze() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     const game = setupMaze(canvas, callbacks);
@@ -47,7 +60,7 @@ function Maze() {
       game.cleanup();
       gameRef.current = null;
     };
-  }, [saveScore, createSession]); // isLoggedIn 제거
+  }, [saveScore, createSession, onGameOver, shouldShowAdRef, restartRef]); // isLoggedIn 제거
 
   // isLoggedIn 변경 시 게임 재설정 없이 HUD만 업데이트
   useEffect(() => {
@@ -56,10 +69,30 @@ function Maze() {
 
   return (
     <div className="w-full h-full flex justify-center">
-      <canvas
-        ref={canvasRef}
-        className="w-[800px] h-[600px] border border-white/20 rounded-2xl shadow-lg"
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          className="w-[800px] h-[600px] border border-white/20 rounded-2xl shadow-lg"
+        />
+        <GameOverAdOverlay
+          visible={showAdOverlay}
+          score={currentScore}
+          isLoggedIn={isLoggedIn}
+          onSave={async (score) => {
+            if (!sessionTokenRef.current) return { saved: false };
+            const result = await saveScore({
+              gameType: 'maze',
+              score: Math.floor(score),
+              sessionToken: sessionTokenRef.current,
+            });
+            sessionTokenRef.current = null;
+            return result;
+          }}
+          onSkip={closeOverlay}
+          onRestart={handleRestart}
+          onClose={closeOverlay}
+        />
+      </div>
     </div>
   );
 }

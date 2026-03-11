@@ -31,6 +31,9 @@ export type TBreakoutCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupBreakOut = (
@@ -150,6 +153,10 @@ export const setupBreakOut = (
     bricks = createBricks(rect.width);
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
@@ -180,8 +187,10 @@ export const setupBreakOut = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -327,6 +336,7 @@ export const setupBreakOut = (
 
       if (ball.y + ball.radius > rect.height) {
         isGameOver = true;
+        callbacks?.onGameOver?.(score);
         return;
       }
     } else {
@@ -398,7 +408,9 @@ export const setupBreakOut = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -428,5 +440,8 @@ export const setupBreakOut = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

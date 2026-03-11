@@ -3,6 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import Dino from './_components/Dino';
 
 const controls = [
@@ -17,15 +18,19 @@ function DinoPage() {
   const { data: scores = [], isLoading } = useGetScores('dino');
 
   return (
-    <section className="w-full h-full flex gap-6 items-start">
+    <>
+      <section className="w-full h-full flex gap-6 items-start">
       <aside className="shrink-0 w-64 space-y-4">
         <ControlInfoTable controls={controls} />
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-left" maxWidth={256} />
       </aside>
       <div className="flex-1 h-full">
         <Dino />
       </div>
     </section>
+      <AnchorAd />
+    </>
   );
 }
 

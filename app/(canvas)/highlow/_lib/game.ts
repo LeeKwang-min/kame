@@ -11,6 +11,9 @@ export type THighLowCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type Button = {
@@ -92,6 +95,10 @@ export const setupHighLow = (
     initDeck();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const makeGuess = (guess: Guess) => {
     if (state.phase !== 'playing' || !state.currentCard) return;
 
@@ -141,6 +148,7 @@ export const setupHighLow = (
     } else {
       resultMessage = 'WRONG!';
       state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxStreak);
     }
   };
 
@@ -623,7 +631,9 @@ export const setupHighLow = (
     renderGameScreen();
 
     if (state.phase === 'gameover') {
-      gameOverHud.render(state.maxStreak);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.maxStreak);
+      }
     }
   };
 
@@ -649,5 +659,8 @@ export const setupHighLow = (
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('touchstart', onTouchStart);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

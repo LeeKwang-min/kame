@@ -11,6 +11,9 @@ export type TRPSCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type Button = {
@@ -82,6 +85,10 @@ export const setupRPS = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const makeChoice = (choice: RPSChoice) => {
     if (state.phase !== 'playing') return;
 
@@ -111,6 +118,7 @@ export const setupRPS = (
     if (state.result === 'lose') {
       // 한 번 지면 바로 게임 오버
       state.phase = 'gameover';
+        callbacks?.onGameOver?.(state.maxStreak);
       gameOverTime = globalTime;
       showGameOverHud = false;
     } else {
@@ -681,7 +689,9 @@ export const setupRPS = (
     renderGameScreen();
 
     if (state.phase === 'gameover' && showGameOverHud) {
-      gameOverHud.render(state.maxStreak);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.maxStreak);
+      }
     }
   };
 
@@ -706,5 +716,8 @@ export const setupRPS = (
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('touchstart', onTouchStart);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

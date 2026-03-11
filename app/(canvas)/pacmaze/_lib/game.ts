@@ -66,6 +66,9 @@ export type TPacmanCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupPacman = (
@@ -197,6 +200,10 @@ export const setupPacman = (
     ghostMoveProgress = 0;
     gameOverHud.reset();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   // 라운드 리셋 (죽었을 때)
   const resetRound = () => {
@@ -566,6 +573,7 @@ export const setupPacman = (
         state.lives--;
         if (state.lives <= 0) {
           state.isGameOver = true;
+          callbacks?.onGameOver?.(state.score);
         } else {
           resetRound();
         }
@@ -876,7 +884,9 @@ export const setupPacman = (
     }
 
     if (state.isGameOver) {
-      gameOverHud.render(state.score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(state.score);
+      }
       return;
     }
 
@@ -907,5 +917,8 @@ export const setupPacman = (
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

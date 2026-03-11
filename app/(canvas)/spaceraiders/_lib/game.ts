@@ -31,6 +31,9 @@ export type TSpaceInvadersCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupSpaceInvaders = (
@@ -186,6 +189,10 @@ export const setupSpaceInvaders = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
 
@@ -338,6 +345,7 @@ export const setupSpaceInvaders = (
       const newBounds = getEnemyBounds(enemies);
       if (newBounds.bottom >= player.y) {
         gameState = 'gameover';
+        callbacks?.onGameOver?.(score);
       }
     }
 
@@ -435,6 +443,7 @@ export const setupSpaceInvaders = (
 
         if (lives <= 0) {
           gameState = 'gameover';
+        callbacks?.onGameOver?.(score);
         }
       }
     }
@@ -717,7 +726,9 @@ export const setupSpaceInvaders = (
         );
       }
     } else if (gameState === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     }
@@ -765,5 +776,8 @@ export const setupSpaceInvaders = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

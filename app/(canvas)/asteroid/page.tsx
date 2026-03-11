@@ -3,6 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import Asteroid from './_components/Asteroid';
 
 const controls = [
@@ -18,17 +19,22 @@ function AsteroidPage() {
   const { data: scores = [], isLoading } = useGetScores('asteroid');
 
   return (
-    <section className="w-full h-full flex gap-6 items-start justify-center">
+    <>
+      <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-64">
         <ControlInfoTable controls={controls} />
+        <SidebarAd slot="sidebar-left" maxWidth={256} />
       </aside>
       <div className="flex-1 h-[620px] max-w-[620px]">
         <Asteroid />
       </div>
       <aside className="shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
+      <AnchorAd />
+    </>
   );
 }
 

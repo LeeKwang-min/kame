@@ -19,6 +19,9 @@ export type TNonogramCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupNonogram(
@@ -197,6 +200,10 @@ export function setupNonogram(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const getCanvasPos = (clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     return {
@@ -273,6 +280,7 @@ export function setupNonogram(
       case 'Escape':
         if (state === 'playing' && score > 0) {
           state = 'gameover';
+        callbacks?.onGameOver?.(score);
         }
         break;
     }
@@ -403,7 +411,9 @@ export function setupNonogram(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -426,5 +436,8 @@ export function setupNonogram(
     canvas.removeEventListener('contextmenu', handleContextMenu);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

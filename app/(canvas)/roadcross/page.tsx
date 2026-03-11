@@ -3,6 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import CrossyRoad from './_components/CrossyRoad';
 
 const controls = [
@@ -17,17 +18,22 @@ function CrossyRoadPage() {
   const { data: scores = [], isLoading } = useGetScores('crossyroad');
 
   return (
-    <section className="w-full h-full flex gap-6 items-start justify-center">
+    <>
+      <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-72">
         <ControlInfoTable controls={controls} />
+        <SidebarAd slot="sidebar-left" maxWidth={288} />
       </aside>
       <div className="flex-1 h-[700px] max-w-[624px]">
         <CrossyRoad />
       </div>
       <aside className="shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
+      <AnchorAd />
+    </>
   );
 }
 

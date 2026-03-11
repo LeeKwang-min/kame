@@ -33,6 +33,9 @@ export type TDinoCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupDino = (
@@ -142,6 +145,10 @@ export const setupDino = (
     }
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
@@ -178,8 +185,10 @@ export const setupDino = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(score));
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, Math.floor(score));
+        if (handled) return;
+      }
     }
 
     if (isPaused) return;
@@ -390,6 +399,8 @@ export const setupDino = (
 
     if (checkCollision()) {
       isGameOver = true;
+
+      callbacks?.onGameOver?.(Math.floor(score));
     }
   };
 
@@ -544,7 +555,9 @@ export const setupDino = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(score));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(Math.floor(score));
+      }
       return;
     }
 
@@ -572,5 +585,8 @@ export const setupDino = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

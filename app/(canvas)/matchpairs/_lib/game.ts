@@ -37,6 +37,9 @@ export type TMatchPairsCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupMatchPairs = (
@@ -149,6 +152,10 @@ export const setupMatchPairs = (
     isLocked = false;
     gameOverHud.reset();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   // --- Start ---
   const startGame = async () => {
@@ -314,6 +321,7 @@ export const setupMatchPairs = (
     if (timeLeft <= 0) {
       timeLeft = 0;
       state = 'gameover';
+        callbacks?.onGameOver?.(score);
       return;
     }
 
@@ -366,7 +374,9 @@ export const setupMatchPairs = (
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover' || state === 'completed') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -511,5 +521,8 @@ export const setupMatchPairs = (
     canvas.removeEventListener('mousedown', handleMouseDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     window.removeEventListener('keydown', handleKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

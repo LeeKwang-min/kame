@@ -31,6 +31,9 @@ export type TSurvivorsCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // ─── Main Entry Point ───
@@ -77,8 +80,10 @@ export function setupSurvivors(
 
     // Game over HUD gets priority
     if (state === 'gameover') {
-      gameOverHud.onKeyDown(e, Math.floor(elapsed));
-      return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onKeyDown(e, Math.floor(elapsed));
+        return;
+      }
     }
 
     switch (e.code) {
@@ -133,6 +138,10 @@ export function setupSurvivors(
     keys.clear();
     gameOverHud.reset();
     state = 'start';
+  }
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
   }
 
   // === Main Update ===
@@ -194,6 +203,7 @@ export function setupSurvivors(
         const isDead = damagePlayer(player, enemy.damage);
         if (isDead) {
           state = 'gameover';
+        callbacks?.onGameOver?.(Math.floor(elapsed));
         }
       }
     });
@@ -238,7 +248,9 @@ export function setupSurvivors(
     } else if (state === 'levelup') {
       renderLevelUpUI(ctx, levelUpChoices, CANVAS_WIDTH, CANVAS_HEIGHT);
     } else if (state === 'gameover') {
-      gameOverHud.render(Math.floor(elapsed));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(Math.floor(elapsed));
+      }
     }
   }
 
@@ -264,5 +276,8 @@ export function setupSurvivors(
     cancelAnimationFrame(animationId);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

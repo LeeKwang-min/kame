@@ -41,6 +41,9 @@ export type TTypingfallCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupTypingfall = (
@@ -258,6 +261,10 @@ export const setupTypingfall = (
     initClouds();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Start ---
   const startGame = async () => {
     if (isStarted || isLoading) return;
@@ -283,6 +290,7 @@ export const setupTypingfall = (
   const triggerGameOver = () => {
     isGameOver = true;
     isStarted = false;
+    callbacks?.onGameOver?.(score);
   };
 
   // --- Update ---
@@ -397,7 +405,9 @@ export const setupTypingfall = (
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -807,5 +817,8 @@ export const setupTypingfall = (
   return () => {
     cancelAnimationFrame(animationId);
     window.removeEventListener('keydown', handleKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

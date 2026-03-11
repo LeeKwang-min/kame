@@ -106,6 +106,9 @@ export type TRandomDefenseCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // ─── Main Setup ───
@@ -536,7 +539,9 @@ export function setupRandomDefense(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -574,6 +579,10 @@ export function setupRandomDefense(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // ─── Start ───
 
   async function startGame() {
@@ -588,6 +597,7 @@ export function setupRandomDefense(
 
   function triggerGameOver() {
     state = 'gameover';
+        callbacks?.onGameOver?.(score);
     sounds.playGameOver();
   }
 
@@ -825,5 +835,8 @@ export function setupRandomDefense(
     canvas.removeEventListener('contextmenu', handleContextMenu);
     window.removeEventListener('keydown', handleKeyDown);
     sounds.dispose();
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

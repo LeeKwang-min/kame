@@ -3,6 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 import Doodle from './_components/Doodle';
 
 const controls = [
@@ -16,17 +17,22 @@ function DoodlePage() {
   const { data: scores = [], isLoading } = useGetScores('doodle');
 
   return (
-    <section className="w-full h-full flex gap-6 items-start justify-center">
+    <>
+      <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-64">
         <ControlInfoTable controls={controls} />
+        <SidebarAd slot="sidebar-left" maxWidth={256} />
       </aside>
       <div className="flex-1 h-[600px] max-w-[400px]">
         <Doodle />
       </div>
       <aside className="shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
+      <AnchorAd />
+    </>
   );
 }
 

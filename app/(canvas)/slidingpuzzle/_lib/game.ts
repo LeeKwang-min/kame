@@ -21,6 +21,9 @@ export type TSlidingPuzzleCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupSlidingPuzzle(
@@ -218,6 +221,10 @@ export function setupSlidingPuzzle(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const getCanvasPos = (clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     return {
@@ -276,6 +283,7 @@ export function setupSlidingPuzzle(
       case 'Escape':
         if (state === 'playing' && score > 0) {
           state = 'gameover';
+        callbacks?.onGameOver?.(score);
         }
         break;
       // Arrow moves the empty space (pushes tile into empty)
@@ -394,7 +402,9 @@ export function setupSlidingPuzzle(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -417,5 +427,8 @@ export function setupSlidingPuzzle(
     cancelAnimationFrame(animationId);
     canvas.removeEventListener('click', handleClick);
     window.removeEventListener('keydown', handleKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

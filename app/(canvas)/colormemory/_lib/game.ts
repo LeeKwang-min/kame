@@ -28,6 +28,9 @@ export type TSimonCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupSimon(
@@ -167,6 +170,7 @@ export function setupSimon(
       state = 'fail';
       setTimeout(() => {
         state = 'gameover';
+        callbacks?.onGameOver?.(score);
       }, 500);
       return;
     }
@@ -302,6 +306,10 @@ export function setupSimon(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // 렌더링
   function render() {
     // 배경
@@ -402,7 +410,9 @@ export function setupSimon(
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -426,5 +436,8 @@ export function setupSimon(
       clearTimeout(showPatternTimer);
     }
     audioContext.close();
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

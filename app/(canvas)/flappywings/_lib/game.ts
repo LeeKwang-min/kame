@@ -27,6 +27,9 @@ export type TFlappyBirdCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupFlappyBird = (
@@ -100,6 +103,10 @@ export const setupFlappyBird = (
     pipes = [];
     spawnTimer = 0;
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -247,6 +254,8 @@ export const setupFlappyBird = (
 
       if (handleBoundaryCollision() || handlePipeCollision()) {
         isGameOver = true;
+
+        callbacks?.onGameOver?.(score);
         return;
       }
 
@@ -290,7 +299,9 @@ export const setupFlappyBird = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -318,5 +329,8 @@ export const setupFlappyBird = (
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
+      if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };
