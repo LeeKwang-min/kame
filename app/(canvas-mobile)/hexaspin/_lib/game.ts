@@ -30,6 +30,9 @@ export type TSuperHexagonCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupSuperHexagon(
@@ -115,6 +118,10 @@ export function setupSuperHexagon(
     touchRight = false;
     gameOverHud.reset();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   const startGame = async () => {
     if (state === 'playing' || state === 'loading') return;
@@ -222,6 +229,7 @@ export function setupSuperHexagon(
     // 충돌 감지
     if (checkCollision()) {
       state = 'gameover';
+      callbacks?.onGameOver?.(score);
     }
 
     // 펄스
@@ -439,7 +447,9 @@ export function setupSuperHexagon(
       return;
     }
     if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
     if (state === 'paused') {
@@ -470,8 +480,10 @@ export function setupSuperHexagon(
     }
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR') {
@@ -511,7 +523,7 @@ export function setupSuperHexagon(
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   // 모바일 CSS rotate(90deg) 감지: 캔버스의 rect 비율로 판단
@@ -555,8 +567,10 @@ export function setupSuperHexagon(
     // 게임 오버: 터치로 SAVE/SKIP/재시작 처리
     if (state === 'gameover') {
       const pos = getTouchPos(touch);
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
+        if (handled) return;
+      }
       return;
     }
 
@@ -605,13 +619,15 @@ export function setupSuperHexagon(
       return;
     }
     if (state === 'gameover') {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = CANVAS_WIDTH / rect.width;
-      const scaleY = CANVAS_HEIGHT / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-      const handled = gameOverHud.onTouchStart(x, y, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = CANVAS_WIDTH / rect.width;
+        const scaleY = CANVAS_HEIGHT / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        const handled = gameOverHud.onTouchStart(x, y, score);
+        if (handled) return;
+      }
       return;
     }
     if (state === 'playing') {
@@ -675,5 +691,8 @@ export function setupSuperHexagon(
     canvas.removeEventListener('mousedown', handleMouseDown);
     canvas.removeEventListener('mouseup', handleMouseUp);
     canvas.removeEventListener('mousemove', handleMouseMove);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setupWaterSort, TWaterSortCallbacks } from '../_lib/game';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function WaterSort() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,6 +15,15 @@ function WaterSort() {
   const { mutateAsync: saveScore } = useCreateScore('watersort');
   const { mutateAsync: createSession } = useGameSession('watersort');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -57,10 +67,13 @@ function WaterSort() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupWaterSort(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full flex justify-center">
@@ -68,10 +81,30 @@ function WaterSort() {
         ref={wrapperRef}
         style={{ width: CANVAS_WIDTH, minHeight: CANVAS_HEIGHT }}
       >
-        <canvas
+        <div className="relative">
+          <canvas
           ref={canvasRef}
           className="border border-white/20 rounded-2xl shadow-lg touch-none"
         />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: 'watersort',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );

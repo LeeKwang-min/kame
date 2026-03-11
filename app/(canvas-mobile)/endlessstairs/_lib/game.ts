@@ -42,6 +42,9 @@ export type TStairsCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupStairs = (
@@ -228,6 +231,10 @@ export const setupStairs = (
     targetCameraOffsetY = cameraOffsetY;
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
 
@@ -264,6 +271,7 @@ export const setupStairs = (
       if (currentTime <= 0) {
         currentTime = 0;
         isGameOver = true;
+        callbacks?.onGameOver?.(Math.floor(score));
         animationState = 'falling';
       }
       return;
@@ -314,8 +322,10 @@ export const setupStairs = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(score));
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, Math.floor(score));
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -344,7 +354,7 @@ export const setupStairs = (
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -356,7 +366,9 @@ export const setupStairs = (
 
     // 게임 오버: 터치로 SAVE/SKIP/재시작 처리
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(score));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(score));
+      }
       return;
     }
 
@@ -679,7 +691,9 @@ export const setupStairs = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(score));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(Math.floor(score));
+      }
       return;
     }
 
@@ -709,5 +723,8 @@ export const setupStairs = (
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

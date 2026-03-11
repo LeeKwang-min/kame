@@ -34,6 +34,9 @@ export type TMinesweeperCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type TDifficultyButton = {
@@ -344,6 +347,7 @@ export function setupMinesweeper(
 
     cancelLongPress();
     state = 'gameover';
+    callbacks?.onGameOver?.(score);
   }
 
   function getCellLayout() {
@@ -530,7 +534,9 @@ export function setupMinesweeper(
     const pos = getTouchPos(touch);
 
     if (state === 'gameover') {
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, score);
+      }
       return;
     }
 
@@ -712,12 +718,18 @@ export function setupMinesweeper(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -1145,7 +1157,9 @@ export function setupMinesweeper(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -1179,5 +1193,8 @@ export function setupMinesweeper(
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', resize);
     canvas.style.cursor = 'default';
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

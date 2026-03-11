@@ -22,6 +22,9 @@ export type TQueensCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupQueens(
@@ -424,6 +427,7 @@ export function setupQueens(
       celebration = { active: true, time: 0, highlightIndex: -1 };
       spawnCelebrationParticles();
       state = 'gameover';
+      callbacks?.onGameOver?.(score);
     }
   }
 
@@ -541,6 +545,10 @@ export function setupQueens(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   function startTutorial(): void {
     state = 'tutorial';
     tutorialStep = 0;
@@ -631,8 +639,10 @@ export function setupQueens(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (state === 'tutorial') {
@@ -826,7 +836,9 @@ export function setupQueens(
     const pos = getTouchPos(touch);
 
     if (state === 'gameover') {
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, score);
+      }
       return;
     }
 
@@ -1595,7 +1607,9 @@ export function setupQueens(
     } else if (state === 'paused') {
       gamePauseHud(canvas, ctx);
     } else if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   }
 
@@ -1631,5 +1645,8 @@ export function setupQueens(
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', resize);
     canvas.style.cursor = 'default';
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

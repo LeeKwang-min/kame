@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import Tetris from './_components/Tetris';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: '← →', action: '좌우 이동' },

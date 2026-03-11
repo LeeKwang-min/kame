@@ -51,6 +51,9 @@ export type TKRacingCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupKRacing = (
@@ -195,6 +198,10 @@ export const setupKRacing = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- DPR / Resize ---
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
@@ -228,8 +235,10 @@ export const setupKRacing = (
     }
 
     if (state === 'finished') {
-      const handled = gameOverHud.onKeyDown(e, finalScore);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, finalScore);
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && state !== 'finished' && state !== 'paused') {
@@ -277,7 +286,7 @@ export const setupKRacing = (
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   // 모바일 CSS rotate(90deg) 감지: 캔버스의 rect 비율로 판단
@@ -328,8 +337,10 @@ export const setupKRacing = (
       const touch = e.changedTouches[0];
       if (!touch) return;
       const pos = getTouchPos(touch);
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, finalScore);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onTouchStart(pos.x, pos.y, finalScore);
+        if (handled) return;
+      }
       return;
     }
 
@@ -509,6 +520,7 @@ export const setupKRacing = (
 
       if (currentLap >= TOTAL_LAPS) {
         state = 'finished';
+        callbacks?.onGameOver?.(finalScore);
         finalScore = Math.floor(totalTime);
       }
     }
@@ -885,7 +897,9 @@ export const setupKRacing = (
     }
 
     if (state === 'finished') {
-      gameOverHud.render(finalScore);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(finalScore);
+      }
       return;
     }
 
@@ -921,5 +935,8 @@ export const setupKRacing = (
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('touchmove', handleTouchMove);
     canvas.removeEventListener('touchend', handleTouchEnd);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

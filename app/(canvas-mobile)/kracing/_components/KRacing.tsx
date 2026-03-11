@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setupKRacing, TKRacingCallbacks } from '../_lib/game';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 function KRacing() {
@@ -15,6 +16,15 @@ function KRacing() {
   const { mutateAsync: saveScore } = useCreateScore('kracing');
   const { mutateAsync: createSession } = useGameSession('kracing');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
   const isMobile = useIsMobile();
 
   const updateScale = useCallback(() => {
@@ -83,10 +93,13 @@ function KRacing() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupKRacing(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center items-center overflow-hidden">
@@ -94,11 +107,31 @@ function KRacing() {
         ref={wrapperRef}
         style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
       >
-        <canvas
+        <div className="relative">
+          <canvas
           ref={canvasRef}
           className="border border-white/20 rounded-2xl shadow-lg touch-none"
           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
         />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: 'kracing',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );

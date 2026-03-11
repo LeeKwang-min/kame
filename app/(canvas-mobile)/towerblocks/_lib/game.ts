@@ -41,6 +41,9 @@ export type TTowerBlocksCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupTowerBlocks = (
@@ -141,6 +144,10 @@ export const setupTowerBlocks = (
     gameOverHud.reset();
     initClouds();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   // --- Start ---
   const startGame = async () => {
@@ -356,6 +363,7 @@ export const setupTowerBlocks = (
   const triggerGameOver = () => {
     isGameOver = true;
     isStarted = false;
+    callbacks?.onGameOver?.(score);
   };
 
   // --- Camera ---
@@ -540,7 +548,9 @@ export const setupTowerBlocks = (
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -675,7 +685,7 @@ export const setupTowerBlocks = (
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   // --- Input Handlers ---
@@ -683,8 +693,10 @@ export const setupTowerBlocks = (
     if (e.repeat) return;
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -729,7 +741,9 @@ export const setupTowerBlocks = (
 
     // Game over: touch for SAVE/SKIP/restart
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, score);
+      }
       return;
     }
 
@@ -768,5 +782,8 @@ export const setupTowerBlocks = (
     canvas.removeEventListener('touchstart', handleTouchStart);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', resize);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

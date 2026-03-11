@@ -42,6 +42,9 @@ export type TSolitaireCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // ============================================================
@@ -351,6 +354,7 @@ export const setupSolitaire = (
       hasWon = true;
       score = Math.max(0, Math.floor(BASE_SCORE - elapsedSec * PENALTY_PER_SEC));
       state = 'gameover';
+      callbacks?.onGameOver?.(score);
     }
   };
 
@@ -423,6 +427,10 @@ export const setupSolitaire = (
     tableau = [0, 1, 2, 3, 4, 5, 6].map(i => ({ type: 'tableau', index: i, cards: [] }));
     gameOverHud.reset();
   };
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
 
   const toggleDrawMode = () => {
     drawMode = drawMode === 1 ? 3 : 1;
@@ -563,8 +571,10 @@ export const setupSolitaire = (
     }
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR') {
@@ -593,8 +603,10 @@ export const setupSolitaire = (
 
     // Game over: delegate to HUD
     if (state === 'gameover') {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
+        if (handled) return;
+      }
       return;
     }
 
@@ -1005,7 +1017,9 @@ export const setupSolitaire = (
     }
 
     if (state === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -1047,5 +1061,8 @@ export const setupSolitaire = (
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('mousedown', handleMouseDown);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

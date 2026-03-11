@@ -29,6 +29,9 @@ export type TSpaceColonyCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 function drawRoundRect(
@@ -341,6 +344,10 @@ export const setupSpaceColony = (
     lastTime = 0;
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(CANVAS_SIZE * dpr);
@@ -372,8 +379,10 @@ export const setupSpaceColony = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, calculateScore());
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, calculateScore());
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -421,7 +430,7 @@ export const setupSpaceColony = (
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handlePointerDown = (pos: { x: number; y: number }) => {
@@ -437,7 +446,9 @@ export const setupSpaceColony = (
     }
 
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, calculateScore());
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, calculateScore());
+      }
       return;
     }
 
@@ -503,6 +514,7 @@ export const setupSpaceColony = (
       if (timeRemaining <= 0) {
         timeRemaining = 0;
         isGameOver = true;
+        callbacks?.onGameOver?.(calculateScore());
         return;
       }
 
@@ -1097,7 +1109,9 @@ export const setupSpaceColony = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(calculateScore());
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(calculateScore());
+      }
       return;
     }
 
@@ -1126,5 +1140,8 @@ export const setupSpaceColony = (
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('mousedown', handleMouseDown);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

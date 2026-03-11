@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setupRhythmBeat, TRhythmBeatCallbacks } from '../_lib/game';
 import { CANVAS_WIDTH, MIN_CANVAS_HEIGHT, MAX_CANVAS_HEIGHT } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function RhythmBeat() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -15,6 +16,15 @@ function RhythmBeat() {
   const { mutateAsync: saveScore } = useCreateScore('rhythmbeat');
   const { mutateAsync: createSession } = useGameSession('rhythmbeat');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const getCanvasHeight = useCallback(() => {
     // 헤더(~56px) + 패딩(32px) + 갭(40px) + 여유(20px) = ~148px 오버헤드
@@ -73,6 +83,9 @@ function RhythmBeat() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     cleanupRef.current = setupRhythmBeat(canvas, canvasHeight, callbacks);
@@ -83,16 +96,36 @@ function RhythmBeat() {
         cleanupRef.current = null;
       }
     };
-  }, [saveScore, createSession, isLoggedIn, getCanvasHeight]);
+  }, [saveScore, createSession, isLoggedIn, getCanvasHeight, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
       <div>
         <div ref={wrapperRef}>
-          <canvas
-            ref={canvasRef}
-            className="border border-white/20 rounded-2xl shadow-lg touch-none"
-          />
+          <div className="relative">
+            <canvas
+              ref={canvasRef}
+              className="border border-white/20 rounded-2xl shadow-lg touch-none"
+            />
+            <GameOverAdOverlay
+              visible={showAdOverlay}
+              score={currentScore}
+              isLoggedIn={isLoggedIn}
+              onSave={async (score) => {
+                if (!sessionTokenRef.current) return { saved: false };
+                const result = await saveScore({
+                  gameType: 'rhythmbeat',
+                  score: Math.floor(score),
+                  sessionToken: sessionTokenRef.current,
+                });
+                sessionTokenRef.current = null;
+                return result;
+              }}
+              onSkip={closeOverlay}
+              onRestart={handleRestart}
+              onClose={closeOverlay}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -29,6 +29,9 @@ export type TStockTraderCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 function drawRoundRect(
@@ -336,6 +339,10 @@ export const setupStockTrader = (
     lastTime = 0;
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(CANVAS_SIZE * dpr);
@@ -367,8 +374,10 @@ export const setupStockTrader = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, calculateFinalScore());
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, calculateFinalScore());
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -418,7 +427,7 @@ export const setupStockTrader = (
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handlePointerDown = (pos: { x: number; y: number }) => {
@@ -434,7 +443,9 @@ export const setupStockTrader = (
     }
 
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, calculateFinalScore());
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, calculateFinalScore());
+      }
       return;
     }
 
@@ -518,6 +529,7 @@ export const setupStockTrader = (
       if (timeRemaining <= 0) {
         timeRemaining = 0;
         isGameOver = true;
+        callbacks?.onGameOver?.(calculateFinalScore());
         return;
       }
 
@@ -1107,7 +1119,9 @@ export const setupStockTrader = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(calculateFinalScore());
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(calculateFinalScore());
+      }
       return;
     }
 
@@ -1136,5 +1150,8 @@ export const setupStockTrader = (
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('mousedown', handleMouseDown);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

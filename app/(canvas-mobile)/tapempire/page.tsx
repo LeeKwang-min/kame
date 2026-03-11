@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import TapEmpire from './_components/tapempire';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'S / Tap', action: '게임 시작 / 재개' },

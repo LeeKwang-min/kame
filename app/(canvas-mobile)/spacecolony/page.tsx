@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import SpaceColony from './_components/spacecolony';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'S / Tap', action: '게임 시작 / 재개' },

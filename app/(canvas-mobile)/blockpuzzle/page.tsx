@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import BlockPuzzle from './_components/BlockPuzzle';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'Drag / Touch', action: '블록 배치' },

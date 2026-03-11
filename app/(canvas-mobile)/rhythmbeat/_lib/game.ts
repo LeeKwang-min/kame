@@ -38,6 +38,9 @@ export type TRhythmBeatCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupRhythmBeat(
@@ -121,6 +124,10 @@ export function setupRhythmBeat(
     recentPatternIndices = [];
     judgmentEffects = [];
     gameOverHud.reset();
+  }
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
   }
 
   // --- Start ---
@@ -311,6 +318,7 @@ export function setupRhythmBeat(
 
     if (hp <= 0) {
       isGameOver = true;
+      callbacks?.onGameOver?.(score);
     }
   }
 
@@ -517,7 +525,9 @@ export function setupRhythmBeat(
     }
 
     if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -573,8 +583,10 @@ export function setupRhythmBeat(
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (isStarted && !isGameOver && !isPaused) {
@@ -602,7 +614,7 @@ export function setupRhythmBeat(
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   }
 
   function handleTouchStart(e: TouchEvent) {
@@ -613,7 +625,9 @@ export function setupRhythmBeat(
       const touch = e.touches[0];
       if (!touch) return;
       const pos = getTouchPos(touch);
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, score);
+      }
       return;
     }
 
@@ -665,5 +679,8 @@ export function setupRhythmBeat(
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('touchend', handleTouchEnd);
     sound.dispose();
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

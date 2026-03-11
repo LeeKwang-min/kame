@@ -30,6 +30,9 @@ export type T2048Callbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setup2048 = (
@@ -100,6 +103,10 @@ export const setup2048 = (
     }
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
 
@@ -160,6 +167,7 @@ export const setup2048 = (
           gameState = 'won';
         } else if (!canMove(grid)) {
           gameState = 'gameover';
+          callbacks?.onGameOver?.(score);
         }
 
         animatedTiles = [];
@@ -188,8 +196,10 @@ export const setup2048 = (
 
     // 게임 오버 시 HUD 처리
     if (gameState === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     // 재시작 (게임 오버가 아닐 때만)
@@ -241,7 +251,7 @@ export const setup2048 = (
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -253,7 +263,9 @@ export const setup2048 = (
 
     // 게임 오버: 터치로 SAVE/SKIP/재시작 처리
     if (gameState === 'gameover') {
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, score);
+      }
       return;
     }
 
@@ -302,7 +314,7 @@ export const setup2048 = (
     return {
       x: CELL_GAP + col * (CELL_SIZE + CELL_GAP),
       y: CELL_GAP + row * (CELL_SIZE + CELL_GAP),
-    };
+    }
   };
 
   const renderBackground = () => {
@@ -429,7 +441,9 @@ export const setup2048 = (
       ctx.fillText('Tap or SPACE to continue', CANVAS_SIZE / 2, CANVAS_SIZE / 2 + 30);
       ctx.fillText('Press R to restart', CANVAS_SIZE / 2, CANVAS_SIZE / 2 + 65);
     } else if (gameState === 'gameover') {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -493,5 +507,8 @@ export const setup2048 = (
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('touchend', handleTouchEnd);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { setupQueens, TQueensCallbacks } from '../_lib/game';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 
 function Queens() {
@@ -14,6 +15,15 @@ function Queens() {
   const { mutateAsync: saveScore } = useCreateScore('queens');
   const { mutateAsync: createSession } = useGameSession('queens');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -60,10 +70,13 @@ function Queens() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupQueens(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
@@ -71,10 +84,30 @@ function Queens() {
         ref={wrapperRef}
         style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
       >
-        <canvas
+        <div className="relative">
+          <canvas
           ref={canvasRef}
           className="border border-white/20 rounded-2xl shadow-lg touch-none"
         />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: 'queens',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );

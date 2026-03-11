@@ -31,6 +31,9 @@ export type TGomokuCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 type TDifficultyOption = {
@@ -151,6 +154,10 @@ export const setupGomoku = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const handlePlayerMove = (bx: number, by: number) => {
     if (state !== 'playing' || currentTurn !== 1 || isAIThinking) return;
     if (board[by][bx] !== 0) return;
@@ -173,6 +180,7 @@ export const setupGomoku = (
       totalGames++;
       score = totalGames > 0 ? Math.round((wins / totalGames) * 1000) : 0;
       state = 'gameover';
+      callbacks?.onGameOver?.(score);
       return;
     }
 
@@ -286,8 +294,10 @@ export const setupGomoku = (
     }
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && state !== 'gameover') {
@@ -324,7 +334,7 @@ export const setupGomoku = (
     return {
       x: (touch.clientX - rect.left) * scaleX,
       y: (touch.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -351,8 +361,10 @@ export const setupGomoku = (
 
     // Game over: delegate to gameOverHud
     if (state === 'gameover') {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
+        if (handled) return;
+      }
       return;
     }
 
@@ -790,7 +802,9 @@ export const setupGomoku = (
       ctx.fillText(resultText, CANVAS_SIZE / 2, CANVAS_SIZE / 2 - 60);
       ctx.restore();
 
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -835,5 +849,8 @@ export const setupGomoku = (
     canvas.removeEventListener('mousemove', handleMouseMove);
     canvas.removeEventListener('mouseleave', handleMouseLeave);
     canvas.removeEventListener('click', handleClick);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

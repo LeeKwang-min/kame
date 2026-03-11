@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import Stairs from './_components/Stairs';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: '← → / Tap', action: '이동 방향 선택' },

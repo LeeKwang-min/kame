@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import TowerBlocks from './_components/TowerBlocks';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'Space / Tap', action: '블록 드롭' },

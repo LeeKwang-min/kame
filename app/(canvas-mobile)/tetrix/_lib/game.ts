@@ -40,6 +40,9 @@ export type TTetrisCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // --- 터치 컨트롤 상수 ---
@@ -170,6 +173,10 @@ export const setupTetris = (
     tSpinDisplayTimer = 0;
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
 
@@ -215,8 +222,10 @@ export const setupTetris = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -294,7 +303,7 @@ export const setupTetris = (
     return {
       x: (t.clientX - rect.left) * scaleX,
       y: (t.clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -319,8 +328,10 @@ export const setupTetris = (
 
     // 게임 오버 상태: 터치로 SAVE/SKIP/재시작 처리
     if (isGameOver) {
-      const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onTouchStart(pos.x, pos.y, score);
+        if (handled) return;
+      }
       return;
     }
 
@@ -568,6 +579,7 @@ export const setupTetris = (
 
     if (!isValidPosition(board, current)) {
       isGameOver = true;
+      callbacks?.onGameOver?.(score);
     }
   };
 
@@ -955,7 +967,9 @@ export const setupTetris = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
       return;
     }
 
@@ -987,5 +1001,8 @@ export const setupTetris = (
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('touchmove', handleTouchMove);
     canvas.removeEventListener('touchend', handleTouchEnd);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

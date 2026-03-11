@@ -23,6 +23,9 @@ export type TTapEmpireCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 // 둥근 사각형 헬퍼 (ctx.roundRect 미지원 대비)
@@ -250,6 +253,10 @@ export const setupTapEmpire = (
     lastTime = 0;
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
 
@@ -284,8 +291,10 @@ export const setupTapEmpire = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, calculateFinalScore(totalGold));
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, calculateFinalScore(totalGold));
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -324,7 +333,7 @@ export const setupTapEmpire = (
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handlePointerDown = (pos: { x: number; y: number }) => {
@@ -343,7 +352,9 @@ export const setupTapEmpire = (
 
     // 게임 오버 상태: SAVE/SKIP/재시작 처리
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, calculateFinalScore(totalGold));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, calculateFinalScore(totalGold));
+      }
       return;
     }
 
@@ -424,6 +435,7 @@ export const setupTapEmpire = (
       if (timeRemaining <= 0) {
         timeRemaining = 0;
         isGameOver = true;
+        callbacks?.onGameOver?.(calculateFinalScore(totalGold));
         return;
       }
 
@@ -768,7 +780,9 @@ export const setupTapEmpire = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(calculateFinalScore(totalGold));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(calculateFinalScore(totalGold));
+      }
       return;
     }
 
@@ -798,5 +812,8 @@ export const setupTapEmpire = (
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('mousedown', handleMouseDown);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

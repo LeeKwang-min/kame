@@ -27,6 +27,9 @@ export type TLemonadeStandCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 function drawRoundRect(
@@ -271,6 +274,10 @@ export const setupLemonadeStand = (
     lastTime = 0;
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(CANVAS_SIZE * dpr);
@@ -302,8 +309,10 @@ export const setupLemonadeStand = (
     }
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, Math.floor(totalGoldEarned));
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, Math.floor(totalGoldEarned));
+        if (handled) return;
+      }
     }
 
     if (e.code === 'KeyR' && !isGameOver && !isPaused) {
@@ -340,7 +349,7 @@ export const setupLemonadeStand = (
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
-    };
+    }
   };
 
   const handleRecipeTouch = (x: number, y: number) => {
@@ -401,7 +410,9 @@ export const setupLemonadeStand = (
     }
 
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, Math.floor(totalGoldEarned));
+      }
       return;
     }
 
@@ -470,6 +481,7 @@ export const setupLemonadeStand = (
       if (timeRemaining <= 0) {
         timeRemaining = 0;
         isGameOver = true;
+        callbacks?.onGameOver?.(Math.floor(totalGoldEarned));
         return;
       }
 
@@ -1119,7 +1131,9 @@ export const setupLemonadeStand = (
     }
 
     if (isGameOver) {
-      gameOverHud.render(Math.floor(totalGoldEarned));
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(Math.floor(totalGoldEarned));
+      }
       return;
     }
 
@@ -1148,5 +1162,8 @@ export const setupLemonadeStand = (
     window.removeEventListener('keydown', onKeyDown);
     canvas.removeEventListener('touchstart', handleTouchStart);
     canvas.removeEventListener('mousedown', handleMouseDown);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

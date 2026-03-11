@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import SuperHexagon from './_components/SuperHexagon';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: '← / A / Tap Left', action: '반시계 방향 회전' },

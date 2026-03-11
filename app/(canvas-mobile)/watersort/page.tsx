@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import WaterSort from './_components/WaterSort';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'Click / Tap', action: '비커 선택 / 물 붓기' },

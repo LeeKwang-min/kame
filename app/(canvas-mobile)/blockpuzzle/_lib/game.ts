@@ -40,6 +40,9 @@ export type TBlockPuzzleCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export const setupBlockPuzzle = (
@@ -310,6 +313,10 @@ export const setupBlockPuzzle = (
     gameOverHud.reset();
   };
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Start ---
   const startGame = async () => {
     if (isStarted || isLoading) return;
@@ -332,6 +339,7 @@ export const setupBlockPuzzle = (
   const triggerGameOver = () => {
     isGameOver = true;
     isStarted = false;
+    callbacks?.onGameOver?.(score);
   };
 
   // --- Update ---
@@ -381,7 +389,9 @@ export const setupBlockPuzzle = (
     } else if (isPaused) {
       gamePauseHud(canvas, ctx);
     } else if (isGameOver) {
-      gameOverHud.render(score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(score);
+      }
     }
   };
 
@@ -735,7 +745,9 @@ export const setupBlockPuzzle = (
 
     // 게임 오버: 터치로 SAVE/SKIP/재시작 처리
     if (isGameOver) {
-      gameOverHud.onTouchStart(pos.x, pos.y, score);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, score);
+      }
       return;
     }
 
@@ -760,7 +772,7 @@ export const setupBlockPuzzle = (
         offsetY: 0,
         currentX: pos.x,
         currentY: pos.y,
-      };
+      }
     }
   };
 
@@ -784,8 +796,10 @@ export const setupBlockPuzzle = (
     if (e.repeat) return;
 
     if (isGameOver) {
-      const handled = gameOverHud.onKeyDown(e, score);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, score);
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -834,5 +848,8 @@ export const setupBlockPuzzle = (
     canvas.removeEventListener('touchend', handleTouchEnd);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', resize);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 };

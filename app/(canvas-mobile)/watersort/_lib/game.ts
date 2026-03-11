@@ -33,6 +33,9 @@ export type TWaterSortCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupWaterSort(
@@ -120,6 +123,10 @@ export function setupWaterSort(
     particles = [];
     bounceTime = 0;
     gameOverHud.reset();
+  }
+
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
   }
 
   function startLevel(lvl: number) {
@@ -301,7 +308,9 @@ export function setupWaterSort(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      gameOverHud.onKeyDown(e, level - 1);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onKeyDown(e, level - 1);
+      }
       return;
     }
 
@@ -325,6 +334,7 @@ export function setupWaterSort(
     if (e.code === 'KeyR') {
       if (state === 'playing' && level > 1) {
         state = 'gameover';
+        callbacks?.onGameOver?.(level - 1);
       } else {
         resetGame();
       }
@@ -359,7 +369,9 @@ export function setupWaterSort(
     const pos = getTouchPos(e.touches[0]);
 
     if (state === 'gameover') {
-      gameOverHud.onTouchStart(pos.x, pos.y, level - 1);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, level - 1);
+      }
       return;
     }
     if (state === 'start') { void startGame(); return; }
@@ -633,7 +645,9 @@ export function setupWaterSort(
     if (state === 'gameover') {
       drawHud();
       drawBottles();
-      gameOverHud.render(level - 1);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(level - 1);
+      }
       return;
     }
 
@@ -675,5 +689,8 @@ export function setupWaterSort(
     canvas.removeEventListener('click', handleClick);
     canvas.removeEventListener('touchstart', handleTouchStart);
     cancelAnimationFrame(animationId);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setupSolitaire, TSolitaireCallbacks } from '../_lib/game';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function Solitaire() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,6 +15,15 @@ function Solitaire() {
   const { mutateAsync: saveScore } = useCreateScore('solitaire');
   const { mutateAsync: createSession } = useGameSession('solitaire');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -57,10 +67,13 @@ function Solitaire() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupSolitaire(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full flex justify-center">
@@ -68,11 +81,31 @@ function Solitaire() {
         ref={wrapperRef}
         style={{ width: CANVAS_WIDTH, minHeight: CANVAS_HEIGHT }}
       >
-        <canvas
+        <div className="relative">
+          <canvas
           ref={canvasRef}
           className="border border-white/20 rounded-2xl shadow-lg touch-none"
           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
         />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: 'solitaire',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );

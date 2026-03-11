@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import RhythmBeat from './_components/RhythmBeat';
+import { AnchorAd, SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'D F J K', action: '레인 입력' },

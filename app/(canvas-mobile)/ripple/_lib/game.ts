@@ -33,6 +33,9 @@ export type TRippleCallbacks = {
   onGameStart?: () => Promise<void>;
   onScoreSave: (score: number) => Promise<TSaveResult>;
   isLoggedIn?: boolean;
+  onGameOver?: (score: number) => void;
+  shouldShowAdRef?: { current: boolean };
+  restartRef?: { current: (() => void) | null };
 };
 
 export function setupRipple(
@@ -515,6 +518,10 @@ export function setupRipple(
     gameOverHud.reset();
   }
 
+  if (callbacks?.restartRef) {
+    callbacks.restartRef.current = resetGame;
+  }
+
   // --- Tutorial logic ---
   function startTutorial(): void {
     state = 'tutorial';
@@ -633,6 +640,7 @@ export function setupRipple(
         // Check game over after stone removed
         if (lives <= 0) {
           state = 'gameover';
+          callbacks?.onGameOver?.(totalScore);
         }
       }
     }
@@ -1360,7 +1368,9 @@ export function setupRipple(
     } else if (state === 'stageclear') {
       renderStageClear();
     } else if (state === 'gameover') {
-      gameOverHud.render(totalScore);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.render(totalScore);
+      }
     }
   }
 
@@ -1369,8 +1379,10 @@ export function setupRipple(
     if (e.repeat) return;
 
     if (state === 'gameover') {
-      const handled = gameOverHud.onKeyDown(e, totalScore);
-      if (handled) return;
+      if (!callbacks?.shouldShowAdRef?.current) {
+        const handled = gameOverHud.onKeyDown(e, totalScore);
+        if (handled) return;
+      }
     }
 
     switch (e.code) {
@@ -1497,7 +1509,9 @@ export function setupRipple(
     const pos = getTouchPos(touch);
 
     if (state === 'gameover') {
-      gameOverHud.onTouchStart(pos.x, pos.y, totalScore);
+      if (!callbacks?.shouldShowAdRef?.current) {
+        gameOverHud.onTouchStart(pos.x, pos.y, totalScore);
+      }
       return;
     }
 
@@ -1581,5 +1595,8 @@ export function setupRipple(
     canvas.removeEventListener('touchstart', handleTouchStart);
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', resize);
+    if (callbacks?.restartRef) {
+      callbacks.restartRef.current = null;
+    }
   };
 }

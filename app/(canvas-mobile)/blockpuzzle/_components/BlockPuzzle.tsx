@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setupBlockPuzzle, TBlockPuzzleCallbacks } from '../_lib/game';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function BlockPuzzle() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,6 +15,15 @@ function BlockPuzzle() {
   const { mutateAsync: saveScore } = useCreateScore('blockpuzzle');
   const { mutateAsync: createSession } = useGameSession('blockpuzzle');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -60,10 +70,13 @@ function BlockPuzzle() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setupBlockPuzzle(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full h-full flex justify-center">
@@ -71,10 +84,30 @@ function BlockPuzzle() {
         ref={wrapperRef}
         style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
       >
-        <canvas
+        <div className="relative">
+          <canvas
           ref={canvasRef}
           className="border border-white/20 rounded-2xl shadow-lg touch-none"
         />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: 'blockpuzzle',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );

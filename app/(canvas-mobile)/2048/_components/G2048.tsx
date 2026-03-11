@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { setup2048, T2048Callbacks } from '../_lib/game';
 import { CANVAS_SIZE } from '../_lib/config';
 import { useCreateScore, useGameSession } from '@/service/scores';
+import { GameOverAdOverlay, useGameOverAd } from '@/components/ads';
 
 function G2048() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,6 +15,15 @@ function G2048() {
   const { mutateAsync: saveScore } = useCreateScore('2048');
   const { mutateAsync: createSession } = useGameSession('2048');
   const isLoggedIn = !!session;
+  const {
+    showAdOverlay,
+    currentScore,
+    shouldShowAdRef,
+    restartRef,
+    onGameOver,
+    closeOverlay,
+    handleRestart,
+  } = useGameOverAd();
 
   const updateScale = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -57,10 +67,13 @@ function G2048() {
         return result;
       },
       isLoggedIn,
+      onGameOver,
+      shouldShowAdRef,
+      restartRef,
     };
 
     return setup2048(canvas, callbacks);
-  }, [saveScore, createSession, isLoggedIn]);
+  }, [saveScore, createSession, isLoggedIn, onGameOver, shouldShowAdRef, restartRef]);
 
   return (
     <div className="w-full flex justify-center">
@@ -68,11 +81,31 @@ function G2048() {
         ref={wrapperRef}
         style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
       >
-        <canvas
-          ref={canvasRef}
-          className="rounded-md touch-none"
-          style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
-        />
+        <div className="relative" style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}>
+          <canvas
+            ref={canvasRef}
+            className="rounded-md touch-none"
+            style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+          />
+          <GameOverAdOverlay
+            visible={showAdOverlay}
+            score={currentScore}
+            isLoggedIn={isLoggedIn}
+            onSave={async (score) => {
+              if (!sessionTokenRef.current) return { saved: false };
+              const result = await saveScore({
+                gameType: '2048',
+                score: Math.floor(score),
+                sessionToken: sessionTokenRef.current,
+              });
+              sessionTokenRef.current = null;
+              return result;
+            }}
+            onSkip={closeOverlay}
+            onRestart={handleRestart}
+            onClose={closeOverlay}
+          />
+        </div>
       </div>
     </div>
   );
