@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="s">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Platforms staggered upward -->
+  <rect x="12" y="92" width="46" height="10" rx="5" fill="white" fill-opacity="0.65" filter="url(#s)"/>
+  <rect x="50" y="70" width="44" height="10" rx="5" fill="white" fill-opacity="0.7" filter="url(#s)"/>
+  <rect x="22" y="48" width="42" height="10" rx="5" fill="white" fill-opacity="0.75" filter="url(#s)"/>
+  <!-- Character on middle platform -->
+  <!-- Body -->
+  <ellipse cx="45" cy="40" rx="8" ry="9" fill="white" fill-opacity="0.9" filter="url(#s)"/>
+  <!-- Head -->
+  <circle cx="45" cy="29" r="7" fill="white" fill-opacity="0.9" filter="url(#s)"/>
+  <!-- Eye -->
+  <circle cx="47" cy="28" r="2" fill="#3b82f6"/>
+  <!-- Up arrow -->
+  <polygon points="95,38 88,52 92,52 92,68 98,68 98,52 102,52" fill="white" fill-opacity="0.6"/>
+</svg>

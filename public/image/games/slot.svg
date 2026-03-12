@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Slot machine outer frame -->
+  <rect x="12" y="28" width="96" height="64" rx="8" fill="white" fill-opacity="0.25" filter="url(#shadow)"/>
+  <!-- 3 slot reel rectangles -->
+  <rect x="18" y="34" width="26" height="52" rx="5" fill="white" fill-opacity="0.55" filter="url(#shadow)"/>
+  <rect x="47" y="34" width="26" height="52" rx="5" fill="white" fill-opacity="0.55" filter="url(#shadow)"/>
+  <rect x="76" y="34" width="26" height="52" rx="5" fill="white" fill-opacity="0.55" filter="url(#shadow)"/>
+  <!-- "7" text in each reel -->
+  <text x="31" y="69" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" fill-opacity="0.9" text-anchor="middle" filter="url(#shadow)">7</text>
+  <text x="60" y="69" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" fill-opacity="0.9" text-anchor="middle" filter="url(#shadow)">7</text>
+  <text x="89" y="69" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" fill-opacity="0.9" text-anchor="middle" filter="url(#shadow)">7</text>
+  <!-- Win line indicator -->
+  <rect x="14" y="56" width="92" height="2" rx="1" fill="white" fill-opacity="0.5"/>
+  <!-- Pull lever on the right -->
+  <rect x="104" y="44" width="6" height="36" rx="3" fill="white" fill-opacity="0.6"/>
+  <circle cx="107" cy="44" r="5" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <!-- Top decoration -->
+  <rect x="30" y="18" width="60" height="10" rx="4" fill="white" fill-opacity="0.4"/>
+</svg>

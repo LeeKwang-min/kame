@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Falling letters at different vertical positions -->
+  <!-- Letter A - top left -->
+  <text x="18" y="40" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="white" fill-opacity="0.6" filter="url(#shadow)">A</text>
+  <!-- Letter K - top right -->
+  <text x="76" y="32" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="white" fill-opacity="0.5" filter="url(#shadow)">K</text>
+  <!-- Letter B - middle -->
+  <text x="46" y="68" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" fill-opacity="0.85" filter="url(#shadow)">B</text>
+  <!-- Letter C - lower left -->
+  <text x="14" y="92" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="white" fill-opacity="0.7" filter="url(#shadow)">C</text>
+  <!-- Letter Z - lower right -->
+  <text x="74" y="96" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" fill-opacity="0.55" filter="url(#shadow)">Z</text>
+  <!-- Bottom line (ground) -->
+  <rect x="14" y="104" width="92" height="4" rx="2" fill="white" fill-opacity="0.4"/>
+</svg>

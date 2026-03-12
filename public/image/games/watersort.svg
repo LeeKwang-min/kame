@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- 3 test tube shapes with colored liquid layers -->
+  <!-- Test tube 1 -->
+  <rect x="14" y="18" width="24" height="72" rx="12" fill="white" fill-opacity="0.2" filter="url(#shadow)"/>
+  <!-- Liquid layers in tube 1 -->
+  <rect x="14" y="54" width="24" height="18" rx="0" fill="white" fill-opacity="0.7"/>
+  <rect x="14" y="72" width="24" height="12" rx="0" fill="white" fill-opacity="0.5"/>
+  <rect x="14" y="84" width="24" height="6" rx="0" fill="white" fill-opacity="0.35"/>
+  <rect x="14" y="78" width="24" height="12" rx="0 0 12 12" fill="white" fill-opacity="0.35"/>
+  <!-- Tube outline -->
+  <rect x="14" y="18" width="24" height="72" rx="12" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="2"/>
+  <!-- Test tube 2 -->
+  <rect x="48" y="18" width="24" height="72" rx="12" fill="white" fill-opacity="0.2" filter="url(#shadow)"/>
+  <!-- Liquid layers in tube 2 -->
+  <rect x="48" y="36" width="24" height="18" rx="0" fill="white" fill-opacity="0.85"/>
+  <rect x="48" y="54" width="24" height="18" rx="0" fill="white" fill-opacity="0.55"/>
+  <rect x="48" y="72" width="24" height="18" rx="0 0 12 12" fill="white" fill-opacity="0.3"/>
+  <rect x="48" y="18" width="24" height="72" rx="12" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="2"/>
+  <!-- Test tube 3 -->
+  <rect x="82" y="18" width="24" height="72" rx="12" fill="white" fill-opacity="0.2" filter="url(#shadow)"/>
+  <!-- Liquid layers in tube 3 -->
+  <rect x="82" y="54" width="24" height="18" rx="0" fill="white" fill-opacity="0.9"/>
+  <rect x="82" y="72" width="24" height="18" rx="0 0 12 12" fill="white" fill-opacity="0.65"/>
+  <rect x="82" y="18" width="24" height="72" rx="12" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="2"/>
+  <!-- Pour arrow between tube 1 and 2 -->
+  <path d="M 38 40 Q 43 32 48 40" stroke="white" stroke-opacity="0.7" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <polyline points="44,37 48,40 45,44" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Go board background -->
+  <rect x="14" y="14" width="76" height="76" rx="4" fill="white" fill-opacity="0.25"/>
+  <!-- Go board grid lines (4x4 grid = 5 lines each direction) -->
+  <line x1="14" y1="33" x2="90" y2="33" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="14" y1="52" x2="90" y2="52" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="14" y1="71" x2="90" y2="71" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="33" y1="14" x2="33" y2="90" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="52" y1="14" x2="52" y2="90" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="71" y1="14" x2="71" y2="90" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <!-- Black stones (dark circles) -->
+  <circle cx="33" cy="33" r="7" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="52" cy="52" r="7" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="71" cy="33" r="7" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="52" cy="71" r="7" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <!-- White stones (outline circles) -->
+  <circle cx="52" cy="33" r="7" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.9"/>
+  <circle cx="33" cy="52" r="7" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.9"/>
+  <circle cx="71" cy="52" r="7" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.9"/>
+  <circle cx="71" cy="71" r="7" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.9"/>
+  <!-- Person icon 1 (bottom left) -->
+  <circle cx="22" cy="100" r="6" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <path d="M14,116 Q22,108 30,116" fill="white" fill-opacity="0.7"/>
+  <!-- Person icon 2 (bottom right) -->
+  <circle cx="98" cy="100" r="6" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <path d="M90,116 Q98,108 106,116" fill="white" fill-opacity="0.7"/>
+  <!-- VS text between the two person icons -->
+  <text x="60" y="112" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" fill-opacity="0.8" text-anchor="middle">VS</text>
+</svg>

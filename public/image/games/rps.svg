@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Rock (fist) - left circle -->
+  <circle cx="26" cy="72" r="16" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <!-- Knuckle lines on fist -->
+  <rect x="17" y="66" width="18" height="4" rx="2" fill="white" fill-opacity="0.4"/>
+  <rect x="17" y="72" width="18" height="4" rx="2" fill="white" fill-opacity="0.4"/>
+  <!-- Scissors - center V shape -->
+  <line x1="60" y1="80" x2="52" y2="52" stroke="white" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round" filter="url(#shadow)"/>
+  <line x1="60" y1="80" x2="68" y2="52" stroke="white" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round" filter="url(#shadow)"/>
+  <circle cx="60" cy="82" r="6" fill="white" fill-opacity="0.7"/>
+  <!-- Paper (open hand) - right -->
+  <rect x="82" y="50" width="24" height="36" rx="5" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <!-- Fingers on paper hand -->
+  <rect x="84" y="40" width="5" height="14" rx="2.5" fill="white" fill-opacity="0.75"/>
+  <rect x="91" y="37" width="5" height="16" rx="2.5" fill="white" fill-opacity="0.75"/>
+  <rect x="98" y="39" width="5" height="14" rx="2.5" fill="white" fill-opacity="0.75"/>
+  <!-- Labels below -->
+  <text x="26" y="100" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="white" fill-opacity="0.7" text-anchor="middle">ROCK</text>
+  <text x="60" y="100" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="white" fill-opacity="0.7" text-anchor="middle">SCIS</text>
+  <text x="94" y="100" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="white" fill-opacity="0.7" text-anchor="middle">PAPER</text>
+</svg>

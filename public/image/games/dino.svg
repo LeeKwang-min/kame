@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="s">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Ground line -->
+  <line x1="10" y1="90" x2="110" y2="90" stroke="white" stroke-width="2" stroke-opacity="0.4"/>
+  <!-- T-Rex silhouette -->
+  <!-- Body -->
+  <rect x="28" y="56" width="28" height="22" rx="4" fill="white" fill-opacity="0.85" filter="url(#s)"/>
+  <!-- Head -->
+  <rect x="46" y="38" width="24" height="18" rx="4" fill="white" fill-opacity="0.85" filter="url(#s)"/>
+  <!-- Neck connector -->
+  <rect x="48" y="52" width="10" height="8" fill="white" fill-opacity="0.85"/>
+  <!-- Snout extension -->
+  <rect x="66" y="44" width="12" height="9" rx="2" fill="white" fill-opacity="0.8"/>
+  <!-- Eye -->
+  <circle cx="64" cy="42" r="3" fill="#3b82f6"/>
+  <!-- Tiny arm -->
+  <rect x="52" y="62" width="8" height="6" rx="2" fill="white" fill-opacity="0.6" transform="rotate(20 56 65)"/>
+  <!-- Legs -->
+  <rect x="32" y="76" width="8" height="14" rx="2" fill="white" fill-opacity="0.85" filter="url(#s)"/>
+  <rect x="42" y="76" width="8" height="14" rx="2" fill="white" fill-opacity="0.7" filter="url(#s)"/>
+  <!-- Tail -->
+  <polygon points="28,64 10,72 28,74" fill="white" fill-opacity="0.7"/>
+  <!-- Cactus -->
+  <rect x="86" y="66" width="9" height="24" rx="2" fill="white" fill-opacity="0.7" filter="url(#s)"/>
+  <rect x="78" y="72" width="9" height="12" rx="2" fill="white" fill-opacity="0.65"/>
+  <rect x="95" y="74" width="8" height="10" rx="2" fill="white" fill-opacity="0.65"/>
+</svg>

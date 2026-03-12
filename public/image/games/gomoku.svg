@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- 5x5 grid lines -->
+  <!-- Vertical lines -->
+  <line x1="20" y1="20" x2="20" y2="100" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="40" y1="20" x2="40" y2="100" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="60" y1="20" x2="60" y2="100" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="80" y1="20" x2="80" y2="100" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="100" y1="20" x2="100" y2="100" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <!-- Horizontal lines -->
+  <line x1="20" y1="20" x2="100" y2="20" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="20" y1="40" x2="100" y2="40" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="20" y1="60" x2="100" y2="60" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="20" y1="80" x2="100" y2="80" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <line x1="20" y1="100" x2="100" y2="100" stroke="white" stroke-opacity="0.45" stroke-width="1.5"/>
+  <!-- Black stones (filled circles) at intersections -->
+  <circle cx="40" cy="40" r="9" fill="white" fill-opacity="0.15" filter="url(#shadow)"/>
+  <circle cx="40" cy="40" r="9" fill="#1a1a2e" fill-opacity="0.85"/>
+  <circle cx="60" cy="40" r="9" fill="#1a1a2e" fill-opacity="0.85"/>
+  <circle cx="80" cy="60" r="9" fill="#1a1a2e" fill-opacity="0.85"/>
+  <!-- White stones (white circles with border) at intersections -->
+  <circle cx="60" cy="60" r="9" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="40" cy="60" r="9" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="60" cy="80" r="9" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <!-- Small winning indicator (star) -->
+  <circle cx="80" cy="40" r="4" fill="white" fill-opacity="0.6"/>
+</svg>

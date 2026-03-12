@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Wheel outer ring -->
+  <circle cx="60" cy="68" r="44" fill="white" fill-opacity="0.15"/>
+  <circle cx="60" cy="68" r="44" fill="none" stroke="white" stroke-width="2" stroke-opacity="0.4"/>
+  <!-- 8 segments alternating opacities -->
+  <!-- Top segment -->
+  <path d="M60,68 L60,24 A44,44 0 0,1 91.1,46 Z" fill="white" fill-opacity="0.65"/>
+  <path d="M60,68 L91.1,46 A44,44 0 0,1 104,68 Z" fill="white" fill-opacity="0.4"/>
+  <path d="M60,68 L104,68 A44,44 0 0,1 91.1,90 Z" fill="white" fill-opacity="0.65"/>
+  <path d="M60,68 L91.1,90 A44,44 0 0,1 60,112 Z" fill="white" fill-opacity="0.4"/>
+  <path d="M60,68 L60,112 A44,44 0 0,1 28.9,90 Z" fill="white" fill-opacity="0.65"/>
+  <path d="M60,68 L28.9,90 A44,44 0 0,1 16,68 Z" fill="white" fill-opacity="0.4"/>
+  <path d="M60,68 L16,68 A44,44 0 0,1 28.9,46 Z" fill="white" fill-opacity="0.65"/>
+  <path d="M60,68 L28.9,46 A44,44 0 0,1 60,24 Z" fill="white" fill-opacity="0.4"/>
+  <!-- Segment dividers -->
+  <line x1="60" y1="68" x2="60" y2="24" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="91.1" y2="46" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="104" y2="68" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="91.1" y2="90" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="60" y2="112" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="28.9" y2="90" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="16" y2="68" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="60" y1="68" x2="28.9" y2="46" stroke="white" stroke-width="1" stroke-opacity="0.5"/>
+  <!-- Center hub -->
+  <circle cx="60" cy="68" r="7" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <!-- Pointer triangle at top -->
+  <polygon points="60,18 53,10 67,10" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+</svg>

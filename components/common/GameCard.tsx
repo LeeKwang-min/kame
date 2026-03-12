@@ -1,130 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { TMenu } from '@/@types/menus';
 import { cn } from '@/lib/utils';
-import {
-  Gamepad2,
-  Bug,
-  LayoutGrid,
-  Rocket,
-  Bird,
-  Dice6,
-  TrendingUp,
-  Target,
-  Footprints,
-  ArrowUpDown,
-  CircleDot,
-  Hand,
-  Circle,
-  Bomb,
-  Zap,
-  Ghost,
-  Grid3X3,
-  Lock,
-  Sparkles,
-  Cookie,
-  Ham,
-  TreePine,
-  Layers,
-  Sword,
-  Swords,
-  Crosshair,
-  Brain,
-  Grid2X2,
-  Keyboard,
-  Paintbrush,
-  Lightbulb,
-  PanelTop,
-  TableProperties,
-  Link2,
-  Compass,
-  Shield,
-  Grip,
-  Gem,
-  Plane,
-  ArrowDownToLine,
-  LayoutGrid as BlockGrid,
-  Crown,
-  Waves,
-  Spade,
-  Cherry,
-  CupSoda,
-  Hexagon,
-  Car,
-  Pencil,
-  Droplets,
-  Music,
-} from 'lucide-react';
+import { Lock } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { LucideIcon } from 'lucide-react';
 import { useLocale } from '@/provider/LocaleProvider';
-
-export const GAME_ICONS: Record<string, LucideIcon> = {
-  '/tetrix': Grid3X3,
-  '/snake': Bug,
-  '/kero33': Sparkles,
-  '/pacmaze': Cookie,
-  '/2048': Gamepad2,
-  '/burger': Ham,
-  '/endlessstairs': Footprints,
-  '/dodge': Target,
-  '/flappywings': Bird,
-  '/brickout': LayoutGrid,
-  '/asteroid': Rocket,
-  '/paddlerally': Circle,
-  '/dino': Footprints,
-  '/doodlehop': ArrowUpDown,
-  '/spaceraiders': Ghost,
-  '/missileguard': Bomb,
-  '/platformer': Zap,
-  '/enhance': TrendingUp,
-  '/slot': Dice6,
-  '/highlow': ArrowUpDown,
-  '/roulette': CircleDot,
-  '/rps': Hand,
-  '/roadcross': TreePine,
-  '/towerblocks': Layers,
-  '/fruitslash': Sword,
-  '/aimtrainer': Crosshair,
-  '/colormemory': Brain,
-  '/matchpairs': Grid2X2,
-  '/bubbleshooter': CircleDot,
-  '/typingfall': Keyboard,
-  '/colorflood': Paintbrush,
-  '/lightsout': Lightbulb,
-  '/slidingpuzzle': PanelTop,
-  '/nonogram': TableProperties,
-  '/numberchain': Link2,
-  '/minesweeper': Bomb,
-  '/maze': Compass,
-  '/randomdefense': Shield,
-  '/jellypop': Grip,
-  '/jewelcrush': Gem,
-  '/kustom': Swords,
-  '/survivors': Shield,
-  '/helicopter': Plane,
-  '/dropwell': ArrowDownToLine,
-  '/blockpuzzle': BlockGrid,
-  '/queens': Crown,
-  '/ripple': Waves,
-  '/solitaire': Spade,
-  '/suikagame': Cherry,
-  '/tapempire': Crown,
-  '/cookiebakery': Cookie,
-  '/lemonadestand': CupSoda,
-  '/dungeonmerchant': Sword,
-  '/stocktrader': TrendingUp,
-  '/spacecolony': Rocket,
-  '/hexaspin': Hexagon,
-  '/kracing': Car,
-  '/kracing2': Car,
-  '/ladder': Sparkles,
-  '/wheel': CircleDot,
-  '/whiteboard': Pencil,
-  '/watersort': Droplets,
-  '/gomoku': CircleDot,
-  '/rhythmbeat': Music,
-};
 
 interface IProps {
   menu: TMenu;
@@ -132,8 +14,8 @@ interface IProps {
 
 function GameCard({ menu }: IProps) {
   const { locale } = useLocale();
-  const Icon = GAME_ICONS[menu.href] || Gamepad2;
   const gameName = locale === 'ko' ? menu.name.kor : menu.name.eng;
+  const [imgSrc, setImgSrc] = useState(`/image/games/${menu.href.slice(1)}.svg`);
 
   if (menu.disabled) {
     return (
@@ -146,7 +28,14 @@ function GameCard({ menu }: IProps) {
           'transition-[border-color,box-shadow,opacity] duration-300',
         )}>
         <Lock className="absolute top-2 right-2 w-4 h-4 text-arcade-text/50" aria-hidden="true" />
-        <Icon className="w-12 h-12 text-arcade-text/30 mb-2" aria-hidden="true" />
+        <Image
+          src={imgSrc}
+          alt={gameName}
+          width={48}
+          height={48}
+          className="mb-2 grayscale opacity-30"
+          onError={() => setImgSrc('/image/games/default.svg')}
+        />
         <span className="text-sm font-bold text-arcade-text/50 text-center">
           {gameName}
         </span>
@@ -174,14 +63,17 @@ function GameCard({ menu }: IProps) {
             'group-hover:opacity-100 transition-opacity duration-300',
           )}
         />
-        <Icon
-          aria-hidden="true"
+        <Image
+          src={imgSrc}
+          alt={gameName}
+          width={48}
+          height={48}
           className={cn(
-            'w-12 h-12 mb-2 relative z-10',
-            'text-arcade-cyan/70',
-            'group-hover:text-arcade-cyan',
-            'transition-colors duration-300',
+            'mb-2 relative z-10 rounded-lg',
+            'group-hover:brightness-110',
+            'transition-[filter] duration-300',
           )}
+          onError={() => setImgSrc('/image/games/default.svg')}
         />
         <span
           className={cn(

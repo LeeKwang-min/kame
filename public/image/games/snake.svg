@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Snake body: 5 connected circles forming an S-curve -->
+  <!-- Tail segment -->
+  <circle cx="30" cy="80" r="10" fill="white" fill-opacity="0.5"/>
+  <!-- Body segment 3 -->
+  <circle cx="44" cy="68" r="11" fill="white" fill-opacity="0.6"/>
+  <!-- Body segment 2 -->
+  <circle cx="56" cy="56" r="11" fill="white" fill-opacity="0.7"/>
+  <!-- Body segment 1 -->
+  <circle cx="70" cy="46" r="12" fill="white" fill-opacity="0.8"/>
+  <!-- Head segment -->
+  <circle cx="86" cy="38" r="13" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <!-- Eyes on head -->
+  <circle cx="82" cy="34" r="3" fill="#ef4444" fill-opacity="0.9"/>
+  <circle cx="90" cy="34" r="3" fill="#ef4444" fill-opacity="0.9"/>
+  <circle cx="83" cy="33" r="1" fill="white" fill-opacity="0.8"/>
+  <circle cx="91" cy="33" r="1" fill="white" fill-opacity="0.8"/>
+  <!-- Apple -->
+  <circle cx="30" cy="38" r="9" fill="white" fill-opacity="0.6" filter="url(#shadow)"/>
+  <rect x="29" y="28" width="3" height="5" rx="1.5" fill="white" fill-opacity="0.7"/>
+</svg>

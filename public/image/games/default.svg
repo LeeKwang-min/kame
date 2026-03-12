@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Gamepad body -->
+  <rect x="20" y="38" width="80" height="44" rx="22" fill="white" fill-opacity="0.2" filter="url(#shadow)"/>
+  <!-- Left D-pad -->
+  <rect x="34" y="54" width="8" height="20" rx="2" fill="white" fill-opacity="0.7"/>
+  <rect x="28" y="60" width="20" height="8" rx="2" fill="white" fill-opacity="0.7"/>
+  <!-- Right buttons -->
+  <circle cx="78" cy="56" r="4" fill="white" fill-opacity="0.8"/>
+  <circle cx="86" cy="64" r="4" fill="white" fill-opacity="0.8"/>
+  <circle cx="78" cy="72" r="4" fill="white" fill-opacity="0.8"/>
+  <circle cx="70" cy="64" r="4" fill="white" fill-opacity="0.8"/>
+  <!-- Center buttons -->
+  <rect x="52" y="58" width="8" height="5" rx="2.5" fill="white" fill-opacity="0.5"/>
+  <rect x="62" y="58" width="8" height="5" rx="2.5" fill="white" fill-opacity="0.5"/>
+  <!-- Grips -->
+  <ellipse cx="34" cy="76" rx="10" ry="6" fill="white" fill-opacity="0.15"/>
+  <ellipse cx="86" cy="76" rx="10" ry="6" fill="white" fill-opacity="0.15"/>
+</svg>

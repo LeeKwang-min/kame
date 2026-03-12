@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Maze walls as lines (white) -->
+  <!-- Outer border -->
+  <rect x="14" y="14" width="92" height="92" rx="3" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="3"/>
+  <!-- Internal maze walls -->
+  <!-- Horizontal walls -->
+  <line x1="14" y1="37" x2="60" y2="37" stroke="white" stroke-opacity="0.7" stroke-width="3"/>
+  <line x1="37" y1="60" x2="83" y2="60" stroke="white" stroke-opacity="0.7" stroke-width="3"/>
+  <line x1="60" y1="83" x2="106" y2="83" stroke="white" stroke-opacity="0.7" stroke-width="3"/>
+  <!-- Vertical walls -->
+  <line x1="37" y1="37" x2="37" y2="83" stroke="white" stroke-opacity="0.7" stroke-width="3"/>
+  <line x1="83" y1="14" x2="83" y2="60" stroke="white" stroke-opacity="0.7" stroke-width="3"/>
+  <!-- Gap in outer border (entrance top-left) -->
+  <rect x="11" y="14" width="8" height="23" rx="0" fill="url(#bg)"/>
+  <!-- Gap in outer border (exit bottom-right) -->
+  <rect x="101" y="83" width="8" height="23" rx="0" fill="url(#bg)"/>
+  <!-- Arrow pointing toward exit -->
+  <line x1="90" y1="98" x2="106" y2="98" stroke="white" stroke-opacity="0.9" stroke-width="3" stroke-linecap="round"/>
+  <polyline points="100,93 106,98 100,103" fill="none" stroke="white" stroke-opacity="0.9" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

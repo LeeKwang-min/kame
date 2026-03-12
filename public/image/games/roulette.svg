@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Roulette wheel outer ring -->
+  <circle cx="60" cy="66" r="44" fill="white" fill-opacity="0.2" filter="url(#shadow)"/>
+  <circle cx="60" cy="66" r="42" fill="white" fill-opacity="0.1"/>
+  <!-- Wheel segments (alternating opacities like roulette) -->
+  <!-- Segment 1 (top) -->
+  <path d="M60,66 L60,24 A42,42 0 0,1 96.4,45 Z" fill="white" fill-opacity="0.7"/>
+  <!-- Segment 2 -->
+  <path d="M60,66 L96.4,45 A42,42 0 0,1 96.4,87 Z" fill="white" fill-opacity="0.4"/>
+  <!-- Segment 3 -->
+  <path d="M60,66 L96.4,87 A42,42 0 0,1 60,108 Z" fill="white" fill-opacity="0.7"/>
+  <!-- Segment 4 -->
+  <path d="M60,66 L60,108 A42,42 0 0,1 23.6,87 Z" fill="white" fill-opacity="0.4"/>
+  <!-- Segment 5 -->
+  <path d="M60,66 L23.6,87 A42,42 0 0,1 23.6,45 Z" fill="white" fill-opacity="0.7"/>
+  <!-- Segment 6 -->
+  <path d="M60,66 L23.6,45 A42,42 0 0,1 60,24 Z" fill="white" fill-opacity="0.4"/>
+  <!-- Divider lines -->
+  <line x1="60" y1="66" x2="60" y2="24" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  <line x1="60" y1="66" x2="96.4" y2="45" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  <line x1="60" y1="66" x2="96.4" y2="87" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  <line x1="60" y1="66" x2="60" y2="108" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  <line x1="60" y1="66" x2="23.6" y2="87" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  <line x1="60" y1="66" x2="23.6" y2="45" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  <!-- Center hub -->
+  <circle cx="60" cy="66" r="8" fill="white" fill-opacity="0.85" filter="url(#shadow)"/>
+  <!-- Pointer triangle at top -->
+  <polygon points="60,16 54,8 66,8" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+</svg>

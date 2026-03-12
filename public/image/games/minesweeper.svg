@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- 4x4 grid of cells -->
+  <!-- Row 1 -->
+  <rect x="10" y="10" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <rect x="35" y="10" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <rect x="60" y="10" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <rect x="87" y="10" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Row 2 -->
+  <rect x="10" y="35" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Flag cell -->
+  <rect x="35" y="35" width="23" height="23" rx="3" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <line x1="46" y1="42" x2="46" y2="54" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <polygon points="46,42 54,45 46,48" fill="#ef4444"/>
+  <rect x="60" y="35" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <text x="72" y="51" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#3b82f6">2</text>
+  <rect x="87" y="35" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Row 3 -->
+  <rect x="10" y="60" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <text x="22" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#10b981">1</text>
+  <rect x="35" y="60" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Mine cell -->
+  <rect x="60" y="60" width="23" height="23" rx="3" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="72" cy="72" r="6" fill="#1f2937"/>
+  <line x1="72" y1="64" x2="72" y2="80" stroke="#1f2937" stroke-width="2"/>
+  <line x1="64" y1="72" x2="80" y2="72" stroke="#1f2937" stroke-width="2"/>
+  <line x1="66" y1="66" x2="78" y2="78" stroke="#1f2937" stroke-width="2"/>
+  <line x1="78" y1="66" x2="66" y2="78" stroke="#1f2937" stroke-width="2"/>
+  <rect x="87" y="60" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Row 4 -->
+  <rect x="10" y="87" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <rect x="35" y="87" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <text x="47" y="103" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#ef4444">3</text>
+  <rect x="60" y="87" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <rect x="87" y="87" width="23" height="23" rx="3" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+</svg>

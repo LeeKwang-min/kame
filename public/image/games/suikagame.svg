@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Graduated circles from small to large (cherry → orange → watermelon) -->
+  <!-- Small circle (cherry) -->
+  <circle cx="22" cy="92" r="10" fill="white" fill-opacity="0.65" filter="url(#shadow)"/>
+  <!-- Cherry stem -->
+  <line x1="22" y1="82" x2="28" y2="72" stroke="white" stroke-opacity="0.7" stroke-width="2" stroke-linecap="round"/>
+  <!-- Medium-small circle -->
+  <circle cx="46" cy="88" r="15" fill="white" fill-opacity="0.72" filter="url(#shadow)"/>
+  <!-- Medium circle (orange) -->
+  <circle cx="74" cy="82" r="20" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Large circle (watermelon, top-right, partially visible) -->
+  <circle cx="100" cy="72" r="28" fill="white" fill-opacity="0.88" filter="url(#shadow)"/>
+  <!-- Watermelon stripe details -->
+  <line x1="85" y1="55" x2="78" y2="70" stroke="white" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+  <line x1="93" y1="50" x2="87" y2="65" stroke="white" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+  <line x1="101" y1="48" x2="96" y2="64" stroke="white" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+  <!-- Upward arrow (evolution indicator) -->
+  <line x1="60" y1="22" x2="60" y2="38" stroke="white" stroke-opacity="0.6" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4,3"/>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Sword blade -->
+  <polygon points="55,14 52,68 60,76 68,68 65,14" fill="white" fill-opacity="0.8" filter="url(#shadow)"/>
+  <!-- Sword crossguard -->
+  <rect x="42" y="68" width="36" height="8" rx="3" fill="white" fill-opacity="0.7" filter="url(#shadow)"/>
+  <!-- Sword grip -->
+  <rect x="56" y="76" width="8" height="16" rx="3" fill="white" fill-opacity="0.6" filter="url(#shadow)"/>
+  <!-- Gold coin 1 (large, right) -->
+  <circle cx="90" cy="50" r="16" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <text x="90" y="56" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#14b8a6" text-anchor="middle">G</text>
+  <!-- Gold coin 2 (medium, right lower) -->
+  <circle cx="84" cy="80" r="12" fill="white" fill-opacity="0.6" filter="url(#shadow)"/>
+  <text x="84" y="85" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#14b8a6" text-anchor="middle">G</text>
+  <!-- Gold coin 3 (small, right upper) -->
+  <circle cx="100" cy="74" r="9" fill="white" fill-opacity="0.5" filter="url(#shadow)"/>
+  <text x="100" y="78" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#14b8a6" text-anchor="middle">G</text>
+  <!-- Sparkle on coin -->
+  <circle cx="96" cy="44" r="2" fill="white" fill-opacity="0.8"/>
+  <circle cx="103" cy="48" r="1.5" fill="white" fill-opacity="0.7"/>
+</svg>

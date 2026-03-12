@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Fruit circle (orange-like) -->
+  <circle cx="60" cy="63" r="33" fill="white" fill-opacity="0.75" filter="url(#shadow)"/>
+  <!-- Fruit segments -->
+  <line x1="60" y1="30" x2="60" y2="96" stroke="white" stroke-width="1.5" stroke-opacity="0.4"/>
+  <line x1="27" y1="63" x2="93" y2="63" stroke="white" stroke-width="1.5" stroke-opacity="0.4"/>
+  <line x1="36" y1="40" x2="84" y2="86" stroke="white" stroke-width="1.5" stroke-opacity="0.4"/>
+  <line x1="84" y1="40" x2="36" y2="86" stroke="white" stroke-width="1.5" stroke-opacity="0.4"/>
+  <!-- Fruit stem -->
+  <line x1="60" y1="30" x2="65" y2="20" stroke="white" stroke-width="2.5" stroke-opacity="0.7" stroke-linecap="round"/>
+  <!-- Slash line across fruit -->
+  <line x1="20" y1="90" x2="95" y2="28" stroke="white" stroke-width="5" stroke-opacity="0.9" stroke-linecap="round" filter="url(#shadow)"/>
+</svg>

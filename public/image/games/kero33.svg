@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Central large sparkle/star -->
+  <path d="M60 22 L64 50 L92 54 L64 58 L60 86 L56 58 L28 54 L56 50 Z" fill="white" fill-opacity="0.9" filter="url(#shadow)"/>
+  <!-- Diagonal arms of central star -->
+  <path d="M60 22 L67 46 L84 36 L70 52 L92 54 L68 57 L80 76 L60 62 L40 76 L52 57 L28 54 L50 52 L36 36 L53 46 Z" fill="white" fill-opacity="0.5"/>
+  <!-- Small sparkle top-right -->
+  <path d="M90 22 L92 30 L100 32 L92 34 L90 42 L88 34 L80 32 L88 30 Z" fill="white" fill-opacity="0.75"/>
+  <!-- Small sparkle bottom-left -->
+  <path d="M26 76 L28 84 L36 86 L28 88 L26 96 L24 88 L16 86 L24 84 Z" fill="white" fill-opacity="0.65"/>
+  <!-- Tiny sparkle top-left -->
+  <path d="M22 28 L24 33 L29 35 L24 37 L22 42 L20 37 L15 35 L20 33 Z" fill="white" fill-opacity="0.55"/>
+  <!-- Tiny sparkle bottom-right -->
+  <path d="M96 82 L97.5 87 L103 88.5 L97.5 90 L96 95 L94.5 90 L89 88.5 L94.5 87 Z" fill="white" fill-opacity="0.6"/>
+</svg>

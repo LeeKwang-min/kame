@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="s">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Well/pit walls -->
+  <rect x="14" y="30" width="16" height="82" rx="3" fill="white" fill-opacity="0.55" filter="url(#s)"/>
+  <rect x="90" y="30" width="16" height="82" rx="3" fill="white" fill-opacity="0.55" filter="url(#s)"/>
+  <!-- Well bottom -->
+  <rect x="14" y="104" width="92" height="8" rx="3" fill="white" fill-opacity="0.65" filter="url(#s)"/>
+  <!-- Stacked blocks inside well -->
+  <rect x="24" y="86" width="72" height="16" rx="2" fill="white" fill-opacity="0.7" filter="url(#s)"/>
+  <rect x="30" y="68" width="60" height="16" rx="2" fill="white" fill-opacity="0.6" filter="url(#s)"/>
+  <!-- Falling block (currently in mid-air) -->
+  <rect x="36" y="34" width="48" height="18" rx="3" fill="white" fill-opacity="0.88" filter="url(#s)"/>
+  <!-- Down arrow (showing fall direction) -->
+  <polygon points="60,57 54,57 60,66 66,57" fill="white" fill-opacity="0.6"/>
+</svg>

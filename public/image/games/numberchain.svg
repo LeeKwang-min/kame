@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Curved connecting lines between circles -->
+  <path d="M 32 60 C 32 35, 60 35, 60 60" stroke="white" stroke-opacity="0.5" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 60 60 C 60 85, 88 85, 88 60" stroke="white" stroke-opacity="0.5" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Circle 1 -->
+  <circle cx="32" cy="60" r="20" fill="white" fill-opacity="0.85" filter="url(#shadow)"/>
+  <text x="32" y="66" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#10b981">1</text>
+  <!-- Circle 2 -->
+  <circle cx="60" cy="60" r="20" fill="white" fill-opacity="0.7" filter="url(#shadow)"/>
+  <text x="60" y="66" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#06b6d4">2</text>
+  <!-- Circle 3 -->
+  <circle cx="88" cy="60" r="20" fill="white" fill-opacity="0.55" filter="url(#shadow)"/>
+  <text x="88" y="66" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#10b981">3</text>
+</svg>

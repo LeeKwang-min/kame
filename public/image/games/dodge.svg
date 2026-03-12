@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="s">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#bg)"/>
+  <!-- Player circle (center) -->
+  <circle cx="60" cy="62" r="13" fill="white" fill-opacity="0.9" filter="url(#s)"/>
+  <circle cx="60" cy="62" r="7" fill="white" fill-opacity="0.4"/>
+  <!-- Projectiles scattered around -->
+  <circle cx="22" cy="30" r="7" fill="white" fill-opacity="0.7" filter="url(#s)"/>
+  <circle cx="95" cy="25" r="6" fill="white" fill-opacity="0.65" filter="url(#s)"/>
+  <circle cx="100" cy="78" r="8" fill="white" fill-opacity="0.7" filter="url(#s)"/>
+  <circle cx="18" cy="90" r="6" fill="white" fill-opacity="0.65" filter="url(#s)"/>
+  <circle cx="50" cy="15" r="5" fill="white" fill-opacity="0.55" filter="url(#s)"/>
+  <!-- Dodge arrows (left and right) -->
+  <polyline points="38,56 30,62 38,68" stroke="white" stroke-width="3" stroke-opacity="0.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="82,56 90,62 82,68" stroke="white" stroke-width="3" stroke-opacity="0.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
