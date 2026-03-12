@@ -92,7 +92,7 @@ export function GameOverAdOverlay({
           <p className="text-cyan-400 text-3xl font-bold font-mono">{Math.floor(score)}</p>
         </div>
 
-        {adsEnabled ? (
+        {adsEnabled && (
           <ins
             ref={adRef}
             className="adsbygoogle block"
@@ -100,10 +100,6 @@ export function GameOverAdOverlay({
             data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
             data-ad-slot={AD_SLOTS.gameover}
           />
-        ) : (
-          <div className="w-[300px] h-[250px] border border-dashed border-orange-400/40 rounded-lg flex items-center justify-center text-orange-400/60 text-xs">
-            Ad Placeholder (GameOver)
-          </div>
         )}
 
         <div className="flex gap-3">

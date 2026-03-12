@@ -34,11 +34,7 @@ export function AnchorAd() {
   if (!anchorVisible) return null;
 
   if (!adsEnabled) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-center border-t border-dashed border-orange-400/40 bg-arcade-bg/90 text-orange-400/60 text-xs py-2">
-        Ad Placeholder (Anchor)
-      </div>
-    );
+    return null;
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAds } from './AdProvider';
 import { AD_SLOTS } from './config';
+import { PromoBanner } from './PromoBanner';
 import { TAdSlot } from '@/@types/ads';
 
 type TSidebarAdProps = {
@@ -40,14 +41,7 @@ export function SidebarAd({ slot = 'sidebar-left', maxWidth = 288, className }: 
   if (adFailed) return null;
 
   if (!adsEnabled) {
-    return (
-      <div
-        className={`flex items-center justify-center border border-dashed border-orange-400/40 rounded-lg text-orange-400/60 text-xs aspect-square ${className ?? ''}`}
-        style={{ maxWidth }}
-      >
-        Ad Placeholder (Sidebar)
-      </div>
-    );
+    return <PromoBanner maxWidth={maxWidth} className={className} />;
   }
 
   return (

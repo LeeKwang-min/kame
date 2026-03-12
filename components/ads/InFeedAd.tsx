@@ -37,13 +37,7 @@ export function InFeedAd({ className }: TInFeedAdProps) {
   if (adFailed) return null;
 
   if (!adsEnabled) {
-    return (
-      <div
-        className={`w-full flex items-center justify-center border border-dashed border-orange-400/40 rounded-lg text-orange-400/60 text-xs py-3 ${className ?? ''}`}
-      >
-        Ad Placeholder (InFeed)
-      </div>
-    );
+    return null;
   }
 
   return (
