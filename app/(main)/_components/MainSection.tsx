@@ -5,6 +5,7 @@ import MainSearchBar from './MainSearchBar';
 import MainCategoryTabs from './MainCategoryTabs';
 import LoginSidebar from '@/components/auth/LoginSidebar';
 import { SidebarAd } from '@/components/ads';
+import KofiButton from '@/components/common/KofiButton';
 import MainBanner from './MainBanner';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -27,6 +28,7 @@ function MainSection() {
       <div className="hidden lg:flex flex-col gap-4 shrink-0">
         <LoginSidebar />
         <SidebarAd slot="sidebar-main" maxWidth={288} />
+        <KofiButton />
       </div>
       <div className="flex flex-col gap-3 sm:gap-4 grow min-w-0">
         <MainBanner />
