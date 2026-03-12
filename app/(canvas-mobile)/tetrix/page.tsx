@@ -15,7 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import Tetris from './_components/Tetris';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: '← →', action: '좌우 이동' },
@@ -97,6 +97,7 @@ function TetrisPage() {
       {/* 데스크탑: 조작법 (xl 이상에서만 표시) */}
       <aside className="hidden xl:block shrink-0 w-64">
         <ControlInfoTable controls={controls} />
+        <SidebarAd slot="sidebar-left" maxWidth={256} />
       </aside>
 
       {/* 게임 캔버스 (항상 표시) */}
@@ -107,6 +108,7 @@ function TetrisPage() {
       {/* 데스크탑: 랭킹 (xl 이상에서만 표시) */}
       <aside className="hidden xl:block shrink-0 w-64">
         <RankBoard data={scores} isLoading={isLoading} showCountry />
+        <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
   );

@@ -15,7 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import Minesweeper from './_components/Minesweeper';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'Click', action: '셀 열기' },

@@ -3,7 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 import Platformer from './_components/Platformer';
 
 const controls = [
@@ -18,7 +18,6 @@ function PlatformerPage() {
   const { data: scores = [], isLoading } = useGetScores('platformer');
 
   return (
-    <>
       <section className="w-full h-full flex gap-6 items-start">
       <aside className="shrink-0 w-64 space-y-4">
         <ControlInfoTable controls={controls} />
@@ -29,8 +28,6 @@ function PlatformerPage() {
         <Platformer />
       </div>
     </section>
-      <AnchorAd />
-    </>
   );
 }
 

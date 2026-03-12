@@ -15,7 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import StockTrader from './_components/stocktrader';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: 'S / Tap', action: '게임 시작 / 재개' },

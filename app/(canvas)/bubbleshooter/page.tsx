@@ -3,7 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 import BubbleShooter from './_components/BubbleShooter';
 
 const controls = [
@@ -19,7 +19,6 @@ function BubbleShooterPage() {
   const { data: scores = [], isLoading } = useGetScores('bubbleshooter');
 
   return (
-    <>
       <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-72">
         <ControlInfoTable controls={controls} />
@@ -33,8 +32,6 @@ function BubbleShooterPage() {
         <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
-      <AnchorAd />
-    </>
   );
 }
 

@@ -3,7 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 import RandomDefense from './_components/RandomDefense';
 
 const controls = [
@@ -23,7 +23,6 @@ function RandomDefensePage() {
   const { data: scores = [], isLoading } = useGetScores('randomdefense');
 
   return (
-    <>
       <section className="w-full h-full flex flex-col items-center">
       <div className="w-full max-w-[1200px]">
         <RandomDefense />
@@ -38,8 +37,6 @@ function RandomDefensePage() {
       </div>
       <SidebarAd slot="sidebar-left" maxWidth={1200} />
     </section>
-      <AnchorAd />
-    </>
   );
 }
 

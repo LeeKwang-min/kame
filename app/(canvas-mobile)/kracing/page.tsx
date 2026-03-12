@@ -15,7 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import KRacing from './_components/KRacing';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 
 const controls = [
   { key: '← →', action: '좌/우 회전' },

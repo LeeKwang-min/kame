@@ -14,7 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 import G2048 from './_components/G2048';
 
 const controls = [
@@ -29,7 +29,6 @@ function G2048Page() {
   const { data: scores = [], isLoading } = useGetScores('2048');
 
   return (
-    <>
     <section className="w-full h-full flex flex-col xl:flex-row gap-4 xl:gap-6 items-center xl:items-start justify-center">
       {/* 모바일/태블릿: 햄버거 메뉴 */}
       <div className="xl:hidden w-full flex justify-end px-2">
@@ -84,8 +83,6 @@ function G2048Page() {
         <SidebarAd slot="sidebar-right" maxWidth={256} />
       </aside>
     </section>
-    <AnchorAd />
-    </>
   );
 }
 

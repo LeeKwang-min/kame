@@ -3,7 +3,7 @@
 import ControlInfoTable from '@/components/common/ControlInfoTable';
 import RankBoard from '@/components/common/RankBoard';
 import { useGetScores } from '@/service/scores';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 import Kustom from './_components/Kustom';
 
 const controls = [
@@ -18,7 +18,6 @@ function KustomPage() {
   const { data: scores = [], isLoading } = useGetScores('kustom');
 
   return (
-    <>
       <section className="w-full h-full flex gap-6 items-start justify-center">
       <aside className="shrink-0 w-72 flex flex-col gap-6">
         <ControlInfoTable controls={controls} />
@@ -29,8 +28,6 @@ function KustomPage() {
         <Kustom />
       </div>
     </section>
-      <AnchorAd />
-    </>
   );
 }
 

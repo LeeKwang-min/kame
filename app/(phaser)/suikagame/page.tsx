@@ -8,7 +8,7 @@ import RankBoard from '@/components/common/RankBoard';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 import UserProfile from '@/components/auth/UserProfile';
 import { useGetScores } from '@/service/scores';
-import { AnchorAd, SidebarAd } from '@/components/ads';
+import { SidebarAd } from '@/components/ads';
 import {
   Sheet,
   SheetContent,
@@ -95,7 +95,6 @@ function SuikaGamePage() {
         <SidebarAd slot="sidebar-right" />
       </aside>
 
-      <AnchorAd />
     </section>
   );
 }
