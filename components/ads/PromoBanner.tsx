@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { PROMOS, TPromo } from './promos';
 
@@ -18,7 +18,7 @@ type TPromoBannerProps = {
 };
 
 export function PromoBanner({ maxWidth, className, exclude }: TPromoBannerProps) {
-  const promo = useMemo(() => getRandomPromo(exclude), [exclude]);
+  const [promo] = useState(() => getRandomPromo(exclude));
 
   const content = (
     <div
